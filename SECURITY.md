@@ -7,7 +7,7 @@ N’ouvrez pas d’issue publique pour un problème de sécurité. Contactez le 
 ## Bonnes pratiques de déploiement
 
 - Définir `AUTH_SECRET` avec au moins 16 caractères aléatoires (`openssl rand -hex 32`).
-- Ne jamais committer `.env`, `data/users.json`, `data/sessions.json` ni `data/hobbyhoops.db`.
+- Ne jamais committer `.env` ni `data/hobbyhoops.db` (ni ses fichiers WAL associés).
 - Exposer l’application derrière un reverse proxy HTTPS ; laisser `COOKIE_SECURE` par défaut ou forcer `true`.
 - Limiter l’accès réseau au conteneur (port bindé sur `127.0.0.1` dans `docker-compose.yml`).
 - Après le bootstrap initial, l’endpoint `/api/auth/bootstrap` renvoie 403 si un compte existe déjà.

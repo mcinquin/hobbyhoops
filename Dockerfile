@@ -32,15 +32,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=hobbyhoops:hobbyhoops /app/.next/standalone ./
 COPY --from=builder --chown=hobbyhoops:hobbyhoops /app/.next/static ./.next/static
 
-COPY --chown=hobbyhoops:hobbyhoops data/collection.json /app/data-seed/collection.json
-COPY --chown=hobbyhoops:hobbyhoops data/references.json /app/data-seed/references.json
-COPY --chown=hobbyhoops:hobbyhoops data/fr-nba.json /app/data-seed/fr-nba.json
-
-# Fichiers initiaux pour /app/data : copiés dans le volume au premier démarrage.
-RUN mkdir -p /app/data \
- && printf '[]\n' > /app/data/users.json \
- && printf '[]\n' > /app/data/sessions.json \
- && chown -R hobbyhoops:hobbyhoops /app/data
+RUN mkdir -p /app/data && chown hobbyhoops:hobbyhoops /app/data
 
 COPY --chmod=755 scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 

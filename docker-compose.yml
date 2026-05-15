@@ -17,7 +17,6 @@ services:
       # Cookie de session en HTTPS (true/false). Par défaut : true en production ou si X-Forwarded-Proto=https.
       # COOKIE_SECURE: "true"
     volumes:
-      # Persistance SQLite et seeds JSON (migration au premier démarrage).
-      # hobbyhoops.db, collection.json, references.json, fr-nba.json, users.json, sessions.json.
+      # Persistance SQLite + JSON (fichiers vides créés au premier démarrage si absents).
       - ./data:/app/data
     restart: unless-stopped

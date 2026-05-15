@@ -36,13 +36,3 @@ export interface References {
   protections: string[];
   storages: string[];
 }
-
-export interface FrenchPlayer {
-  name: string;
-  draftYear: number | null;
-  draftedBy: string;
-  hasRookieCard: boolean;
-  autoType: string | null;
-  hasPatch: boolean;
-  hasImmaculate: boolean;
-}
