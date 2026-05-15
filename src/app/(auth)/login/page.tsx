@@ -9,6 +9,7 @@ import { MIN_PASSWORD_LENGTH } from "@/lib/auth-validation";
 import { safeInternalRedirectPath } from "@/lib/safe-redirect";
 import { useTranslations } from "@/i18n/client";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { BrandMark } from "@/components/brand-mark";
 
 function LoginForm() {
   const router = useRouter();
@@ -102,9 +103,7 @@ function LoginForm() {
   return (
     <>
       <div className="text-center space-y-1 mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">
-          <span className="text-amber-500">Hobby</span>Hoops
-        </h1>
+        <BrandMark logoHeight={64} nameClassName="text-2xl" />
         <p className="text-xs text-muted-foreground mt-2 leading-snug">
           {t("brand.tagline")}
         </p>

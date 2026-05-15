@@ -16,8 +16,11 @@ interface DashboardChartsProps {
   cards: Card[];
 }
 
+/** Couleur des barres « par année » — aussi utilisée pour le libellé du tooltip au survol. */
+const CHART_COUNT_COLOR = "hsl(38, 92%, 50%)";
+
 const COLORS = [
-  "hsl(38, 92%, 50%)",
+  CHART_COUNT_COLOR,
   "hsl(220, 70%, 50%)",
   "hsl(142, 71%, 45%)",
   "hsl(0, 72%, 51%)",
@@ -26,6 +29,33 @@ const COLORS = [
   "hsl(220, 70%, 60%)",
   "hsl(142, 71%, 55%)",
 ];
+
+const tooltipCursor = { fill: "hsl(38, 92%, 50%, 0.12)" };
+
+function ChartTooltipContent({
+  active,
+  payload,
+  label,
+  cardsLabel,
+}: {
+  active?: boolean;
+  payload?: ReadonlyArray<{ value?: number | string }>;
+  label?: string | number;
+  cardsLabel: string;
+}) {
+  if (!active || !payload?.length) return null;
+  const value = payload[0]?.value;
+  return (
+    <div className="rounded-lg border border-[hsl(0,0%,20%)] bg-[hsl(0,0%,12%)] px-3 py-2 text-sm shadow-md">
+      {label ? (
+        <p className="mb-1 text-[hsl(0,0%,70%)]">{label}</p>
+      ) : null}
+      <p className="font-medium" style={{ color: CHART_COUNT_COLOR }}>
+        {cardsLabel} : {value}
+      </p>
+    </div>
+  );
+}
 
 export function DashboardCharts({ cards }: DashboardChartsProps) {
   const t = useTranslations();
@@ -88,11 +118,19 @@ export function DashboardCharts({ cards }: DashboardChartsProps) {
               tickLine={false}
             />
             <Tooltip
-              contentStyle={{
-                background: "hsl(0, 0%, 12%)",
-                border: "1px solid hsl(0, 0%, 20%)",
-                borderRadius: "8px",
-              }}
+              content={(props) => (
+                <ChartTooltipContent
+                  active={props.active}
+                  payload={
+                    props.payload as
+                      | ReadonlyArray<{ value?: number | string }>
+                      | undefined
+                  }
+                  label={props.label}
+                  cardsLabel={cardsLabel}
+                />
+              )}
+              cursor={tooltipCursor}
             />
             <Bar dataKey="count" name={cardsLabel} radius={[4, 4, 0, 0]}>
               {brandData.map((_, i) => (
@@ -124,13 +162,26 @@ export function DashboardCharts({ cards }: DashboardChartsProps) {
               tickLine={false}
             />
             <Tooltip
-              contentStyle={{
-                background: "hsl(0, 0%, 12%)",
-                border: "1px solid hsl(0, 0%, 20%)",
-                borderRadius: "8px",
-              }}
+              content={(props) => (
+                <ChartTooltipContent
+                  active={props.active}
+                  payload={
+                    props.payload as
+                      | ReadonlyArray<{ value?: number | string }>
+                      | undefined
+                  }
+                  label={props.label}
+                  cardsLabel={cardsLabel}
+                />
+              )}
+              cursor={tooltipCursor}
             />
-            <Bar dataKey="count" name={cardsLabel} fill="hsl(38, 92%, 50%)" radius={[4, 4, 0, 0]} />
+            <Bar
+              dataKey="count"
+              name={cardsLabel}
+              fill={CHART_COUNT_COLOR}
+              radius={[4, 4, 0, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -156,11 +207,19 @@ export function DashboardCharts({ cards }: DashboardChartsProps) {
               width={150}
             />
             <Tooltip
-              contentStyle={{
-                background: "hsl(0, 0%, 12%)",
-                border: "1px solid hsl(0, 0%, 20%)",
-                borderRadius: "8px",
-              }}
+              content={(props) => (
+                <ChartTooltipContent
+                  active={props.active}
+                  payload={
+                    props.payload as
+                      | ReadonlyArray<{ value?: number | string }>
+                      | undefined
+                  }
+                  label={props.label}
+                  cardsLabel={cardsLabel}
+                />
+              )}
+              cursor={tooltipCursor}
             />
             <Bar dataKey="count" name={cardsLabel} radius={[0, 4, 4, 0]}>
               {playerData.map((_, i) => (

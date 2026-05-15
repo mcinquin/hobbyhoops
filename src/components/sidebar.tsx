@@ -16,6 +16,7 @@ import { useTranslations } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { BrandMark } from "@/components/brand-mark";
 
 interface SidebarProps {
   username: string | null;
@@ -57,15 +58,13 @@ export function Sidebar({ username, onNavigate, className }: SidebarProps) {
       )}
     >
       <div className="p-6 border-b border-border">
-        <h1 className="text-lg font-bold tracking-tight">
-          <span className="text-amber-500">Hobby</span>Hoops
-        </h1>
-        <p className="text-xs text-muted-foreground mt-2 leading-snug">
+        <BrandMark logoHeight={52} className="w-full" />
+        <p className="text-xs text-muted-foreground mt-3 leading-snug text-center">
           {t("brand.tagline")}
         </p>
         {username && (
           <p
-            className="text-xs text-amber-500/90 mt-2 font-medium truncate"
+            className="text-xs text-amber-500/90 mt-2 font-medium truncate text-center"
             title={username}
           >
             {username}
