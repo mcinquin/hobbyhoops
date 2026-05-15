@@ -70,8 +70,17 @@ Le workflow `.github/workflows/ci.yml` exécute sur chaque push et pull request 
 - `npm ci` puis `npm run ci` (Node, ESLint, TypeScript, audit npm high+)
 - build de l’image Docker (job séparé, après la qualité)
 - push vers `ghcr.io/<organisation>/hobbyhoops` sur les pushes vers `main` ou `master`
+- sur **push vers `main` uniquement** : **semantic-release** (tag Git, release GitHub, `CHANGELOG.md`, bump de version dans `package.json`)
 
 En local, lancez la même commande avant de pousser : `npm run ci`.
+
+### Versions (semantic-release)
+
+Config : `release.config.cjs`. Les releases sont créées automatiquement après une CI réussie sur `main`, à partir des commits [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `refactor:`, etc.).
+
+- Fusionnez les PR en **squash** avec un titre conventionnel (ex. `feat: ajout du filtre collection`), ou poussez des commits conventionnels directement sur `main`.
+- Les merges du type `Merge pull request #12` ne déclenchent pas de version à eux seuls.
+- Dans les réglages du dépôt GitHub : **Settings → Actions → General → Workflow permissions** → *Read and write permissions* (requis pour que semantic-release pousse le tag et le commit de release).
 
 ## Pousser sur GitHub
 
