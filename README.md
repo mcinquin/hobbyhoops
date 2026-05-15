@@ -61,16 +61,16 @@ Le conteneur tourne sous l’utilisateur système **`hobbyhoops`** (UID/GID **11
 
 En production derrière un reverse proxy HTTPS, laisser `COOKIE_SECURE` à sa valeur par défaut ou forcez `COOKIE_SECURE=true`.
 
-Image CI (après push sur `main`) : `ghcr.io/mcinquin/hobbyhoops:latest`
+Image de production (après chaque release semantic-release) : `ghcr.io/<organisation>/hobbyhoops:latest`, `ghcr.io/<organisation>/hobbyhoops:1.2.0`, etc.
 
 ## CI GitHub Actions
 
 Le workflow `.github/workflows/ci.yml` exécute sur chaque push et pull request vers `main` ou `master` :
 
 - `npm ci` puis `npm run ci` (Node, ESLint, TypeScript, audit npm high+)
-- build de l’image Docker (job séparé, après la qualité)
-- push vers `ghcr.io/<organisation>/hobbyhoops` sur les pushes vers `main` ou `master`
-- sur **push vers `main` uniquement** : **semantic-release** (tag Git, release GitHub, `CHANGELOG.md`, bump de version dans `package.json`)
+- build de l’image Docker (validation sur `main`, push d’images de test sur les PR)
+- sur **push vers `main` uniquement** : **semantic-release** (tag Git `vX.Y.Z`, release GitHub, `CHANGELOG.md`, bump de `package.json`)
+- à chaque **GitHub Release publiée** : workflow `release-docker.yml` pousse `ghcr.io/<organisation>/hobbyhoops:X.Y.Z` et `:latest` (aligné sur le tag semantic-release)
 
 En local, lancez la même commande avant de pousser : `npm run ci`.
 
@@ -81,6 +81,7 @@ Config : `release.config.cjs`. Les releases sont créées automatiquement après
 - Fusionnez les PR en **squash** avec un titre conventionnel (ex. `feat: ajout du filtre collection`), ou poussez des commits conventionnels directement sur `main`.
 - Les merges du type `Merge pull request #12` ne déclenchent pas de version à eux seuls.
 - Dans les réglages du dépôt GitHub : **Settings → Actions → General → Workflow permissions** → *Read and write permissions* (requis pour que semantic-release pousse le tag et le commit de release).
+- L’image Docker `:latest` et `:X.Y.Z` correspondent au commit du tag Git `vX.Y.Z` créé par semantic-release (pas au SHA intermédiaire du push).
 
 ## Pousser sur GitHub
 
