@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, References } from "@/lib/types";
 import { AdminCardsSection } from "@/components/admin/admin-cards-section";
 import { AdminPlayersSection } from "@/components/admin/admin-players-section";
@@ -30,34 +30,61 @@ export default function AdminPage() {
     [t]
   );
 
-  useEffect(() => {
-    void loadData();
-  }, []);
+  const fetchAdminData = useCallback(async () => {
+    const fetchOpts = { credentials: "include" as const, cache: "no-store" as const };
+    const [cardsRes, refsRes] = await Promise.all([
+      fetch("/api/cards", fetchOpts),
+      fetch("/api/references", fetchOpts),
+    ]);
+    if (cardsRes.status === 401 || refsRes.status === 401) {
+      window.location.href = "/login";
+      return null;
+    }
+    if (!cardsRes.ok || !refsRes.ok) {
+      throw new Error(t("admin.loadFailed"));
+    }
+    return {
+      cards: (await cardsRes.json()) as Card[],
+      references: (await refsRes.json()) as References,
+    };
+  }, [t]);
 
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const fetchOpts = { credentials: "include" as const, cache: "no-store" as const };
     try {
-      const [cardsRes, refsRes] = await Promise.all([
-        fetch("/api/cards", fetchOpts),
-        fetch("/api/references", fetchOpts),
-      ]);
-      if (cardsRes.status === 401 || refsRes.status === 401) {
-        window.location.href = "/login";
-        return;
-      }
-      if (!cardsRes.ok || !refsRes.ok) {
-        throw new Error(t("admin.loadFailed"));
-      }
-      setCards(await cardsRes.json());
-      setReferences(await refsRes.json());
+      const data = await fetchAdminData();
+      if (!data) return;
+      setCards(data.cards);
+      setReferences(data.references);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("admin.loadError"));
     } finally {
       setLoading(false);
     }
-  }
+  }, [fetchAdminData, t]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const data = await fetchAdminData();
+        if (cancelled || !data) return;
+        setCards(data.cards);
+        setReferences(data.references);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : t("admin.loadError"));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchAdminData, t]);
 
   if (loading) {
     return (
