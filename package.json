@@ -14,8 +14,10 @@
     "prestart": "node scripts/check-node.mjs",
     "start": "next start",
     "lint": "eslint",
-    "clean": "node scripts/clean.mjs",
     "audit:ci": "npm audit --audit-level=high",
+    "ci": "node scripts/ci.mjs",
+    "check": "npm run ci",
+    "clean": "node scripts/clean.mjs",
     "prepare": "husky",
     "release": "semantic-release"
   },
