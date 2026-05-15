@@ -26,12 +26,8 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run lint
-
-      - run: npm run typecheck
-
-      - name: Audit des dépendances (niveau high+)
-        run: npm audit --audit-level=high
+      - name: Contrôles qualité (lint, typecheck, audit)
+        run: npm run ci
 
   docker:
     runs-on: ubuntu-latest

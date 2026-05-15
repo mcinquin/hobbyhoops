@@ -29,12 +29,13 @@ Fichiers de traduction : `messages/fr.json`, `messages/en.json`.
 ## Scripts utiles
 
 ```bash
+npm run ci         # même suite que la job GitHub « quality » (recommandé avant push)
+npm run check      # alias de npm run ci
 npm run lint
 npm run typecheck
 npm run build
 npm start
 npm run clean      # supprime .next, caches TypeScript, etc.
-npm run audit:ci
 ```
 
 ## Données
@@ -68,12 +69,11 @@ Image CI (après push sur `main`) : `ghcr.io/mcinquin/hobbyhoops:latest`
 
 Le workflow `.github/workflows/ci.yml` exécute sur chaque push et pull request vers `main` ou `master` :
 
-- installation des dépendances
-- lint
-- typecheck TypeScript
-- audit npm (niveau high+)
-- build de l’image Docker
+- `npm ci` puis `npm run ci` (Node, ESLint, TypeScript, audit npm high+)
+- build de l’image Docker (job séparé, après la qualité)
 - push vers `ghcr.io/<organisation>/hobbyhoops` sur les pushes vers `main` ou `master`
+
+En local, lancez la même commande avant de pousser : `npm run ci`.
 
 ## Pousser sur GitHub
 
@@ -87,6 +87,7 @@ git check-ignore -v data/users.json data/hobbyhoops.db .env.local
 Puis commit et push :
 
 ```bash
+npm run ci
 git add .
 git commit -m "feat: application HobbyHoops"
 git push origin main
@@ -96,5 +97,6 @@ Ne poussez jamais `.env`, `.env.local`, les comptes locaux ni la base SQLite de 
 
 ## Qualité du code
 
-- **Husky** : `pre-commit` (lint-staged) et `commit-msg` (commitlint conventional)
+- **`npm run ci`** : contrôles identiques à la CI (lint, typecheck, audit)
+- **Husky** : `pre-commit` (ESLint sur les fichiers stagés), `pre-push` (`npm run ci`), `commit-msg` (commitlint conventional)
 - **Dependabot** : mises à jour hebdomadaires npm et GitHub Actions

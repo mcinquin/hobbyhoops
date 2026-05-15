@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import type { SQLInputValue } from "node:sqlite";
 import type { Card, FrenchPlayer, References } from "./types";
 import { normalizeCardSerialFields } from "./card-serial";
 import { normalizeOpeningDate } from "./opening-date";
@@ -159,7 +160,7 @@ function rowToCard(row: Record<string, unknown>): Card {
   });
 }
 
-function cardToRow(card: Card): Record<string, unknown> {
+function cardToRow(card: Card): Record<string, SQLInputValue> {
   const normalized = normalizeCardSerialFields(card);
   return {
     id: normalized.id,

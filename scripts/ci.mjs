@@ -1,0 +1,41 @@
+#!/usr/bin/env node
+/**
+ * Quality gate unique — même séquence en local (`npm run ci`) et dans GitHub Actions.
+ */
+import { spawnSync } from "node:child_process";
+
+const steps = [
+  { name: "Node.js", command: "node", args: ["scripts/check-node.mjs"] },
+  { name: "ESLint", command: "npm", args: ["run", "lint"] },
+  { name: "TypeScript", command: "npm", args: ["run", "typecheck"] },
+  { name: "Audit npm (high+)", command: "npm", args: ["run", "audit:ci"] },
+];
+
+function runStep({ name, command, args }) {
+  console.log(`\n▶ ${name}`);
+  const result = spawnSync(command, args, {
+    stdio: "inherit",
+    env: process.env,
+  });
+  if (result.error) {
+    console.error(result.error.message);
+    return 1;
+  }
+  return result.status ?? 1;
+}
+
+let failed = false;
+for (const step of steps) {
+  const code = runStep(step);
+  if (code !== 0) {
+    failed = true;
+    break;
+  }
+}
+
+if (failed) {
+  console.error("\n✗ Contrôles CI échoués.");
+  process.exit(1);
+}
+
+console.log("\n✓ Tous les contrôles CI sont passés.");
