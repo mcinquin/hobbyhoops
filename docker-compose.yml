@@ -1,0 +1,23 @@
+services:
+  app:
+    build: .
+    user: "1111:1111"
+    security_opt:
+      - no-new-privileges:true
+    # Port accessible uniquement en local (pas depuis le réseau extérieur)
+    ports:
+      - "127.0.0.1:3000:3000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # Clé de signature des sessions (min. 16 caractères, obligatoire en production).
+      # Générer une valeur forte : openssl rand -hex 32
+      AUTH_SECRET: ${AUTH_SECRET}
+      # Cookie de session en HTTPS (true/false). Par défaut : true en production ou si X-Forwarded-Proto=https.
+      # COOKIE_SECURE: "true"
+    volumes:
+      # Persistance SQLite et seeds JSON (migration au premier démarrage).
+      # hobbyhoops.db, collection.json, references.json, fr-nba.json, users.json, sessions.json.
+      - ./data:/app/data
+    restart: unless-stopped
