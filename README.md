@@ -40,20 +40,18 @@ npm run clean      # supprime .next, caches TypeScript, etc.
 
 ## Données
 
-Les jeux de données initiaux sont versionnés dans `data/` (`collection.json`, `references.json`, `fr-nba.json`).
+Tout est stocké dans **`data/hobbyhoops.db`** (SQLite) : collection, références, comptes et sessions. Ce fichier et ses journaux WAL sont **locaux** et ne doivent **jamais** être commités.
 
-Au premier démarrage, SQLite migre ces fichiers vers `data/hobbyhoops.db`. Les fichiers suivants restent **locaux** et ne doivent **jamais** être commités :
-
-- `data/users.json`
-- `data/sessions.json`
-- `data/hobbyhoops.db` et fichiers WAL associés
+Au premier lancement, la base est créée vide ; créez le compte administrateur via l’écran de connexion.
 
 ## Déploiement Docker
+
+L’image Docker démarre avec une **collection vide** : seul un répertoire `data/` inscriptible est nécessaire (la base SQLite y est créée automatiquement).
 
 ```bash
 cp .env.example .env
 # Définir AUTH_SECRET dans .env
-sudo chown -R 1111:1111 data
+mkdir -p data && sudo chown -R 1111:1111 data
 docker compose up --build -d
 ```
 
@@ -81,7 +79,7 @@ Vérifier qu’aucun secret ni donnée locale ne sera versionné :
 
 ```bash
 git status
-git check-ignore -v data/users.json data/hobbyhoops.db .env.local
+git check-ignore -v data/hobbyhoops.db .env.local
 ```
 
 Puis commit et push :

@@ -1,8 +1,7 @@
-import { Card, References, FrenchPlayer } from "./types";
+import { Card, References } from "./types";
 import {
   getDatabaseHealth,
   readAllCards,
-  readFrenchPlayers,
   readReferencesState,
   replaceAllCards,
   writeReferencesState,
@@ -68,11 +67,11 @@ export function getCollection(): Card[] {
 }
 
 /** Lit les références persistées (sans enrichissement collection). */
-export function loadReferencesFromDisk(): References {
+export function loadReferences(): References {
   return readReferencesState();
 }
 
-export async function saveReferencesToDisk(refs: References): Promise<void> {
+export async function saveReferences(refs: References): Promise<void> {
   writeReferencesState(refs);
 }
 
@@ -127,12 +126,8 @@ export function enrichReferencesWithCollection(
 
 /** Références pour l’UI : fichier enrichi avec la collection courante. */
 export function getReferences(): References {
-  const base = loadReferencesFromDisk();
+  const base = loadReferences();
   return enrichReferencesWithCollection(base, getCollection());
-}
-
-export function getFrenchPlayers(): FrenchPlayer[] {
-  return readFrenchPlayers();
 }
 
 export async function saveCollection(cards: Card[]): Promise<void> {
@@ -141,7 +136,7 @@ export async function saveCollection(cards: Card[]): Promise<void> {
 
 export function getDataHealth(): {
   ok: boolean;
-  files: Record<string, boolean>;
+  data: Record<string, boolean>;
 } {
   return getDatabaseHealth();
 }
