@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/mcinquin/hobbyhoops/compare/v1.0.0...v1.1.0) (2026-05-15)
+
+
+### Features
+
+* **design:** add logo and favicon ([e417c48](https://github.com/mcinquin/hobbyhoops/commit/e417c486f6d565d45ce3638e7cdd35f69ebb90f7))
+
 # 1.0.0 (2026-05-15)
 
 
