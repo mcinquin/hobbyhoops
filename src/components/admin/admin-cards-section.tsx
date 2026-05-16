@@ -21,6 +21,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { AdminFeedback } from "@/components/admin/admin-feedback";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { useTranslations } from "@/i18n/client";
 
@@ -157,6 +158,7 @@ export function AdminCardsSection({
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Card | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [playerColumnFilter, setPlayerColumnFilter] = useState("");
   const [teamColumnFilter, setTeamColumnFilter] = useState("");
@@ -285,6 +287,7 @@ export function AdminCardsSection({
 
   async function handleSave(cardData: Partial<Card>): Promise<boolean> {
     setSaveError(null);
+    setSuccess(null);
     try {
       if (editingCard) {
         const res = await fetch("/api/cards", {
@@ -305,6 +308,7 @@ export function AdminCardsSection({
         await refreshCards();
         setEditingCard(null);
         setFormOpen(false);
+        setSuccess(t("admin.cards.updated"));
         return true;
       }
 
@@ -338,6 +342,7 @@ export function AdminCardsSection({
       await refreshCards();
       setEditingCard(null);
       setFormOpen(false);
+      setSuccess(t("admin.cards.created"));
       return true;
     } catch {
       setSaveError(t("admin.cards.saveFailed"));
@@ -347,12 +352,14 @@ export function AdminCardsSection({
 
   async function handleDelete() {
     if (!deleteTarget) return;
+    setSuccess(null);
     const res = await fetch(`/api/cards?id=${deleteTarget.id}`, {
       method: "DELETE",
       credentials: "include",
     });
     if (res.ok) {
       onCardsChange(cards.filter((c) => c.id !== deleteTarget.id));
+      setSuccess(t("admin.cards.deleted"));
     }
     setDeleteTarget(null);
   }
@@ -375,6 +382,7 @@ export function AdminCardsSection({
           onClick={() => {
             setEditingCard(null);
             setSaveError(null);
+            setSuccess(null);
             setFormOpen(true);
           }}
         >
@@ -382,6 +390,12 @@ export function AdminCardsSection({
           {t("admin.cards.addCard")}
         </Button>
       </div>
+
+      <AdminFeedback
+        success={success}
+        error={saveError}
+        onSuccessDismiss={() => setSuccess(null)}
+      />
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

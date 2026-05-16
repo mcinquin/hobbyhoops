@@ -167,6 +167,8 @@
     "brandNameRequired": "Enter a brand name.",
     "brandBeforeSet": "Choose or enter a brand before adding a set.",
     "setNameRequired": "Enter a set name.",
+    "brandAdded": "Brand added.",
+    "setAdded": "Set added.",
     "updateFailed": "Update failed.",
     "addCard": "Add card",
     "placeholderBrand": "e.g. Topps",
@@ -219,6 +221,9 @@
       "deleteTitle": "Delete card",
       "deleteConfirm": "Permanently delete this card? This cannot be undone.",
       "saveFailed": "Save failed.",
+      "created": "Card added.",
+      "updated": "Card updated.",
+      "deleted": "Card deleted.",
       "pageInfo": "Page {page} of {total} ({count} cards)",
       "deleteConfirmNamed": "Delete {player} — {variation}?"
     },
@@ -234,7 +239,8 @@
       "referenced": "{count} referenced players",
       "shown": "· {count} shown",
       "noneFound": "No players found.",
-      "nameRequired": "Enter a player name."
+      "nameRequired": "Enter a player name.",
+      "added": "Player added."
     },
     "clubs": {
       "intro": "Add NBA teams to the reference list, one at a time or by pasting from a CSV or spreadsheet.",
@@ -243,6 +249,7 @@
       "shown": "· {count} shown",
       "noneFound": "No teams found.",
       "nameRequired": "Enter a team name.",
+      "added": "Team added.",
       "batchDescSpreadsheet": "One team per line, or a \"team\" / \"club\" column.",
       "batchPlaceholder": "San Antonio Spurs\nOklahoma City Thunder\nteam\nLos Angeles Lakers",
       "placeholder": "e.g. San Antonio Spurs"
@@ -255,6 +262,7 @@
       "noneFound": "No years found.",
       "valueRequired": "Enter a year or season.",
       "invalidFormat": "Invalid format (e.g. 2004 or 2001-02).",
+      "added": "Year added.",
       "batchDescSpreadsheet": "One year or season per line, or a \"year\" column.",
       "batchPlaceholder": "2004\n2001-02\nyear\n2024-25",
       "placeholder": "e.g. 2004 or 2001-02"
@@ -276,12 +284,16 @@
       "setNamePlaceholder": "Set name",
       "variationBrandPlaceholder": "Brand (filters sets)",
       "variationSetPlaceholder": "Set",
+      "brandAdded": "Brand added.",
+      "setAdded": "Set added.",
+      "variationAdded": "Variation added.",
       "batchBrandsPlaceholder": "Panini\nTopps\nbrand\nUpper Deck",
       "batchSetsPlaceholder": "Panini;Prizm\nTopps,Chrome\nbrand;set\nPanini;Select",
       "batchVariationsPlaceholder": "Prizm;RC Silver Prizm\nSelect,Base\nset;variation\nPrizm;Gold /10"
     },
     "batch": {
       "empty": "Paste or type at least one line.",
+      "importDone": "Import complete.",
       "importPending": "Importing…",
       "importList": "Import list"
     }

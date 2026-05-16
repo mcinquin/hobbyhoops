@@ -18,6 +18,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { AdminFeedback } from "@/components/admin/admin-feedback";
 import { useTranslations } from "@/i18n/client";
 import { patchReferences } from "@/lib/references-client";
 
@@ -107,7 +108,7 @@ function CardFormCombobox({
   }
 
   return (
-    <div className="relative">
+    <div className="relative w-full">
       <Input
         id={inputId}
         value={value}
@@ -150,12 +151,13 @@ function CardFormCombobox({
         aria-expanded={open && visibleSuggestions.length > 0}
         aria-controls={listboxId}
         aria-autocomplete="list"
+        className="w-full"
       />
       {open && visibleSuggestions.length > 0 && !disabled && (
         <div
           id={listboxId}
           role="listbox"
-          className="absolute left-0 right-0 top-full z-30 mt-1 max-h-56 overflow-auto rounded-md border border-border bg-popover p-1 text-xs shadow-lg"
+          className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 min-w-full overflow-auto rounded-lg border border-input bg-popover p-1 text-sm text-popover-foreground shadow-lg"
         >
           {visibleSuggestions.map((suggestion, index) => (
             <button
@@ -163,7 +165,7 @@ function CardFormCombobox({
               type="button"
               role="option"
               aria-selected={index === activeIndex}
-              className="block w-full rounded px-2 py-1.5 text-left hover:bg-accent aria-selected:bg-accent"
+              className="block w-full rounded-md px-2.5 py-1.5 text-left leading-5 hover:bg-accent hover:text-accent-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
               onMouseDown={(event) => {
                 event.preventDefault();
                 selectSuggestion(suggestion);
@@ -291,6 +293,7 @@ function CardFormFields({
   const [newBrand, setNewBrand] = useState("");
   const [newSet, setNewSet] = useState("");
   const [refError, setRefError] = useState<string | null>(null);
+  const [refSuccess, setRefSuccess] = useState<string | null>(null);
   const [addingBrand, setAddingBrand] = useState(false);
   const [addingSet, setAddingSet] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -314,9 +317,11 @@ function CardFormFields({
     const validationError = validateCardWritePayload(payload);
     if (validationError) {
       setRefError(t(validationError));
+      setRefSuccess(null);
       return;
     }
     setRefError(null);
+    setRefSuccess(null);
     setSaving(true);
     try {
       const saved = await onSave(payload as Partial<Card>);
@@ -362,15 +367,18 @@ function CardFormFields({
     const name = newBrand.trim();
     if (!name) {
       setRefError(t("cards.brandNameRequired"));
+      setRefSuccess(null);
       return;
     }
     setRefError(null);
+    setRefSuccess(null);
     setAddingBrand(true);
     try {
       await patchReferences({ action: "addBrand", brand: name });
       await onReferencesUpdated();
       setNewBrand("");
       update("brand", name);
+      setRefSuccess(t("cards.brandAdded"));
     } catch (err) {
       setRefError(
         err instanceof Error && err.message ? err.message : t("errors.updateFailed")
@@ -386,19 +394,23 @@ function CardFormFields({
     const setName = newSet.trim();
     if (!brand) {
       setRefError(t("cards.brandBeforeSet"));
+      setRefSuccess(null);
       return;
     }
     if (!setName) {
       setRefError(t("cards.setNameRequired"));
+      setRefSuccess(null);
       return;
     }
     setRefError(null);
+    setRefSuccess(null);
     setAddingSet(true);
     try {
       await patchReferences({ action: "addSet", brand, set: setName });
       await onReferencesUpdated();
       setNewSet("");
       update("set", setName);
+      setRefSuccess(t("cards.setAdded"));
     } catch (err) {
       setRefError(
         err instanceof Error && err.message ? err.message : t("errors.updateFailed")
@@ -657,11 +669,11 @@ function CardFormFields({
             </div>
           </div>
 
-          {(saveError || refError) && (
-            <p className="text-sm text-destructive" role="alert">
-              {saveError ?? refError}
-            </p>
-          )}
+          <AdminFeedback
+            success={refSuccess}
+            error={saveError ?? refError}
+            onSuccessDismiss={() => setRefSuccess(null)}
+          />
 
           <div className="flex flex-wrap gap-6 pt-2">
             <div className="flex items-center gap-2">
