@@ -1,9 +1,9 @@
-import { DatabaseSync } from "node:sqlite";
+import Database from "better-sqlite3";
 
-export type AppDatabase = DatabaseSync;
+export type AppDatabase = Database.Database;
 
 export function createDatabase(filePath: string): AppDatabase {
-  return new DatabaseSync(filePath);
+  return new Database(filePath);
 }
 
 export function runInTransaction<T>(db: AppDatabase, fn: () => T): T {

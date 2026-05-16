@@ -7,7 +7,11 @@ import {
   SESSION_MAX_AGE_SEC,
 } from "@/lib/auth-session";
 import { getSessionFromRequest, unauthorized } from "@/lib/auth-api";
-import { normalizeUsername, validateNewPassword } from "@/lib/auth-validation";
+import {
+  normalizeUsername,
+  profileUpdateSchema,
+  validateNewPassword,
+} from "@/lib/auth-validation";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import {
   findUserById,
@@ -16,32 +20,31 @@ import {
   saveUsers,
 } from "@/lib/users-store";
 import { deleteAllStoredSessionsForUser } from "@/lib/session-store";
+import { rejectCrossSiteMutation } from "@/lib/request-guard";
 
 export async function PUT(request: NextRequest) {
   const session = getSessionFromRequest(request);
   if (!session) return unauthorized(request);
+  const crossSite = rejectCrossSiteMutation(request);
+  if (crossSite) return crossSite;
 
   const t = getRequestTranslator(request);
 
-  let body: {
-    currentPassword?: string;
-    newUsername?: string;
-    newPassword?: string;
-  };
+  let body: unknown;
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: t("errors.invalidRequest") }, { status: 400 });
   }
 
-  const currentPassword =
-    typeof body.currentPassword === "string" ? body.currentPassword : "";
-  if (!currentPassword) {
+  const parsed = profileUpdateSchema.safeParse(body);
+  if (!parsed.success) {
     return NextResponse.json(
       { error: t("errors.profileCurrentRequired") },
       { status: 400 }
     );
   }
+  const { currentPassword } = parsed.data;
 
   const users = getUsers();
   const user = findUserById(session.userId);
@@ -57,9 +60,10 @@ export async function PUT(request: NextRequest) {
   }
 
   const newUsernameRaw =
-    typeof body.newUsername === "string" ? body.newUsername.trim() : "";
-  const newPassword =
-    typeof body.newPassword === "string" ? body.newPassword : "";
+    typeof parsed.data.newUsername === "string"
+      ? parsed.data.newUsername.trim()
+      : "";
+  const newPassword = parsed.data.newPassword ?? "";
 
   if (!newUsernameRaw && !newPassword) {
     return NextResponse.json(

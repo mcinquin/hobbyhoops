@@ -1,12 +1,14 @@
 # ── Étape 1 : dépendances ─────────────────────────────────────────────────────
-FROM node:24-alpine AS deps
+FROM node:24-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc34884a665f40a06dbdfc94f AS deps
 WORKDIR /app
 
+RUN apk add --no-cache python3 make g++
+
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts
+RUN HUSKY=0 npm ci
 
 # ── Étape 2 : build ───────────────────────────────────────────────────────────
-FROM node:24-alpine AS builder
+FROM node:24-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc34884a665f40a06dbdfc94f AS builder
 WORKDIR /app
 
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -17,8 +19,10 @@ COPY . .
 RUN npm run build
 
 # ── Étape 3 : image de production ─────────────────────────────────────────────
-FROM node:24-alpine AS runner
+FROM node:24-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc34884a665f40a06dbdfc94f AS runner
 WORKDIR /app
+
+RUN apk add --no-cache libstdc++
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

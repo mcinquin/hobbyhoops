@@ -45,6 +45,15 @@ export function AdminCardsSection({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const pageSize = 30;
+  const badgeLabels = useMemo(
+    () => ({
+      rookie: t("badges.rookie"),
+      autograph: t("badges.autograph"),
+      memorabilia: t("badges.memorabilia"),
+      tradable: t("badges.tradable"),
+    }),
+    [t]
+  );
 
   const filtered = useMemo(() => {
     if (!search) return cards;
@@ -209,7 +218,7 @@ export function AdminCardsSection({
                   {card.variation}
                 </TableCell>
                 <TableCell>
-                  <CardBadges card={card} />
+                  <CardBadges card={card} labels={badgeLabels} />
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-1">
@@ -217,6 +226,9 @@ export function AdminCardsSection({
                       variant="ghost"
                       size="sm"
                       className="h-7 w-7 p-0"
+                      aria-label={t("admin.cards.editCard", {
+                        player: card.player,
+                      })}
                       onClick={() => {
                         setEditingCard(card);
                         setSaveError(null);
@@ -229,6 +241,9 @@ export function AdminCardsSection({
                       variant="ghost"
                       size="sm"
                       className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                      aria-label={t("admin.cards.deleteCard", {
+                        player: card.player,
+                      })}
                       onClick={() => setDeleteTarget(card)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />

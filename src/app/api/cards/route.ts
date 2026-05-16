@@ -10,6 +10,7 @@ import {
   formatZodError,
 } from "@/lib/card-schema";
 import { getRequestTranslator } from "@/i18n/request";
+import { rejectCrossSiteMutation } from "@/lib/request-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const gate = requireAuth(request);
   if (gate instanceof NextResponse) return gate;
+  const crossSite = rejectCrossSiteMutation(request);
+  if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
 
   let body: unknown;
@@ -65,6 +68,8 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   const gate = requireAuth(request);
   if (gate instanceof NextResponse) return gate;
+  const crossSite = rejectCrossSiteMutation(request);
+  if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
 
   let body: unknown;
@@ -97,6 +102,8 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const gate = requireAuth(request);
   if (gate instanceof NextResponse) return gate;
+  const crossSite = rejectCrossSiteMutation(request);
+  if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");

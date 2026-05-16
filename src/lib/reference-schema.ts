@@ -2,6 +2,7 @@ import { z } from "zod";
 import { LABEL_MAX, REFERENCE_YEAR_REGEX } from "./reference-mutations";
 
 const label = z.string().trim().min(1).max(LABEL_MAX);
+const REFERENCE_BATCH_MAX = 500;
 
 const brandSetEntrySchema = z
   .object({
@@ -24,8 +25,8 @@ const year = z
   .max(16)
   .regex(REFERENCE_YEAR_REGEX, "errors.yearInvalid");
 
-const labelsArray = z.array(label).min(1);
-const yearsArray = z.array(year).min(1);
+const labelsArray = z.array(label).min(1).max(REFERENCE_BATCH_MAX);
+const yearsArray = z.array(year).min(1).max(REFERENCE_BATCH_MAX);
 
 export const referencePatchSchema = z.discriminatedUnion("action", [
   z
@@ -50,7 +51,7 @@ export const referencePatchSchema = z.discriminatedUnion("action", [
   z
     .object({
       action: z.literal("addSets"),
-      entries: z.array(brandSetEntrySchema).min(1),
+      entries: z.array(brandSetEntrySchema).min(1).max(REFERENCE_BATCH_MAX),
     })
     .strict(),
   z
@@ -63,7 +64,7 @@ export const referencePatchSchema = z.discriminatedUnion("action", [
   z
     .object({
       action: z.literal("addVariations"),
-      entries: z.array(setVariationEntrySchema).min(1),
+      entries: z.array(setVariationEntrySchema).min(1).max(REFERENCE_BATCH_MAX),
     })
     .strict(),
   z

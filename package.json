@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "private": true,
   "engines": {
-    "node": ">=22.5.0"
+    "node": ">=24 <25"
   },
   "scripts": {
     "predev": "node scripts/check-node.mjs",
@@ -16,6 +16,7 @@
     "lint": "eslint",
     "audit:ci": "npm audit --audit-level=high",
     "ci": "node scripts/ci.mjs",
+    "ci:full": "node scripts/ci.mjs --with-audit",
     "check": "npm run ci",
     "clean": "node scripts/clean.mjs",
     "prepare": "husky",
@@ -27,8 +28,10 @@
   "dependencies": {
     "@base-ui/react": "^1.4.1",
     "@tanstack/react-table": "^8.21.3",
+    "better-sqlite3": "^12.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "csv-parse": "^6.2.1",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
     "react": "19.2.6",
@@ -45,7 +48,8 @@
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^12.0.8",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^25",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^24.12.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9.39.0",

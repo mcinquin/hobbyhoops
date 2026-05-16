@@ -29,6 +29,12 @@ function formatAddedDate(value: string | null): string {
 export function CardDetail({ card, open, onClose }: CardDetailProps) {
   const t = useTranslations();
   const salesQuery = cardComparableSalesQuery(card);
+  const badgeLabels = {
+    rookie: t("badges.rookie"),
+    autograph: t("badges.autograph"),
+    memorabilia: t("badges.memorabilia"),
+    tradable: t("badges.tradable"),
+  };
   const details = [
     { label: t("cards.teamLabel"), value: card.team },
     { label: t("cards.yearLabel"), value: card.year },
@@ -48,7 +54,7 @@ export function CardDetail({ card, open, onClose }: CardDetailProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 flex-wrap">
             <span>{card.player}</span>
-            <CardBadges card={card} />
+            <CardBadges card={card} labels={badgeLabels} />
           </DialogTitle>
           <p className="text-sm text-muted-foreground font-normal pt-1">
             {card.openingDate ? (

@@ -16,6 +16,7 @@ const PUBLIC_API_PREFIXES = [
   "/api/auth/bootstrap",
   "/api/auth/needs-bootstrap",
   "/api/health",
+  "/api/locale",
 ];
 
 function nextWithCsp(request: NextRequest): NextResponse {

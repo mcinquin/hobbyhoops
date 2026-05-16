@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export function normalizeUsername(raw: string): string | null {
   const u = raw.trim();
   if (u.length < 3 || u.length > 32) return null;
@@ -18,3 +20,36 @@ export function validateNewPassword(p: string): AuthValidationError | null {
   }
   return null;
 }
+
+const usernameSchema = z
+  .string()
+  .transform((value) => normalizeUsername(value))
+  .refine((value): value is string => value !== null, {
+    message: "errors.bootstrapUsernameInvalid",
+  });
+
+export const loginSchema = z
+  .object({
+    username: usernameSchema,
+    password: z.string().min(1, "errors.loginRequired"),
+  })
+  .strict();
+
+export const bootstrapSchema = z
+  .object({
+    username: usernameSchema,
+    password: z.string().min(1, "errors.loginRequired"),
+  })
+  .strict();
+
+export const profileUpdateSchema = z
+  .object({
+    currentPassword: z.string().min(1, "errors.profileCurrentRequired"),
+    newUsername: z.string().optional(),
+    newPassword: z.string().optional(),
+  })
+  .strict();
+
+export type LoginInput = z.infer<typeof loginSchema>;
+export type BootstrapInput = z.infer<typeof bootstrapSchema>;
+export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
