@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/mcinquin/hobbyhoops/compare/v1.4.0...v1.4.1) (2026-05-16)
+
+
+### Bug Fixes
+
+* **reference:** fix reference link issue ([a6c0ce6](https://github.com/mcinquin/hobbyhoops/commit/a6c0ce632829e9d24f85e12de8bf2c421f816e4f))
+
 # [1.4.0](https://github.com/mcinquin/hobbyhoops/compare/v1.3.0...v1.4.0) (2026-05-16)
 
 
