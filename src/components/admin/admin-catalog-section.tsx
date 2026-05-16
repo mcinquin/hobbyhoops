@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { References } from "@/lib/types";
 import {
   parseBrandSetRows,
@@ -20,6 +20,154 @@ interface AdminCatalogSectionProps {
   onReferencesChange: (references: References) => void;
 }
 
+interface CatalogComboboxProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  suggestions: string[];
+  disabled?: boolean;
+}
+
+function uniqueSorted(values: string[]): string[] {
+  return Array.from(
+    new Set(values.map((value) => value.trim()).filter(Boolean))
+  ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+}
+
+function setsLinkedToBrand(references: References, brand: string): string[] {
+  const query = brand.trim().toLowerCase();
+  if (!query) return references.sets;
+
+  const exactBrand = references.brands.find(
+    (item) => item.toLowerCase() === query
+  );
+  if (exactBrand) {
+    return references.brandSets[exactBrand] ?? [];
+  }
+
+  return uniqueSorted(
+    references.brands
+      .filter((item) => item.toLowerCase().includes(query))
+      .flatMap((item) => references.brandSets[item] ?? [])
+  );
+}
+
+function variationsLinkedToSet(references: References, setName: string): string[] {
+  const query = setName.trim().toLowerCase();
+  if (!query) return references.variations;
+
+  const exactSet = references.sets.find((item) => item.toLowerCase() === query);
+  if (exactSet) {
+    return references.setVariations[exactSet] ?? [];
+  }
+
+  return uniqueSorted(
+    references.sets
+      .filter((item) => item.toLowerCase().includes(query))
+      .flatMap((item) => references.setVariations[item] ?? [])
+  );
+}
+
+function CatalogCombobox({
+  value,
+  onChange,
+  placeholder,
+  suggestions,
+  disabled,
+}: CatalogComboboxProps) {
+  const inputId = useId();
+  const listboxId = `${inputId}-listbox`;
+  const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const query = value.trim().toLowerCase();
+  const visibleSuggestions = useMemo(
+    () =>
+      suggestions
+        .filter((suggestion) => suggestion.toLowerCase().includes(query))
+        .slice(0, 8),
+    [query, suggestions]
+  );
+
+  function selectSuggestion(nextValue: string): void {
+    onChange(nextValue);
+    setOpen(false);
+    setActiveIndex(0);
+  }
+
+  return (
+    <div className="relative">
+      <Input
+        id={inputId}
+        value={value}
+        onChange={(event) => {
+          onChange(event.target.value);
+          setOpen(true);
+          setActiveIndex(0);
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+        onKeyDown={(event) => {
+          if (!open && ["ArrowDown", "ArrowUp"].includes(event.key)) {
+            setOpen(true);
+            return;
+          }
+          if (event.key === "Escape") {
+            setOpen(false);
+            return;
+          }
+          if (visibleSuggestions.length === 0) return;
+          if (event.key === "ArrowDown") {
+            event.preventDefault();
+            setActiveIndex((index) => (index + 1) % visibleSuggestions.length);
+          }
+          if (event.key === "ArrowUp") {
+            event.preventDefault();
+            setActiveIndex(
+              (index) =>
+                (index - 1 + visibleSuggestions.length) %
+                visibleSuggestions.length
+            );
+          }
+          if (event.key === "Enter" && open) {
+            event.preventDefault();
+            selectSuggestion(visibleSuggestions[activeIndex]);
+          }
+        }}
+        placeholder={placeholder}
+        disabled={disabled}
+        role="combobox"
+        aria-expanded={open && visibleSuggestions.length > 0}
+        aria-controls={listboxId}
+        aria-autocomplete="list"
+      />
+      {open && visibleSuggestions.length > 0 && !disabled && (
+        <div
+          id={listboxId}
+          role="listbox"
+          className="absolute left-0 right-0 top-full z-30 mt-1 max-h-56 overflow-auto rounded-md border border-border bg-popover p-1 text-xs shadow-lg"
+        >
+          {visibleSuggestions.map((suggestion, index) => (
+            <button
+              key={suggestion}
+              type="button"
+              role="option"
+              aria-selected={index === activeIndex}
+              className="block w-full rounded px-2 py-1.5 text-left hover:bg-accent aria-selected:bg-accent"
+              onMouseDown={(event) => {
+                event.preventDefault();
+                selectSuggestion(suggestion);
+              }}
+              onMouseEnter={() => setActiveIndex(index)}
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function AdminCatalogSection({
   references,
   onReferencesChange,
@@ -28,22 +176,26 @@ export function AdminCatalogSection({
   const [brand, setBrand] = useState("");
   const [brandForSet, setBrandForSet] = useState("");
   const [setName, setSetName] = useState("");
+  const [brandForVariation, setBrandForVariation] = useState("");
   const [setForVariation, setSetForVariation] = useState("");
   const [variation, setVariation] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const setsForBrand = useMemo(() => {
-    const key = brandForSet.trim();
-    if (!key) return [];
-    return references.brandSets[key] ?? [];
-  }, [references.brandSets, brandForSet]);
+  const setsForBrand = useMemo(
+    () => setsLinkedToBrand(references, brandForSet),
+    [references, brandForSet]
+  );
 
-  const variationsForSet = useMemo(() => {
-    const key = setForVariation.trim();
-    if (!key) return [];
-    return references.setVariations[key] ?? [];
-  }, [references.setVariations, setForVariation]);
+  const setsForVariationBrand = useMemo(
+    () => setsLinkedToBrand(references, brandForVariation),
+    [references, brandForVariation]
+  );
+
+  const variationsForSet = useMemo(
+    () => variationsLinkedToSet(references, setForVariation),
+    [references, setForVariation]
+  );
 
   async function run(action: () => Promise<References>) {
     setError(null);
@@ -119,35 +271,22 @@ export function AdminCatalogSection({
         <TabsContent value="sets" className="space-y-4 pt-4">
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="space-y-3 rounded-lg border border-border p-4">
-              <Label htmlFor="admin-set-brand">{t("admin.players.unitAdd")}</Label>
+              <Label>{t("admin.players.unitAdd")}</Label>
               <div className="space-y-2">
-                <Input
-                  id="admin-set-brand"
-                  list="admin-brands-list"
+                <CatalogCombobox
                   value={brandForSet}
-                  onChange={(e) => setBrandForSet(e.target.value)}
+                  onChange={setBrandForSet}
                   placeholder={t("admin.catalog.setBrandPlaceholder")}
+                  suggestions={references.brands}
                   disabled={loading}
                 />
-                <datalist id="admin-brands-list">
-                  {references.brands.map((item) => (
-                    <option key={item} value={item} />
-                  ))}
-                </datalist>
-                <Input
-                  list={setsForBrand.length > 0 ? "admin-sets-list" : undefined}
+                <CatalogCombobox
                   value={setName}
-                  onChange={(e) => setSetName(e.target.value)}
+                  onChange={setSetName}
                   placeholder={t("admin.catalog.setNamePlaceholder")}
+                  suggestions={setsForBrand}
                   disabled={loading}
                 />
-                {setsForBrand.length > 0 && (
-                  <datalist id="admin-sets-list">
-                    {setsForBrand.map((item) => (
-                      <option key={item} value={item} />
-                    ))}
-                  </datalist>
-                )}
                 <Button
                   type="button"
                   disabled={loading}
@@ -186,35 +325,29 @@ export function AdminCatalogSection({
         <TabsContent value="variations" className="space-y-4 pt-4">
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="space-y-3 rounded-lg border border-border p-4">
-              <Label htmlFor="admin-variation-set">{t("admin.players.unitAdd")}</Label>
+              <Label>{t("admin.players.unitAdd")}</Label>
               <div className="space-y-2">
-                <Input
-                  id="admin-variation-set"
-                  list="admin-variation-sets-list"
+                <CatalogCombobox
+                  value={brandForVariation}
+                  onChange={setBrandForVariation}
+                  placeholder={t("admin.catalog.variationBrandPlaceholder")}
+                  suggestions={references.brands}
+                  disabled={loading}
+                />
+                <CatalogCombobox
                   value={setForVariation}
-                  onChange={(e) => setSetForVariation(e.target.value)}
+                  onChange={setSetForVariation}
                   placeholder={t("admin.catalog.variationSetPlaceholder")}
+                  suggestions={setsForVariationBrand}
                   disabled={loading}
                 />
-                <datalist id="admin-variation-sets-list">
-                  {references.sets.map((item) => (
-                    <option key={item} value={item} />
-                  ))}
-                </datalist>
-                <Input
-                  list={variationsForSet.length > 0 ? "admin-variations-list" : undefined}
+                <CatalogCombobox
                   value={variation}
-                  onChange={(e) => setVariation(e.target.value)}
+                  onChange={setVariation}
                   placeholder={t("admin.catalog.variationPlaceholder")}
+                  suggestions={variationsForSet}
                   disabled={loading}
                 />
-                {variationsForSet.length > 0 && (
-                  <datalist id="admin-variations-list">
-                    {variationsForSet.map((item) => (
-                      <option key={item} value={item} />
-                    ))}
-                  </datalist>
-                )}
                 <Button
                   type="button"
                   disabled={loading}
