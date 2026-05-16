@@ -274,6 +274,7 @@
       "brandPlaceholder": "e.g. Panini",
       "setBrandPlaceholder": "Brand",
       "setNamePlaceholder": "Set name",
+      "variationBrandPlaceholder": "Brand (filters sets)",
       "variationSetPlaceholder": "Set",
       "batchBrandsPlaceholder": "Panini\nTopps\nbrand\nUpper Deck",
       "batchSetsPlaceholder": "Panini;Prizm\nTopps,Chrome\nbrand;set\nPanini;Select",
