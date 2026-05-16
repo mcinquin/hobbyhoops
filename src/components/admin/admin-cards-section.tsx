@@ -305,10 +305,10 @@ export function AdminCardsSection({
         }
         const updated = data as Card;
         onCardsChange(cards.map((c) => (c.id === updated.id ? updated : c)));
-        await refreshCards();
         setEditingCard(null);
         setFormOpen(false);
         setSuccess(t("admin.cards.updated"));
+        void refreshCards().catch(() => undefined);
         return true;
       }
 
@@ -339,10 +339,10 @@ export function AdminCardsSection({
       setVariationColumnFilter("");
       setTagsColumnFilter("");
       setPage(Math.max(0, Math.ceil(nextCards.length / pageSize) - 1));
-      await refreshCards();
       setEditingCard(null);
       setFormOpen(false);
       setSuccess(t("admin.cards.created"));
+      void refreshCards().catch(() => undefined);
       return true;
     } catch {
       setSaveError(t("admin.cards.saveFailed"));

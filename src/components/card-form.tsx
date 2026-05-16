@@ -36,10 +36,12 @@ interface CardFormProps {
 }
 
 interface CardFormComboboxProps {
+  id?: string;
   value: string;
   onChange: (value: string) => void;
   suggestions: string[];
   disabled?: boolean;
+  required?: boolean;
 }
 
 function uniqueSorted(values: string[]): string[] {
@@ -83,22 +85,27 @@ function variationsLinkedToSet(references: References, setName: string): string[
 }
 
 function CardFormCombobox({
+  id,
   value,
   onChange,
   suggestions,
   disabled,
+  required,
 }: CardFormComboboxProps) {
   const inputId = useId();
-  const listboxId = `${inputId}-listbox`;
+  const resolvedInputId = id ?? inputId;
+  const listboxId = `${resolvedInputId}-listbox`;
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const query = value.trim().toLowerCase();
   const visibleSuggestions = useMemo(
-    () =>
-      suggestions.filter((suggestion) =>
+    () => {
+      if (!open) return [];
+      return suggestions.filter((suggestion) =>
         suggestion.toLowerCase().includes(query)
-      ),
-    [query, suggestions]
+      );
+    },
+    [open, query, suggestions]
   );
 
   function selectSuggestion(nextValue: string): void {
@@ -110,7 +117,7 @@ function CardFormCombobox({
   return (
     <div className="relative w-full">
       <Input
-        id={inputId}
+        id={resolvedInputId}
         value={value}
         onChange={(event) => {
           onChange(event.target.value);
@@ -147,6 +154,7 @@ function CardFormCombobox({
           }
         }}
         disabled={disabled}
+        required={required}
         role="combobox"
         aria-expanded={open && visibleSuggestions.length > 0}
         aria-controls={listboxId}
@@ -214,11 +222,6 @@ export function CardForm({
   saveError = null,
 }: CardFormProps) {
   const formId = useId();
-  const playersListId = `${formId}-players`;
-  const teamsListId = `${formId}-teams`;
-  const yearsListId = `${formId}-years`;
-  const protectionsListId = `${formId}-protections`;
-  const storagesListId = `${formId}-storages`;
 
   const formSeed = open ? (card?.id ?? "create") : "closed";
 
@@ -236,11 +239,6 @@ export function CardForm({
             onReferencesUpdated={onReferencesUpdated}
             saveError={saveError}
             formId={formId}
-            playersListId={playersListId}
-            teamsListId={teamsListId}
-            yearsListId={yearsListId}
-            protectionsListId={protectionsListId}
-            storagesListId={storagesListId}
           />
         ) : null}
       </DialogContent>
@@ -257,11 +255,6 @@ type CardFormFieldsProps = {
   onReferencesUpdated?: () => Promise<void>;
   saveError?: string | null;
   formId: string;
-  playersListId: string;
-  teamsListId: string;
-  yearsListId: string;
-  protectionsListId: string;
-  storagesListId: string;
 };
 
 function CardFormFields({
@@ -273,11 +266,6 @@ function CardFormFields({
   onReferencesUpdated,
   saveError = null,
   formId,
-  playersListId,
-  teamsListId,
-  yearsListId,
-  protectionsListId,
-  storagesListId,
 }: CardFormFieldsProps) {
   const t = useTranslations();
   const [form, setForm] = useState<Partial<Card>>(() => {
@@ -429,48 +417,33 @@ function CardFormFields({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor={`${formId}-player`}>{t("cards.player")}</Label>
-              <Input
+              <CardFormCombobox
                 id={`${formId}-player`}
-                list={playersListId}
                 value={form.player || ""}
-                onChange={(e) => update("player", e.target.value)}
+                onChange={(value) => update("player", value)}
+                suggestions={references.players}
                 required
               />
-              <datalist id={playersListId}>
-                {references.players.map((p) => (
-                  <option key={p} value={p} />
-                ))}
-              </datalist>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor={`${formId}-team`}>{t("cards.club")}</Label>
-              <Input
+              <CardFormCombobox
                 id={`${formId}-team`}
-                list={teamsListId}
                 value={form.team || ""}
-                onChange={(e) => update("team", e.target.value)}
+                onChange={(value) => update("team", value)}
+                suggestions={references.teams}
               />
-              <datalist id={teamsListId}>
-                {references.teams.map((t) => (
-                  <option key={t} value={t} />
-                ))}
-              </datalist>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor={`${formId}-year`}>{t("cards.year")}</Label>
-              <Input
+              <CardFormCombobox
                 id={`${formId}-year`}
-                list={yearsListId}
                 value={form.year || ""}
-                onChange={(e) => update("year", e.target.value)}
+                onChange={(value) => update("year", value)}
+                suggestions={references.years}
               />
-              <datalist id={yearsListId}>
-                {references.years.map((y) => (
-                  <option key={y} value={y} />
-                ))}
-              </datalist>
             </div>
 
             <div className="space-y-2 col-span-2">
@@ -642,30 +615,20 @@ function CardFormFields({
 
             <div className="space-y-2">
               <Label>{t("cards.protectionOptional")}</Label>
-              <Input
-                list={protectionsListId}
+              <CardFormCombobox
                 value={form.protection || ""}
-                onChange={(e) => update("protection", e.target.value)}
+                onChange={(value) => update("protection", value)}
+                suggestions={references.protections}
               />
-              <datalist id={protectionsListId}>
-                {references.protections.map((p) => (
-                  <option key={p} value={p} />
-                ))}
-              </datalist>
             </div>
 
             <div className="space-y-2 col-span-2">
               <Label>{t("cards.storageOptional")}</Label>
-              <Input
-                list={storagesListId}
+              <CardFormCombobox
                 value={form.storage || ""}
-                onChange={(e) => update("storage", e.target.value)}
+                onChange={(value) => update("storage", value)}
+                suggestions={references.storages}
               />
-              <datalist id={storagesListId}>
-                {references.storages.map((s) => (
-                  <option key={s} value={s} />
-                ))}
-              </datalist>
             </div>
           </div>
 
