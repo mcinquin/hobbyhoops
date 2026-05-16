@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/mcinquin/hobbyhoops/compare/v1.2.0...v1.3.0) (2026-05-16)
+
+
+### Features
+
+* **search:** add search filter for card in admin section ([9cd5835](https://github.com/mcinquin/hobbyhoops/commit/9cd5835b664b2b37004a7c7ed09ff474fc64b009))
+
 # [1.2.0](https://github.com/mcinquin/hobbyhoops/compare/v1.1.0...v1.2.0) (2026-05-16)
 
 
