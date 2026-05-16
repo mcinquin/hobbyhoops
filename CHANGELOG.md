@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/mcinquin/hobbyhoops/compare/v1.4.1...v1.4.2) (2026-05-16)
+
+
+### Bug Fixes
+
+* **csrf:** fix issue with CSRF ([662dd3f](https://github.com/mcinquin/hobbyhoops/commit/662dd3f7408f1e54a82ddf63c06caee9099cea69))
+
 ## [1.4.1](https://github.com/mcinquin/hobbyhoops/compare/v1.4.0...v1.4.1) (2026-05-16)
 
 
