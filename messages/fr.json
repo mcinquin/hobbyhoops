@@ -167,6 +167,8 @@
     "brandNameRequired": "Indiquez un nom de marque.",
     "brandBeforeSet": "Choisissez ou saisissez une marque avant d'ajouter un set.",
     "setNameRequired": "Indiquez un nom de set.",
+    "brandAdded": "Marque ajoutée.",
+    "setAdded": "Set ajouté.",
     "updateFailed": "Échec de la mise à jour.",
     "addCard": "Ajouter la carte",
     "placeholderBrand": "ex. Topps",
@@ -219,6 +221,9 @@
       "deleteTitle": "Supprimer la carte",
       "deleteConfirm": "Supprimer définitivement cette carte ? Cette action est irréversible.",
       "saveFailed": "Échec de l'enregistrement.",
+      "created": "Carte ajoutée.",
+      "updated": "Carte modifiée.",
+      "deleted": "Carte supprimée.",
       "pageInfo": "Page {page} sur {total} ({count} cartes)",
       "deleteConfirmNamed": "Supprimer {player} — {variation} ?"
     },
@@ -234,7 +239,8 @@
       "referenced": "{count} joueurs référencés",
       "shown": "· {count} affichés",
       "noneFound": "Aucun joueur trouvé.",
-      "nameRequired": "Indiquez un nom de joueur."
+      "nameRequired": "Indiquez un nom de joueur.",
+      "added": "Joueur ajouté."
     },
     "clubs": {
       "intro": "Ajoutez des clubs (équipes NBA) à la liste de référence, unitairement ou en collant une liste depuis un CSV ou un tableur.",
@@ -243,6 +249,7 @@
       "shown": "· {count} affichés",
       "noneFound": "Aucun club trouvé.",
       "nameRequired": "Indiquez un nom de club.",
+      "added": "Club ajouté.",
       "batchDescSpreadsheet": "Un club par ligne, ou une colonne « club » / « team ».",
       "batchPlaceholder": "San Antonio Spurs\nOklahoma City Thunder\nclub\nLos Angeles Lakers",
       "placeholder": "ex. San Antonio Spurs"
@@ -255,6 +262,7 @@
       "noneFound": "Aucune année trouvée.",
       "valueRequired": "Indiquez une année ou une saison.",
       "invalidFormat": "Format invalide (ex. 2004 ou 2001-02).",
+      "added": "Année ajoutée.",
       "batchDescSpreadsheet": "Une année ou saison par ligne, ou une colonne « year » / « année ».",
       "batchPlaceholder": "2004\n2001-02\nyear\n2024-25",
       "placeholder": "ex. 2004 ou 2001-02"
@@ -276,12 +284,16 @@
       "setNamePlaceholder": "Nom du set",
       "variationBrandPlaceholder": "Marque (filtre les sets)",
       "variationSetPlaceholder": "Set",
+      "brandAdded": "Marque ajoutée.",
+      "setAdded": "Set ajouté.",
+      "variationAdded": "Variation ajoutée.",
       "batchBrandsPlaceholder": "Panini\nTopps\nmarque\nUpper Deck",
       "batchSetsPlaceholder": "Panini;Prizm\nTopps,Chrome\nmarque;set\nPanini;Select",
       "batchVariationsPlaceholder": "Prizm;RC Silver Prizm\nSelect,Base\nset;variation\nPrizm;Gold /10"
     },
     "batch": {
       "empty": "Collez ou saisissez au moins une ligne.",
+      "importDone": "Import terminé.",
       "importPending": "Import…",
       "importList": "Importer la liste"
     }

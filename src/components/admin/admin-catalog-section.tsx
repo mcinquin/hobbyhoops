@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AdminFeedback } from "@/components/admin/admin-feedback";
 import { useTranslations } from "@/i18n/client";
 
 interface AdminCatalogSectionProps {
@@ -180,6 +181,7 @@ export function AdminCatalogSection({
   const [setForVariation, setSetForVariation] = useState("");
   const [variation, setVariation] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const setsForBrand = useMemo(
@@ -197,11 +199,13 @@ export function AdminCatalogSection({
     [references, setForVariation]
   );
 
-  async function run(action: () => Promise<References>) {
+  async function run(action: () => Promise<References>, successMessage: string) {
     setError(null);
+    setSuccess(null);
     setLoading(true);
     try {
       onReferencesChange(await action());
+      setSuccess(successMessage);
     } catch (err) {
       setError(
         err instanceof Error && err.message ? err.message : t("errors.updateFailed")
@@ -245,7 +249,7 @@ export function AdminCatalogSection({
                       });
                       setBrand("");
                       return refs;
-                    })
+                    }, t("admin.catalog.brandAdded"))
                   }
                 >
                   {t("common.add")}
@@ -299,7 +303,7 @@ export function AdminCatalogSection({
                       });
                       setSetName("");
                       return refs;
-                    })
+                    }, t("admin.catalog.setAdded"))
                   }
                 >
                   {t("common.add")}
@@ -367,7 +371,7 @@ export function AdminCatalogSection({
                       });
                       setVariation("");
                       return refs;
-                    })
+                    }, t("admin.catalog.variationAdded"))
                   }
                 >
                   {t("common.add")}
@@ -391,11 +395,11 @@ export function AdminCatalogSection({
         </TabsContent>
       </Tabs>
 
-      {error && (
-        <p className="text-sm text-destructive" role="alert">
-          {error}
-        </p>
-      )}
+      <AdminFeedback
+        success={success}
+        error={error}
+        onSuccessDismiss={() => setSuccess(null)}
+      />
     </div>
   );
 }

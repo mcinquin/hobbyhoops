@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { AdminFeedback } from "@/components/admin/admin-feedback";
 import { useTranslations } from "@/i18n/client";
 
 interface BatchTextImportProps {
@@ -25,17 +26,21 @@ export function BatchTextImport({
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   async function handleSubmit() {
     if (!text.trim()) {
       setError(t("admin.batch.empty"));
+      setSuccess(null);
       return;
     }
     setError(null);
+    setSuccess(null);
     setLoading(true);
     try {
       await onSubmit(text);
       setText("");
+      setSuccess(t("admin.batch.importDone"));
     } catch (err) {
       setError(
         err instanceof Error && err.message ? err.message : t("errors.updateFailed")
@@ -58,11 +63,11 @@ export function BatchTextImport({
         disabled={disabled || loading}
         className="min-h-32 font-mono text-xs"
       />
-      {error && (
-        <p className="text-sm text-destructive" role="alert">
-          {error}
-        </p>
-      )}
+      <AdminFeedback
+        success={success}
+        error={error}
+        onSuccessDismiss={() => setSuccess(null)}
+      />
       <Button type="button" size="sm" disabled={disabled || loading} onClick={() => void handleSubmit()}>
         {loading ? t("admin.batch.importPending") : t("admin.batch.importList")}
       </Button>

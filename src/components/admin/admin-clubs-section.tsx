@@ -8,6 +8,7 @@ import { BatchTextImport } from "@/components/admin/batch-text-import";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AdminFeedback } from "@/components/admin/admin-feedback";
 import { Search } from "lucide-react";
 import { useTranslations } from "@/i18n/client";
 
@@ -24,6 +25,7 @@ export function AdminClubsSection({
   const [team, setTeam] = useState("");
   const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const filtered = useMemo(() => {
@@ -36,13 +38,16 @@ export function AdminClubsSection({
     const name = team.trim();
     if (!name) {
       setError(t("admin.clubs.nameRequired"));
+      setSuccess(null);
       return;
     }
     setError(null);
+    setSuccess(null);
     setLoading(true);
     try {
       onReferencesChange(await patchReferences({ action: "addTeam", team: name }));
       setTeam("");
+      setSuccess(t("admin.clubs.added"));
     } catch (err) {
       setError(
         err instanceof Error && err.message ? err.message : t("errors.updateFailed")
@@ -71,11 +76,11 @@ export function AdminClubsSection({
               {t("common.add")}
             </Button>
           </div>
-          {error && (
-            <p className="text-sm text-destructive" role="alert">
-              {error}
-            </p>
-          )}
+          <AdminFeedback
+            success={success}
+            error={error}
+            onSuccessDismiss={() => setSuccess(null)}
+          />
         </div>
 
         <BatchTextImport
