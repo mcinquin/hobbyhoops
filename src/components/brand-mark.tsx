@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -28,12 +29,13 @@ export function BrandMark({
       )}
       aria-label="HobbyHoops — accueil"
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src="/brand/logo.svg"
         alt=""
         width={Math.round(logoHeight * LOGO_ASPECT)}
         height={logoHeight}
+        priority
+        unoptimized
         className={cn(
           "mx-auto block h-auto w-auto max-w-full object-contain object-center",
           logoClassName

@@ -4,7 +4,7 @@ Application Next.js pour gérer une collection de cartes NBA : collection, fiche
 
 ## Prérequis
 
-- Node.js 22.5 ou plus récent (24 recommandé, voir `.nvmrc`)
+- Node.js 24 (voir `.nvmrc`)
 - npm
 
 ## Démarrage local
@@ -29,7 +29,8 @@ Fichiers de traduction : `messages/fr.json`, `messages/en.json`.
 ## Scripts utiles
 
 ```bash
-npm run ci         # même suite que la job GitHub « quality » (recommandé avant push)
+npm run ci         # contrôles locaux rapides (recommandé avant push)
+npm run ci:full    # lint + typecheck + audit npm high+ (utilisé par GitHub Actions)
 npm run check      # alias de npm run ci
 npm run lint
 npm run typecheck
@@ -40,7 +41,7 @@ npm run clean      # supprime .next, caches TypeScript, etc.
 
 ## Données
 
-Tout est stocké dans **`data/hobbyhoops.db`** (SQLite) : collection, références, comptes et sessions. Ce fichier et ses journaux WAL sont **locaux** et ne doivent **jamais** être commités.
+Tout est stocké dans **`data/hobbyhoops.db`** (SQLite via `better-sqlite3`) : collection, références, comptes, sessions et rate limiting. Ce fichier et ses journaux WAL sont **locaux** et ne doivent **jamais** être commités.
 
 Au premier lancement, la base est créée vide ; créez le compte administrateur via l’écran de connexion.
 
@@ -60,6 +61,7 @@ L’application écoute sur `127.0.0.1:3000`. Les données persistent dans le do
 Le conteneur tourne sous l’utilisateur système **`hobbyhoops`** (UID/GID **1111**). Le répertoire `data/` doit être inscriptible par cet utilisateur (voir `chown` ci-dessus).
 
 En production derrière un reverse proxy HTTPS, laisser `COOKIE_SECURE` à sa valeur par défaut ou forcez `COOKIE_SECURE=true`.
+Si le proxy réécrit strictement `X-Forwarded-For` / `X-Real-IP`, activez `TRUST_PROXY=true` pour appliquer le rate limit par IP réelle. Sinon, laissez la valeur par défaut afin d’éviter les en-têtes spoofés.
 
 Image de production (après chaque release semantic-release) : `ghcr.io/<organisation>/hobbyhoops:latest`, `ghcr.io/<organisation>/hobbyhoops:1.2.0`, etc.
 
@@ -67,12 +69,12 @@ Image de production (après chaque release semantic-release) : `ghcr.io/<organis
 
 Le workflow `.github/workflows/ci.yml` exécute sur chaque push et pull request vers `main` ou `master` :
 
-- `npm ci` puis `npm run ci` (Node, ESLint, TypeScript, audit npm high+)
+- `npm ci` puis `npm run ci:full` (Node, ESLint, TypeScript, audit npm high+)
 - build de l’image Docker (validation sur `main`, push d’images de test sur les PR)
 - sur **push vers `main` uniquement** : **semantic-release** (tag Git `vX.Y.Z`, release GitHub, `CHANGELOG.md`, bump de `package.json`)
 - à chaque **GitHub Release publiée** : workflow `release-docker.yml` pousse `ghcr.io/<organisation>/hobbyhoops:X.Y.Z` et `:latest` (aligné sur le tag semantic-release)
 
-En local, lancez la même commande avant de pousser : `npm run ci`.
+En local, lancez `npm run ci` avant de pousser. L’audit réseau complet reste disponible avec `npm run ci:full`.
 
 ### Versions (semantic-release)
 
@@ -105,6 +107,7 @@ Ne poussez jamais `.env`, `.env.local`, les comptes locaux ni la base SQLite de 
 
 ## Qualité du code
 
-- **`npm run ci`** : contrôles identiques à la CI (lint, typecheck, audit)
+- **`npm run ci`** : contrôles locaux sans dépendance réseau (Node, lint, typecheck)
+- **`npm run ci:full`** : contrôles GitHub Actions avec audit npm high+
 - **Husky** : `pre-commit` (ESLint sur les fichiers stagés), `pre-push` (`npm run ci`), `commit-msg` (commitlint conventional)
 - **Dependabot** : mises à jour hebdomadaires npm et GitHub Actions

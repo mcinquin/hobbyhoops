@@ -14,6 +14,12 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   const allCards = getCollection();
   const cards = allCards.filter((c) => c.player === playerName);
   const { t } = await getTranslations();
+  const badgeLabels = {
+    rookie: t("badges.rookie"),
+    autograph: t("badges.autograph"),
+    memorabilia: t("badges.memorabilia"),
+    tradable: t("badges.tradable"),
+  };
 
   if (cards.length === 0) {
     return (
@@ -117,7 +123,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                         )}
                       </div>
                     </div>
-                    <CardBadges card={card} />
+                    <CardBadges card={card} labels={badgeLabels} />
                   </div>
                 ))}
               </div>

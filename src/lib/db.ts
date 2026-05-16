@@ -1,13 +1,14 @@
 import fs from "fs";
 import path from "path";
-import type { SQLInputValue } from "node:sqlite";
 import type { Card, References } from "./types";
 import { normalizeCardSerialFields } from "./card-serial";
 import { normalizeOpeningDate } from "./opening-date";
 import { EMPTY_REFERENCES } from "./references-defaults";
 import { createDatabase, runInTransaction, type AppDatabase } from "./sqlite";
 
-const SCHEMA_VERSION = 3;
+type SqlInputValue = string | number | bigint | Buffer | null;
+
+const SCHEMA_VERSION = 4;
 
 const globalForDb = globalThis as typeof globalThis & {
   hobbyhoopsDb?: AppDatabase;
@@ -15,8 +16,15 @@ const globalForDb = globalThis as typeof globalThis & {
 
 function getDbPath(): string {
   const configured = process.env.HOBBYHOOPS_DB_PATH?.trim();
-  if (configured) return configured;
-  return path.join(process.cwd(), "data", "hobbyhoops.db");
+  const root = process.cwd();
+  if (!configured) return path.join(root, "data", "hobbyhoops.db");
+
+  const resolved = path.resolve(root, configured);
+  const relative = path.relative(root, resolved);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw new Error("HOBBYHOOPS_DB_PATH doit pointer dans le répertoire du projet.");
+  }
+  return resolved;
 }
 
 function initSchema(db: AppDatabase): void {
@@ -67,6 +75,12 @@ function initSchema(db: AppDatabase): void {
     CREATE TABLE IF NOT EXISTS references_state (
       id INTEGER PRIMARY KEY CHECK (id = 1),
       payload TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS rate_limits (
+      key TEXT PRIMARY KEY,
+      count INTEGER NOT NULL,
+      reset_at INTEGER NOT NULL
     );
   `);
 }
@@ -145,7 +159,7 @@ function rowToCard(row: Record<string, unknown>): Card {
   });
 }
 
-function cardToRow(card: Card): Record<string, SQLInputValue> {
+function cardToRow(card: Card): Record<string, SqlInputValue> {
   const normalized = normalizeCardSerialFields(card);
   return {
     id: normalized.id,

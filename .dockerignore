@@ -21,6 +21,7 @@ data/
 !README.md
 .husky
 .vscode
+.cursor
 .idea
 CHANGELOG.md
 AGENTS.md

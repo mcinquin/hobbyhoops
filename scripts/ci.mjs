@@ -1,15 +1,24 @@
 #!/usr/bin/env node
 /**
- * Quality gate unique — même séquence en local (`npm run ci`) et dans GitHub Actions.
+ * Quality gate locale. L'audit npm réseau est réservé à `npm run ci:full`.
  */
 import { spawnSync } from "node:child_process";
+
+const includeAudit = process.argv.includes("--with-audit");
 
 const steps = [
   { name: "Node.js", command: "node", args: ["scripts/check-node.mjs"] },
   { name: "ESLint", command: "npm", args: ["run", "lint"] },
   { name: "TypeScript", command: "npm", args: ["run", "typecheck"] },
-  { name: "Audit npm (high+)", command: "npm", args: ["run", "audit:ci"] },
 ];
+
+if (includeAudit) {
+  steps.push({
+    name: "Audit npm (high+)",
+    command: "npm",
+    args: ["run", "audit:ci"],
+  });
+}
 
 function runStep({ name, command, args }) {
   console.log(`\n▶ ${name}`);

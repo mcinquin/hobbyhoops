@@ -16,6 +16,8 @@ services:
       AUTH_SECRET: ${AUTH_SECRET}
       # Cookie de session en HTTPS (true/false). Par défaut : true en production ou si X-Forwarded-Proto=https.
       # COOKIE_SECURE: "true"
+      # Faire confiance à X-Forwarded-For / X-Real-IP uniquement derrière un reverse proxy qui les réécrit.
+      TRUST_PROXY: ${TRUST_PROXY:-false}
     volumes:
       # Persistance SQLite + JSON (fichiers vides créés au premier démarrage si absents).
       - ./data:/app/data

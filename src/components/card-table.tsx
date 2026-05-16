@@ -56,6 +56,15 @@ export function CardTable({ cards, filters }: CardTableProps) {
   const [autoOnly, setAutoOnly] = useState(false);
   const [memoOnly, setMemoOnly] = useState(false);
   const [serialOnly, setSerialOnly] = useState(false);
+  const badgeLabels = useMemo(
+    () => ({
+      rookie: t("badges.rookie"),
+      autograph: t("badges.autograph"),
+      memorabilia: t("badges.memorabilia"),
+      tradable: t("badges.tradable"),
+    }),
+    [t]
+  );
 
   const filteredCards = useMemo(() => {
     let result = cards;
@@ -128,7 +137,9 @@ export function CardTable({ cards, filters }: CardTableProps) {
       {
         id: "badges",
         header: t("cards.tags"),
-        cell: ({ row }) => <CardBadges card={row.original} />,
+        cell: ({ row }) => (
+          <CardBadges card={row.original} labels={badgeLabels} />
+        ),
         enableSorting: false,
       },
       {
@@ -148,7 +159,7 @@ export function CardTable({ cards, filters }: CardTableProps) {
         ),
       },
     ],
-    [t]
+    [badgeLabels, t]
   );
 
   // TanStack Table renvoie des helpers non mémoïsables compatibles React Compiler.
@@ -166,8 +177,14 @@ export function CardTable({ cards, filters }: CardTableProps) {
     initialState: { pagination: { pageSize: 50 } },
   });
 
-  const uniqueYears = [...new Set(cards.map((c) => c.year).filter(Boolean))].sort().reverse();
-  const uniqueBrands = [...new Set(cards.map((c) => c.brand).filter(Boolean))].sort();
+  const uniqueYears = useMemo(
+    () => [...new Set(cards.map((c) => c.year).filter(Boolean))].sort().reverse(),
+    [cards]
+  );
+  const uniqueBrands = useMemo(
+    () => [...new Set(cards.map((c) => c.brand).filter(Boolean))].sort(),
+    [cards]
+  );
 
   const setsForBrand = useMemo(() => {
     if (!brandFilter) return [];
@@ -372,6 +389,7 @@ export function CardTable({ cards, filters }: CardTableProps) {
           <Button
             variant="outline"
             size="sm"
+            aria-label={t("common.firstPage")}
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
           >
@@ -380,6 +398,7 @@ export function CardTable({ cards, filters }: CardTableProps) {
           <Button
             variant="outline"
             size="sm"
+            aria-label={t("common.previousPage")}
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
@@ -388,6 +407,7 @@ export function CardTable({ cards, filters }: CardTableProps) {
           <Button
             variant="outline"
             size="sm"
+            aria-label={t("common.nextPage")}
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
@@ -396,6 +416,7 @@ export function CardTable({ cards, filters }: CardTableProps) {
           <Button
             variant="outline"
             size="sm"
+            aria-label={t("common.lastPage")}
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
           >

@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME, isCookieSecure } from "@/lib/auth-secret";
 import { verifySessionToken } from "@/lib/auth-session";
 import { deleteStoredSession } from "@/lib/session-store";
+import { rejectCrossSiteMutation } from "@/lib/request-guard";
 
 export async function POST(request: NextRequest) {
+  const crossSite = rejectCrossSiteMutation(request);
+  if (crossSite) return crossSite;
+
   const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
   const session = verifySessionToken(token);
   if (session) {

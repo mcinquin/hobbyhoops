@@ -6,8 +6,14 @@ import {
   sessionCookieOptions,
   SESSION_MAX_AGE_SEC,
 } from "@/lib/auth-session";
+import { loginSchema } from "@/lib/auth-validation";
 import { verifyPassword } from "@/lib/password";
-import { checkRateLimit, getClientIp, peekRateLimit, resetRateLimit } from "@/lib/rate-limit";
+import {
+  checkRateLimit,
+  getClientIp,
+  peekRateLimit,
+  resetRateLimit,
+} from "@/lib/rate-limit";
 import { findUserByUsername } from "@/lib/users-store";
 import { authMisconfiguredResponse } from "@/lib/auth-config";
 
@@ -31,19 +37,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: { username?: string; password?: string };
+  let body: unknown;
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: t("errors.invalidRequest") }, { status: 400 });
   }
 
-  const username =
-    typeof body.username === "string" ? body.username.trim() : "";
-  const password = typeof body.password === "string" ? body.password : "";
-  if (!username || !password) {
+  const parsed = loginSchema.safeParse(body);
+  if (!parsed.success) {
     return NextResponse.json({ error: t("errors.loginRequired") }, { status: 400 });
   }
+  const { username, password } = parsed.data;
 
   const failureKey = `login-fail:${ip}:${username.toLowerCase()}`;
   const lockout = peekRateLimit(failureKey, {

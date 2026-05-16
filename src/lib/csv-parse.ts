@@ -1,3 +1,4 @@
+import { parse } from "csv-parse/sync";
 import {
   uniqueBrandSetEntries,
   uniqueSetVariationEntries,
@@ -6,31 +7,14 @@ import {
 
 const DELIMITERS = [",", ";", "\t", "|"] as const;
 
-function detectDelimiter(line: string): string {
-  let best = ",";
-  let bestCount = 0;
-  for (const delimiter of DELIMITERS) {
-    const count = line.split(delimiter).length - 1;
-    if (count > bestCount) {
-      bestCount = count;
-      best = delimiter;
-    }
-  }
-  return best;
-}
-
-function splitRow(line: string, delimiter: string): string[] {
-  return line.split(delimiter).map((cell) => cell.trim());
-}
-
 export function parseDelimitedRows(text: string): string[][] {
-  const lines = text
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-  if (lines.length === 0) return [];
-  const delimiter = detectDelimiter(lines[0]);
-  return lines.map((line) => splitRow(line, delimiter));
+  return parse(text, {
+    bom: true,
+    delimiter: [...DELIMITERS],
+    relax_column_count: true,
+    skip_empty_lines: true,
+    trim: true,
+  }) as string[][];
 }
 
 export function parseSingleColumnValues(text: string): string[] {

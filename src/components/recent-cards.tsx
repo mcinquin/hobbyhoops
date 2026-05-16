@@ -1,17 +1,14 @@
-"use client";
-
 import { Card } from "@/lib/types";
-import { CardBadges } from "@/components/card-badges";
+import { CardBadges, type CardBadgeLabels } from "@/components/card-badges";
 import { compareOpeningDates, formatOpeningDateLabel } from "@/lib/opening-date";
-import { useTranslations } from "@/i18n/client";
 
 interface RecentCardsProps {
   cards: Card[];
+  title: string;
+  badgeLabels: CardBadgeLabels;
 }
 
-export function RecentCards({ cards }: RecentCardsProps) {
-  const t = useTranslations();
-
+export function RecentCards({ cards, title, badgeLabels }: RecentCardsProps) {
   const recent = cards
     .filter((c) => c.openingDate)
     .sort((a, b) => compareOpeningDates(b.openingDate, a.openingDate))
@@ -20,7 +17,7 @@ export function RecentCards({ cards }: RecentCardsProps) {
   return (
     <div className="bg-card border border-border rounded-lg p-6">
       <h3 className="text-sm font-medium text-muted-foreground mb-4">
-        {t("dashboard.recentAdditions")}
+        {title}
       </h3>
       <div className="space-y-3">
         {recent.map((card) => (
@@ -35,7 +32,7 @@ export function RecentCards({ cards }: RecentCardsProps) {
               </p>
             </div>
             <div className="flex items-center gap-2 ml-4">
-              <CardBadges card={card} />
+              <CardBadges card={card} labels={badgeLabels} />
               <span className="text-xs text-muted-foreground whitespace-nowrap">
                 {formatOpeningDateLabel(card.openingDate)}
               </span>

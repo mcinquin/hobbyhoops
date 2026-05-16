@@ -6,7 +6,7 @@ N’ouvrez pas d’issue publique pour un problème de sécurité. Contactez le 
 
 ## Bonnes pratiques de déploiement
 
-- Définir `AUTH_SECRET` avec au moins 16 caractères aléatoires (`openssl rand -hex 32`).
+- Définir `AUTH_SECRET` avec une valeur forte (`openssl rand -hex 32` recommandé ; 32 caractères minimum en production).
 - Ne jamais committer `.env` ni `data/hobbyhoops.db` (ni ses fichiers WAL associés).
 - Exposer l’application derrière un reverse proxy HTTPS ; laisser `COOKIE_SECURE` par défaut ou forcer `true`.
 - Limiter l’accès réseau au conteneur (port bindé sur `127.0.0.1` dans `docker-compose.yml`).
@@ -18,6 +18,6 @@ Tout utilisateur authentifié peut accéder à `/admin` et aux API de modificati
 
 ## Limitations connues
 
-- Limite de débit en mémoire (par processus) : insuffisante en déploiement multi-réplicas sans store partagé.
+- Limite de débit persistée dans SQLite : suffisante pour une instance unique, à remplacer par un store partagé en déploiement multi-réplicas.
 - CSP stricte avec nonces (`src/proxy.ts`) : en développement seulement, `'unsafe-eval'` (React DevTools) et `'unsafe-inline'` pour les styles ; absent en production.
 - Langues : français (défaut) et anglais (US), cookie `hh_locale`, commutation via la barre latérale ou l’écran de connexion.

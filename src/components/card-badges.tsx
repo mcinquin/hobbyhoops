@@ -1,37 +1,39 @@
-"use client";
-
 import { Card } from "@/lib/types";
-import { Badge } from "@/components/ui/badge";
-import { useTranslations } from "@/i18n/client";
+
+export interface CardBadgeLabels {
+  rookie: string;
+  autograph: string;
+  memorabilia: string;
+  tradable: string;
+}
 
 interface CardBadgesProps {
   card: Card;
+  labels: CardBadgeLabels;
 }
 
-export function CardBadges({ card }: CardBadgesProps) {
-  const t = useTranslations();
-
+export function CardBadges({ card, labels }: CardBadgesProps) {
   return (
     <div className="flex items-center gap-1 flex-wrap">
       {card.rookie && (
-        <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-emerald-500/50 text-emerald-500 bg-emerald-500/10">
-          {t("badges.rookie")}
-        </Badge>
+        <span className="inline-flex h-5 items-center rounded-4xl border border-emerald-500/50 bg-emerald-500/10 px-1.5 py-0 text-[10px] font-medium text-emerald-500">
+          {labels.rookie}
+        </span>
       )}
       {card.autograph && (
-        <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-amber-500/50 text-amber-500 bg-amber-500/10">
-          {t("badges.autograph")}
-        </Badge>
+        <span className="inline-flex h-5 items-center rounded-4xl border border-amber-500/50 bg-amber-500/10 px-1.5 py-0 text-[10px] font-medium text-amber-500">
+          {labels.autograph}
+        </span>
       )}
       {card.memorabilia && (
-        <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-blue-500/50 text-blue-500 bg-blue-500/10">
-          {t("badges.memorabilia")}
-        </Badge>
+        <span className="inline-flex h-5 items-center rounded-4xl border border-blue-500/50 bg-blue-500/10 px-1.5 py-0 text-[10px] font-medium text-blue-500">
+          {labels.memorabilia}
+        </span>
       )}
       {card.tradable && (
-        <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-violet-500/50 text-violet-400 bg-violet-500/10">
-          {t("badges.tradable")}
-        </Badge>
+        <span className="inline-flex h-5 items-center rounded-4xl border border-violet-500/50 bg-violet-500/10 px-1.5 py-0 text-[10px] font-medium text-violet-400">
+          {labels.tradable}
+        </span>
       )}
     </div>
   );
