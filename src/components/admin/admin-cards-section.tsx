@@ -59,9 +59,9 @@ function ColumnFilterCombobox({
   const query = value.trim().toLowerCase();
   const visibleSuggestions = useMemo(
     () =>
-      suggestions
-        .filter((suggestion) => suggestion.toLowerCase().includes(query))
-        .slice(0, 8),
+      suggestions.filter((suggestion) =>
+        suggestion.toLowerCase().includes(query)
+      ),
     [query, suggestions]
   );
 

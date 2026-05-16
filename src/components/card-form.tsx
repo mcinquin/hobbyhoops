@@ -34,6 +34,151 @@ interface CardFormProps {
   saveError?: string | null;
 }
 
+interface CardFormComboboxProps {
+  value: string;
+  onChange: (value: string) => void;
+  suggestions: string[];
+  disabled?: boolean;
+}
+
+function uniqueSorted(values: string[]): string[] {
+  return Array.from(
+    new Set(values.map((value) => value.trim()).filter(Boolean))
+  ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+}
+
+function setsLinkedToBrand(references: References, brand: string): string[] {
+  const query = brand.trim().toLowerCase();
+  if (!query) return references.sets;
+
+  const exactBrand = references.brands.find(
+    (item) => item.toLowerCase() === query
+  );
+  if (exactBrand) {
+    return references.brandSets[exactBrand] ?? [];
+  }
+
+  return uniqueSorted(
+    references.brands
+      .filter((item) => item.toLowerCase().includes(query))
+      .flatMap((item) => references.brandSets[item] ?? [])
+  );
+}
+
+function variationsLinkedToSet(references: References, setName: string): string[] {
+  const query = setName.trim().toLowerCase();
+  if (!query) return references.variations;
+
+  const exactSet = references.sets.find((item) => item.toLowerCase() === query);
+  if (exactSet) {
+    return references.setVariations[exactSet] ?? [];
+  }
+
+  return uniqueSorted(
+    references.sets
+      .filter((item) => item.toLowerCase().includes(query))
+      .flatMap((item) => references.setVariations[item] ?? [])
+  );
+}
+
+function CardFormCombobox({
+  value,
+  onChange,
+  suggestions,
+  disabled,
+}: CardFormComboboxProps) {
+  const inputId = useId();
+  const listboxId = `${inputId}-listbox`;
+  const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const query = value.trim().toLowerCase();
+  const visibleSuggestions = useMemo(
+    () =>
+      suggestions.filter((suggestion) =>
+        suggestion.toLowerCase().includes(query)
+      ),
+    [query, suggestions]
+  );
+
+  function selectSuggestion(nextValue: string): void {
+    onChange(nextValue);
+    setOpen(false);
+    setActiveIndex(0);
+  }
+
+  return (
+    <div className="relative">
+      <Input
+        id={inputId}
+        value={value}
+        onChange={(event) => {
+          onChange(event.target.value);
+          setOpen(true);
+          setActiveIndex(0);
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+        onKeyDown={(event) => {
+          if (!open && ["ArrowDown", "ArrowUp"].includes(event.key)) {
+            setOpen(true);
+            return;
+          }
+          if (event.key === "Escape") {
+            setOpen(false);
+            return;
+          }
+          if (visibleSuggestions.length === 0) return;
+          if (event.key === "ArrowDown") {
+            event.preventDefault();
+            setActiveIndex((index) => (index + 1) % visibleSuggestions.length);
+          }
+          if (event.key === "ArrowUp") {
+            event.preventDefault();
+            setActiveIndex(
+              (index) =>
+                (index - 1 + visibleSuggestions.length) %
+                visibleSuggestions.length
+            );
+          }
+          if (event.key === "Enter" && open) {
+            event.preventDefault();
+            selectSuggestion(visibleSuggestions[activeIndex]);
+          }
+        }}
+        disabled={disabled}
+        role="combobox"
+        aria-expanded={open && visibleSuggestions.length > 0}
+        aria-controls={listboxId}
+        aria-autocomplete="list"
+      />
+      {open && visibleSuggestions.length > 0 && !disabled && (
+        <div
+          id={listboxId}
+          role="listbox"
+          className="absolute left-0 right-0 top-full z-30 mt-1 max-h-56 overflow-auto rounded-md border border-border bg-popover p-1 text-xs shadow-lg"
+        >
+          {visibleSuggestions.map((suggestion, index) => (
+            <button
+              key={suggestion}
+              type="button"
+              role="option"
+              aria-selected={index === activeIndex}
+              className="block w-full rounded px-2 py-1.5 text-left hover:bg-accent aria-selected:bg-accent"
+              onMouseDown={(event) => {
+                event.preventDefault();
+                selectSuggestion(suggestion);
+              }}
+              onMouseEnter={() => setActiveIndex(index)}
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const emptyCard: Partial<Card> = {
   player: "",
   team: "",
@@ -67,12 +212,9 @@ export function CardForm({
   saveError = null,
 }: CardFormProps) {
   const formId = useId();
-  const setsListId = `${formId}-sets`;
-  const variationsListId = `${formId}-variations`;
   const playersListId = `${formId}-players`;
   const teamsListId = `${formId}-teams`;
   const yearsListId = `${formId}-years`;
-  const brandsListId = `${formId}-brands`;
   const protectionsListId = `${formId}-protections`;
   const storagesListId = `${formId}-storages`;
 
@@ -92,12 +234,9 @@ export function CardForm({
             onReferencesUpdated={onReferencesUpdated}
             saveError={saveError}
             formId={formId}
-            setsListId={setsListId}
-            variationsListId={variationsListId}
             playersListId={playersListId}
             teamsListId={teamsListId}
             yearsListId={yearsListId}
-            brandsListId={brandsListId}
             protectionsListId={protectionsListId}
             storagesListId={storagesListId}
           />
@@ -116,12 +255,9 @@ type CardFormFieldsProps = {
   onReferencesUpdated?: () => Promise<void>;
   saveError?: string | null;
   formId: string;
-  setsListId: string;
-  variationsListId: string;
   playersListId: string;
   teamsListId: string;
   yearsListId: string;
-  brandsListId: string;
   protectionsListId: string;
   storagesListId: string;
 };
@@ -135,12 +271,9 @@ function CardFormFields({
   onReferencesUpdated,
   saveError = null,
   formId,
-  setsListId,
-  variationsListId,
   playersListId,
   teamsListId,
   yearsListId,
-  brandsListId,
   protectionsListId,
   storagesListId,
 }: CardFormFieldsProps) {
@@ -164,27 +297,15 @@ function CardFormFields({
 
   const brandKey = (form.brand ?? "").trim();
   const setKey = (form.set ?? "").trim();
-  const setsForBrand = useMemo(() => {
-    if (!brandKey) {
-      return references.sets;
-    }
-    const keyed = references.brandSets[brandKey];
-    if (keyed && keyed.length > 0) {
-      return keyed;
-    }
-    return [];
-  }, [brandKey, references.brandSets, references.sets]);
+  const setsForBrand = useMemo(
+    () => setsLinkedToBrand(references, brandKey),
+    [brandKey, references]
+  );
 
-  const variationsForSet = useMemo(() => {
-    if (!setKey) {
-      return references.variations;
-    }
-    const keyed = references.setVariations[setKey];
-    if (keyed && keyed.length > 0) {
-      return keyed;
-    }
-    return [];
-  }, [setKey, references.setVariations, references.variations]);
+  const variationsForSet = useMemo(
+    () => variationsLinkedToSet(references, setKey),
+    [references, setKey]
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -214,13 +335,7 @@ function CardFormFields({
   const updateBrand = (value: string) => {
     setForm((prev) => {
       const b = value.trim();
-      const keyed = b ? references.brandSets[b] : undefined;
-      const available =
-        b && keyed && keyed.length > 0
-          ? keyed
-          : !b
-            ? references.sets
-            : [];
+      const available = setsLinkedToBrand(references, b);
       let nextSet = prev.set ?? "";
       if (b && available.length > 0 && nextSet && !available.includes(nextSet)) {
         nextSet = "";
@@ -233,13 +348,7 @@ function CardFormFields({
   const updateSet = (value: string) => {
     setForm((prev) => {
       const s = value.trim();
-      const keyed = s ? references.setVariations[s] : undefined;
-      const available =
-        s && keyed && keyed.length > 0
-          ? keyed
-          : !s
-            ? references.variations
-            : [];
+      const available = variationsLinkedToSet(references, s);
       let nextVariation = prev.variation ?? "";
       if (s && available.length > 0 && nextVariation && !available.includes(nextVariation)) {
         nextVariation = "";
@@ -353,18 +462,12 @@ function CardFormFields({
             </div>
 
             <div className="space-y-2 col-span-2">
-              <Label htmlFor={`${formId}-brand`}>{t("cards.brand")}</Label>
-              <Input
-                id={`${formId}-brand`}
-                list={brandsListId}
+              <Label>{t("cards.brand")}</Label>
+              <CardFormCombobox
                 value={form.brand || ""}
-                onChange={(e) => updateBrand(e.target.value)}
+                onChange={updateBrand}
+                suggestions={references.brands}
               />
-              <datalist id={brandsListId}>
-                {references.brands.map((b) => (
-                  <option key={b} value={b} />
-                ))}
-              </datalist>
               {manageReferences && onReferencesUpdated && (
                 <div className="flex flex-wrap gap-2 items-end pt-1">
                   <div className="flex-1 min-w-[140px] space-y-1">
@@ -406,18 +509,11 @@ function CardFormFields({
                   {t("cards.chooseBrandForSets")}
                 </p>
               )}
-              <Input
-                list={setsForBrand.length > 0 ? setsListId : undefined}
+              <CardFormCombobox
                 value={form.set || ""}
-                onChange={(e) => updateSet(e.target.value)}
+                onChange={updateSet}
+                suggestions={setsForBrand}
               />
-              {setsForBrand.length > 0 && (
-                <datalist id={setsListId}>
-                  {setsForBrand.map((s) => (
-                    <option key={s} value={s} />
-                  ))}
-                </datalist>
-              )}
               {manageReferences && onReferencesUpdated && (
                 <div className="flex flex-wrap gap-2 items-end pt-1">
                   <div className="flex-1 min-w-[140px] space-y-1">
@@ -463,18 +559,11 @@ function CardFormFields({
                   {t("cards.chooseSetForVariations")}
                 </p>
               )}
-              <Input
-                list={variationsForSet.length > 0 ? variationsListId : undefined}
+              <CardFormCombobox
                 value={form.variation || ""}
-                onChange={(e) => update("variation", e.target.value)}
+                onChange={(value) => update("variation", value)}
+                suggestions={variationsForSet}
               />
-              {variationsForSet.length > 0 && (
-                <datalist id={variationsListId}>
-                  {variationsForSet.map((v) => (
-                    <option key={v} value={v} />
-                  ))}
-                </datalist>
-              )}
             </div>
 
             <div className="space-y-2">
