@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/mcinquin/hobbyhoops/compare/v1.1.0...v1.2.0) (2026-05-16)
+
+
+### Features
+
+* **sqlite:** use a new sqlite library ([830b9be](https://github.com/mcinquin/hobbyhoops/commit/830b9be99917ae311f429105537832735d281e5c))
+
 # [1.1.0](https://github.com/mcinquin/hobbyhoops/compare/v1.0.0...v1.1.0) (2026-05-15)
 
 
