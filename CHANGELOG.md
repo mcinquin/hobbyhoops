@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/mcinquin/hobbyhoops/compare/v1.3.0...v1.4.0) (2026-05-16)
+
+
+### Features
+
+* **admin:** add list for brand/set/variation in admin section ([703ad8f](https://github.com/mcinquin/hobbyhoops/commit/703ad8fd614626e63d8c2b61934b94774bccb0d5))
+
 # [1.3.0](https://github.com/mcinquin/hobbyhoops/compare/v1.2.0...v1.3.0) (2026-05-16)
 
 
