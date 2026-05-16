@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/mcinquin/hobbyhoops/compare/v1.4.2...v1.5.0) (2026-05-16)
+
+
+### Features
+
+* **ux:** add feedback for action in admin section ([6b3bd67](https://github.com/mcinquin/hobbyhoops/commit/6b3bd67027169eda316d64f8ffd9afc48db04dc7))
+
 ## [1.4.2](https://github.com/mcinquin/hobbyhoops/compare/v1.4.1...v1.4.2) (2026-05-16)
 
 
