@@ -1,4 +1,7 @@
-# Image Docker versionnée : déclenchée quand semantic-release publie une GitHub Release.
+# Image Docker versionnée pour les releases créées manuellement.
+# Les releases créées par semantic-release avec GITHUB_TOKEN publient l'image
+# directement depuis le job `release` de ci.yml, car GitHub ne redéclenche pas
+# un workflow `on: release` depuis GITHUB_TOKEN.
 name: Release Docker
 
 on:
