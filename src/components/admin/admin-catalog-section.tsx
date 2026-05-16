@@ -82,9 +82,9 @@ function CatalogCombobox({
   const query = value.trim().toLowerCase();
   const visibleSuggestions = useMemo(
     () =>
-      suggestions
-        .filter((suggestion) => suggestion.toLowerCase().includes(query))
-        .slice(0, 8),
+      suggestions.filter((suggestion) =>
+        suggestion.toLowerCase().includes(query)
+      ),
     [query, suggestions]
   );
 
@@ -353,6 +353,13 @@ export function AdminCatalogSection({
                   disabled={loading}
                   onClick={() =>
                     void run(async () => {
+                      if (brandForVariation.trim() && setForVariation.trim()) {
+                        await patchReferences({
+                          action: "addSet",
+                          brand: brandForVariation,
+                          set: setForVariation,
+                        });
+                      }
                       const refs = await patchReferences({
                         action: "addVariation",
                         set: setForVariation,
