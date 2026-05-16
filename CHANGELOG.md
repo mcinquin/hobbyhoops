@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/mcinquin/hobbyhoops/compare/v1.5.0...v1.5.1) (2026-05-16)
+
+
+### Performance Improvements
+
+* **admin:** fix perf issue for card adding ([1c6ec0c](https://github.com/mcinquin/hobbyhoops/commit/1c6ec0cbd328375660f11c27ec4eb9f3801b4cb3))
+
 # [1.5.0](https://github.com/mcinquin/hobbyhoops/compare/v1.4.2...v1.5.0) (2026-05-16)
 
 
