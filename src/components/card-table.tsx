@@ -94,7 +94,19 @@ export function CardTable({ cards, filters }: CardTableProps) {
     if (memoOnly) result = result.filter((c) => c.memorabilia);
     if (serialOnly) result = result.filter((c) => c.serialNumber);
     return result;
-  }, [cards, filters, playerFilter, teamFilter, yearFilter, brandFilter, setFilter, rookieOnly, autoOnly, memoOnly, serialOnly]);
+  }, [
+    cards,
+    filters,
+    playerFilter,
+    teamFilter,
+    yearFilter,
+    brandFilter,
+    setFilter,
+    rookieOnly,
+    autoOnly,
+    memoOnly,
+    serialOnly,
+  ]);
 
   const columns: ColumnDef<Card>[] = useMemo(
     () => [
@@ -223,37 +235,41 @@ export function CardTable({ cards, filters }: CardTableProps) {
           />
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="grid gap-2 sm:grid-cols-2 lg:flex lg:flex-wrap">
           <Input
             placeholder={t("cards.filterPlayer")}
             value={playerFilter}
             onChange={(e) => setPlayerFilter(e.target.value)}
-            className="w-40 h-8 text-xs"
+            className="h-9 text-xs lg:h-8 lg:w-40"
           />
           <Input
             placeholder={t("cards.filterTeam")}
             value={teamFilter}
             onChange={(e) => setTeamFilter(e.target.value)}
-            className="w-36 h-8 text-xs"
+            className="h-9 text-xs lg:h-8 lg:w-36"
           />
           <select
             value={yearFilter}
             onChange={(e) => setYearFilter(e.target.value)}
-            className="h-8 text-xs rounded-md border border-input bg-background px-2"
+            className="h-9 rounded-md border border-input bg-background px-2 text-xs lg:h-8"
           >
             <option value="">{t("cards.allYears")}</option>
             {uniqueYears.map((y) => (
-              <option key={y} value={y!}>{y}</option>
+              <option key={y} value={y!}>
+                {y}
+              </option>
             ))}
           </select>
           <select
             value={brandFilter}
             onChange={(e) => setBrandFilter(e.target.value)}
-            className="h-8 text-xs rounded-md border border-input bg-background px-2 max-w-[200px]"
+            className="h-9 rounded-md border border-input bg-background px-2 text-xs lg:h-8 lg:max-w-[200px]"
           >
             <option value="">{t("cards.allBrands")}</option>
             {uniqueBrands.map((b) => (
-              <option key={b} value={b}>{b}</option>
+              <option key={b} value={b}>
+                {b}
+              </option>
             ))}
           </select>
           <select
@@ -265,7 +281,7 @@ export function CardTable({ cards, filters }: CardTableProps) {
                 ? t("cards.setsForBrandTitle")
                 : t("cards.chooseBrandForSetsList")
             }
-            className="h-8 text-xs rounded-md border border-input bg-background px-2 max-w-[220px] min-w-[140px] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-9 rounded-md border border-input bg-background px-2 text-xs disabled:cursor-not-allowed disabled:opacity-50 sm:col-span-2 lg:h-8 lg:min-w-[140px] lg:max-w-[220px]"
           >
             <option value="">
               {brandFilter ? t("cards.allSets") : t("cards.setNeedsBrand")}
@@ -277,7 +293,7 @@ export function CardTable({ cards, filters }: CardTableProps) {
             ))}
           </select>
 
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1 sm:col-span-2 lg:col-span-1">
             <Button
               variant={rookieOnly ? "default" : "outline"}
               size="sm"
@@ -320,8 +336,60 @@ export function CardTable({ cards, filters }: CardTableProps) {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border border-border overflow-auto">
+      {/* Mobile cards */}
+      <div className="space-y-3 md:hidden">
+        {table.getRowModel().rows.length ? (
+          table.getRowModel().rows.map((row) => {
+            const card = row.original;
+            const meta = [card.team, card.year].filter(Boolean).join(" · ");
+            const serialAndGrade = [
+              card.cardNumber ? `#${card.cardNumber}` : "",
+              card.serialNumber,
+              card.grading,
+            ]
+              .filter(Boolean)
+              .join(" · ");
+
+            return (
+              <button
+                key={row.id}
+                type="button"
+                className="block w-full rounded-lg border border-border bg-card p-4 text-left shadow-sm transition-colors hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onClick={() => setSelectedCard(card)}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium leading-tight">
+                      {card.player}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">{meta}</p>
+                  </div>
+                  <CardBadges card={card} labels={badgeLabels} />
+                </div>
+
+                <div className="mt-3 space-y-1 text-sm">
+                  <p className="truncate text-muted-foreground">
+                    {card.brand} · {card.set}
+                  </p>
+                  <p className="truncate">{card.variation}</p>
+                  {serialAndGrade && (
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {serialAndGrade}
+                    </p>
+                  )}
+                </div>
+              </button>
+            );
+          })
+        ) : (
+          <div className="rounded-lg border border-border p-6 text-center text-sm text-muted-foreground">
+            {t("cards.noneFound")}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden rounded-md border border-border md:block md:overflow-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -379,7 +447,7 @@ export function CardTable({ cards, filters }: CardTableProps) {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
           {t("common.pageOf", {
             page: table.getState().pagination.pageIndex + 1,
