@@ -1,28 +1,32 @@
+# syntax=docker/dockerfile:1.7
+
 # ── Étape 1 : dépendances ─────────────────────────────────────────────────────
 FROM node:24-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc34884a665f40a06dbdfc94f AS deps
 WORKDIR /app
 
-RUN apk add --no-cache python3 make g++
+RUN --mount=type=cache,target=/var/cache/apk \
+  apk add --update-cache --cache-dir /var/cache/apk python3 make g++
 
 COPY package.json package-lock.json ./
-RUN HUSKY=0 npm ci
+RUN --mount=type=cache,target=/root/.npm \
+  HUSKY=0 npm ci --prefer-offline --no-audit
 
 # ── Étape 2 : build ───────────────────────────────────────────────────────────
-FROM node:24-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc34884a665f40a06dbdfc94f AS builder
-WORKDIR /app
+FROM deps AS builder
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN npm run build
+RUN --mount=type=cache,target=/app/.next/cache \
+  npm run build
 
 # ── Étape 3 : image de production ─────────────────────────────────────────────
 FROM node:24-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc34884a665f40a06dbdfc94f AS runner
 WORKDIR /app
 
-RUN apk add --no-cache libstdc++
+RUN --mount=type=cache,target=/var/cache/apk \
+  apk add --update-cache --cache-dir /var/cache/apk libstdc++
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -39,6 +43,18 @@ COPY --from=builder --chown=hobbyhoops:hobbyhoops /app/.next/static ./.next/stat
 RUN mkdir -p /app/data && chown hobbyhoops:hobbyhoops /app/data
 
 COPY --chmod=755 scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+
+RUN rm -rf \
+  /sbin/apk \
+  /etc/apk \
+  /lib/apk \
+  /var/cache/apk \
+  /var/lib/apk \
+  /usr/local/bin/corepack \
+  /usr/local/bin/npm \
+  /usr/local/bin/npx \
+  /usr/local/lib/node_modules/corepack \
+  /usr/local/lib/node_modules/npm
 
 USER hobbyhoops
 
