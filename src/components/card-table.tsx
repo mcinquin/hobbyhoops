@@ -61,6 +61,7 @@ export function CardTable({ cards, filters }: CardTableProps) {
       rookie: t("badges.rookie"),
       autograph: t("badges.autograph"),
       memorabilia: t("badges.memorabilia"),
+      numbered: t("badges.numbered"),
       tradable: t("badges.tradable"),
     }),
     [t]
@@ -307,7 +308,7 @@ export function CardTable({ cards, filters }: CardTableProps) {
               className="h-8 text-xs px-2"
               onClick={() => setSerialOnly(!serialOnly)}
             >
-              {t("cards.number")}
+              {t("badges.numbered")}
             </Button>
           </div>
         </div>

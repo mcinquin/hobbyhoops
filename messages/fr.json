@@ -49,6 +49,7 @@
     "rookie": "RC",
     "autograph": "AUTO",
     "memorabilia": "MEM",
+    "numbered": "NUM",
     "tradable": "ÉCHANGE"
   },
   "auth": {
