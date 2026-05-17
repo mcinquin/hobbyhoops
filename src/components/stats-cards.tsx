@@ -1,4 +1,5 @@
 import { Card } from "@/lib/types";
+import Link from "next/link";
 import { Library, PenTool, Puzzle, Hash, ArrowLeftRight } from "lucide-react";
 
 interface StatsCardsProps {
@@ -28,6 +29,7 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
       value: total,
       icon: Library,
       color: "text-foreground",
+      href: "/collection",
     },
     {
       id: "autographs",
@@ -35,6 +37,7 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
       value: autographs,
       icon: PenTool,
       color: "text-amber-500",
+      href: "/collection?tag=autograph",
     },
     {
       id: "memorabilia",
@@ -42,6 +45,7 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
       value: memorabilia,
       icon: Puzzle,
       color: "text-blue-500",
+      href: "/collection?tag=memorabilia",
     },
     {
       id: "numbered",
@@ -49,6 +53,7 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
       value: serialNumbered,
       icon: Hash,
       color: "text-red-500",
+      href: "/collection?tag=numbered",
     },
     {
       id: "rookies",
@@ -56,6 +61,7 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
       value: rookies,
       icon: Library,
       color: "text-emerald-500",
+      href: "/collection?tag=rookie",
     },
     {
       id: "tradable",
@@ -63,15 +69,17 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
       value: tradable,
       icon: ArrowLeftRight,
       color: "text-purple-500",
+      href: "/collection?tag=tradable",
     },
   ];
 
   return (
     <div className="grid min-w-0 grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6 lg:gap-4">
       {stats.map((stat) => (
-        <div
+        <Link
           key={stat.id}
-          className="min-w-0 rounded-lg border border-border bg-card p-3 sm:p-4"
+          href={stat.href}
+          className="min-w-0 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-4"
         >
           <div className="mb-2 flex min-w-0 items-center gap-2">
             <stat.icon className={`h-4 w-4 shrink-0 ${stat.color}`} />
@@ -82,7 +90,7 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
           <p className={`text-xl font-bold sm:text-2xl ${stat.color}`}>
             {stat.value.toLocaleString()}
           </p>
-        </div>
+        </Link>
       ))}
     </div>
   );

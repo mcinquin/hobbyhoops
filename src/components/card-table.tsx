@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import Link from "next/link";
 import {
   useReactTable,
   getCoreRowModel,
@@ -36,26 +37,36 @@ import { useTranslations } from "@/i18n/client";
 
 interface CardTableProps {
   cards: Card[];
+  initialFilters?: {
+    search?: string;
+    player?: string;
+    team?: string;
+    year?: string;
+    brand?: string;
+    set?: string;
+    tag?: string;
+  };
   filters?: {
     tradableOnly?: boolean;
   };
 }
 
-export function CardTable({ cards, filters }: CardTableProps) {
+export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
   const t = useTranslations();
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = useState("");
+  const [globalFilter, setGlobalFilter] = useState(initialFilters?.search ?? "");
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
-  const [playerFilter, setPlayerFilter] = useState("");
-  const [teamFilter, setTeamFilter] = useState("");
-  const [yearFilter, setYearFilter] = useState("");
-  const [brandFilter, setBrandFilter] = useState("");
-  const [setFilter, setSetFilter] = useState("");
-  const [rookieOnly, setRookieOnly] = useState(false);
-  const [autoOnly, setAutoOnly] = useState(false);
-  const [memoOnly, setMemoOnly] = useState(false);
-  const [serialOnly, setSerialOnly] = useState(false);
+  const [playerFilter, setPlayerFilter] = useState(initialFilters?.player ?? "");
+  const [teamFilter, setTeamFilter] = useState(initialFilters?.team ?? "");
+  const [yearFilter, setYearFilter] = useState(initialFilters?.year ?? "");
+  const [brandFilter, setBrandFilter] = useState(initialFilters?.brand ?? "");
+  const [setFilter, setSetFilter] = useState(initialFilters?.set ?? "");
+  const [rookieOnly, setRookieOnly] = useState(initialFilters?.tag === "rookie");
+  const [autoOnly, setAutoOnly] = useState(initialFilters?.tag === "autograph");
+  const [memoOnly, setMemoOnly] = useState(initialFilters?.tag === "memorabilia");
+  const [serialOnly, setSerialOnly] = useState(initialFilters?.tag === "numbered");
+  const tradableOnly = filters?.tradableOnly || initialFilters?.tag === "tradable";
   const badgeLabels = useMemo(
     () => ({
       rookie: t("badges.rookie"),
@@ -69,7 +80,7 @@ export function CardTable({ cards, filters }: CardTableProps) {
 
   const filteredCards = useMemo(() => {
     let result = cards;
-    if (filters?.tradableOnly) {
+    if (tradableOnly) {
       result = result.filter((c) => c.tradable);
     }
     if (playerFilter) {
@@ -96,7 +107,7 @@ export function CardTable({ cards, filters }: CardTableProps) {
     return result;
   }, [
     cards,
-    filters,
+    tradableOnly,
     playerFilter,
     teamFilter,
     yearFilter,
@@ -221,6 +232,37 @@ export function CardTable({ cards, filters }: CardTableProps) {
     }
   }, [brandFilter, setsForBrand, setFilter]);
 
+  const activeFilters = useMemo(
+    () =>
+      [
+        globalFilter ? t("cards.activeSearch", { value: globalFilter }) : "",
+        playerFilter ? t("cards.activePlayer", { value: playerFilter }) : "",
+        teamFilter ? t("cards.activeTeam", { value: teamFilter }) : "",
+        yearFilter ? t("cards.activeYear", { value: yearFilter }) : "",
+        brandFilter ? t("cards.activeBrand", { value: brandFilter }) : "",
+        setFilter ? t("cards.activeSet", { value: setFilter }) : "",
+        rookieOnly ? t("badges.rookie") : "",
+        autoOnly ? t("badges.autograph") : "",
+        memoOnly ? t("badges.memorabilia") : "",
+        serialOnly ? t("badges.numbered") : "",
+        tradableOnly ? t("badges.tradable") : "",
+      ].filter(Boolean),
+    [
+      autoOnly,
+      brandFilter,
+      globalFilter,
+      memoOnly,
+      playerFilter,
+      rookieOnly,
+      serialOnly,
+      setFilter,
+      t,
+      teamFilter,
+      tradableOnly,
+      yearFilter,
+    ]
+  );
+
   return (
     <div className="space-y-4">
       {/* Search and filters */}
@@ -334,6 +376,27 @@ export function CardTable({ cards, filters }: CardTableProps) {
           {filteredCards.length !== cards.length &&
             ` ${t("common.filteredOf", { total: cards.length })}`}
         </div>
+        {activeFilters.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-3 text-xs">
+            <span className="font-medium text-muted-foreground">
+              {t("cards.activeFilters")}
+            </span>
+            {activeFilters.map((filter) => (
+              <span
+                key={filter}
+                className="rounded-full bg-muted px-2 py-1 text-muted-foreground"
+              >
+                {filter}
+              </span>
+            ))}
+            <Link
+              href="/collection"
+              className="ml-auto font-medium text-amber-500 hover:underline"
+            >
+              {t("cards.resetFilters")}
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Mobile cards */}
