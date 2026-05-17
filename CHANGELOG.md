@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/mcinquin/hobbyhoops/compare/v1.5.1...v1.6.0) (2026-05-17)
+
+
+### Features
+
+* **ux:** add badge and tag for numbered cards ([6266eaf](https://github.com/mcinquin/hobbyhoops/commit/6266eaf23759172d2448dbaad415f9a311e5390f))
+
 ## [1.5.1](https://github.com/mcinquin/hobbyhoops/compare/v1.5.0...v1.5.1) (2026-05-16)
 
 
