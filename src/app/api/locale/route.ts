@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isLocale, LOCALE_COOKIE } from "@/i18n/config";
 import { isCookieSecure } from "@/lib/auth-secret";
+import { rejectCrossSiteMutation } from "@/lib/request-guard";
 
 export async function POST(request: NextRequest) {
+  const crossSite = rejectCrossSiteMutation(request);
+  if (crossSite) return crossSite;
+
   let body: { locale?: string };
   try {
     body = await request.json();
