@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AdminFeedback } from "@/components/admin/admin-feedback";
 import { cn } from "@/lib/utils";
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth-validation";
 import { useTranslations } from "@/i18n/client";
@@ -16,6 +17,7 @@ export default function AccountPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -30,6 +32,14 @@ export default function AccountPage() {
     }
     if (!newUsername.trim() && !newPassword) {
       setError(t("account.changeRequired"));
+      return;
+    }
+    if (newPassword && newPassword.length < MIN_PASSWORD_LENGTH) {
+      setError(t("errors.passwordMin", { min: MIN_PASSWORD_LENGTH }));
+      return;
+    }
+    if (newPassword && newPassword !== newPasswordConfirm) {
+      setError(t("account.passwordMismatch"));
       return;
     }
     setLoading(true);
@@ -55,7 +65,10 @@ export default function AccountPage() {
       setCurrentPassword("");
       setNewUsername("");
       setNewPassword("");
+      setNewPasswordConfirm("");
       router.refresh();
+    } catch {
+      setError(t("account.updateFailed"));
     } finally {
       setLoading(false);
     }
@@ -70,7 +83,11 @@ export default function AccountPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4 border border-border rounded-lg p-6 bg-card">
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        className="space-y-4 border border-border rounded-lg p-6 bg-card"
+      >
         <div className="space-y-2">
           <Label htmlFor="current">{t("account.currentPassword")}</Label>
           <Input
@@ -79,6 +96,7 @@ export default function AccountPage() {
             autoComplete="current-password"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
+            required
           />
         </div>
         <div className="space-y-2">
@@ -100,19 +118,24 @@ export default function AccountPage() {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             placeholder={t("account.passwordMin", { min: MIN_PASSWORD_LENGTH })}
-            minLength={MIN_PASSWORD_LENGTH}
           />
         </div>
-        {error && (
-          <p className="text-sm text-destructive" role="alert">
-            {error}
-          </p>
-        )}
-        {message && (
-          <p className="text-sm text-emerald-500" role="status">
-            {message}
-          </p>
-        )}
+        <div className="space-y-2">
+          <Label htmlFor="newPassConfirm">{t("account.confirmNewPassword")}</Label>
+          <Input
+            id="newPassConfirm"
+            type="password"
+            autoComplete="new-password"
+            value={newPasswordConfirm}
+            onChange={(e) => setNewPasswordConfirm(e.target.value)}
+            placeholder={t("account.leaveEmpty")}
+          />
+        </div>
+        <AdminFeedback
+          success={message}
+          error={error}
+          onSuccessDismiss={() => setMessage(null)}
+        />
         <div className="flex gap-2 pt-2">
           <Button type="submit" disabled={loading}>
             {loading ? t("common.saving") : t("common.save")}
