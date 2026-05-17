@@ -33,6 +33,7 @@ export function CardDetail({ card, open, onClose }: CardDetailProps) {
     rookie: t("badges.rookie"),
     autograph: t("badges.autograph"),
     memorabilia: t("badges.memorabilia"),
+    numbered: t("badges.numbered"),
     tradable: t("badges.tradable"),
   };
   const details = [

@@ -4,6 +4,7 @@ export interface CardBadgeLabels {
   rookie: string;
   autograph: string;
   memorabilia: string;
+  numbered: string;
   tradable: string;
 }
 
@@ -28,6 +29,11 @@ export function CardBadges({ card, labels }: CardBadgesProps) {
       {card.memorabilia && (
         <span className="inline-flex h-5 items-center rounded-4xl border border-blue-500/50 bg-blue-500/10 px-1.5 py-0 text-[10px] font-medium text-blue-500">
           {labels.memorabilia}
+        </span>
+      )}
+      {card.serialNumber && (
+        <span className="inline-flex h-5 items-center rounded-4xl border border-red-500/50 bg-red-500/10 px-1.5 py-0 text-[10px] font-medium text-red-500">
+          {labels.numbered}
         </span>
       )}
       {card.tradable && (

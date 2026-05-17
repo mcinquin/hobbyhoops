@@ -18,6 +18,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
     rookie: t("badges.rookie"),
     autograph: t("badges.autograph"),
     memorabilia: t("badges.memorabilia"),
+    numbered: t("badges.numbered"),
     tradable: t("badges.tradable"),
   };
 

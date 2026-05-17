@@ -181,6 +181,7 @@ export function AdminCardsSection({
       rookie: t("badges.rookie"),
       autograph: t("badges.autograph"),
       memorabilia: t("badges.memorabilia"),
+      numbered: t("badges.numbered"),
       tradable: t("badges.tradable"),
     }),
     [t]
@@ -205,6 +206,7 @@ export function AdminCardsSection({
         badgeLabels.rookie,
         badgeLabels.autograph,
         badgeLabels.memorabilia,
+        badgeLabels.numbered,
         badgeLabels.tradable,
       ]),
     }),
@@ -232,6 +234,7 @@ export function AdminCardsSection({
           card.rookie ? badgeLabels.rookie : "",
           card.autograph ? badgeLabels.autograph : "",
           card.memorabilia ? badgeLabels.memorabilia : "",
+          card.serialNumber ? badgeLabels.numbered : "",
           card.tradable ? badgeLabels.tradable : "",
         ]
           .join(" ")
