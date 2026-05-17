@@ -220,7 +220,7 @@ export function AdminCatalogSection({
       <p className="text-sm text-muted-foreground">{t("admin.catalog.intro")}</p>
 
       <Tabs defaultValue="brands">
-        <TabsList>
+        <TabsList className="grid h-auto w-full grid-cols-1 gap-1 sm:grid-cols-3">
           <TabsTrigger value="brands">{t("admin.catalog.brands")}</TabsTrigger>
           <TabsTrigger value="sets">{t("admin.catalog.sets")}</TabsTrigger>
           <TabsTrigger value="variations">{t("admin.catalog.variations")}</TabsTrigger>
@@ -230,7 +230,7 @@ export function AdminCatalogSection({
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="space-y-3 rounded-lg border border-border p-4">
               <Label htmlFor="admin-brand-name">{t("admin.players.unitAdd")}</Label>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Input
                   id="admin-brand-name"
                   value={brand}
@@ -240,6 +240,7 @@ export function AdminCatalogSection({
                 />
                 <Button
                   type="button"
+                  className="w-full sm:w-auto"
                   disabled={loading}
                   onClick={() =>
                     void run(async () => {
@@ -293,6 +294,7 @@ export function AdminCatalogSection({
                 />
                 <Button
                   type="button"
+                  className="w-full sm:w-auto"
                   disabled={loading}
                   onClick={() =>
                     void run(async () => {
@@ -354,6 +356,7 @@ export function AdminCatalogSection({
                 />
                 <Button
                   type="button"
+                  className="w-full sm:w-auto"
                   disabled={loading}
                   onClick={() =>
                     void run(async () => {

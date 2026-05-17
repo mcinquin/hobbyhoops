@@ -64,7 +64,7 @@ export function AdminClubsSection({
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-3 rounded-lg border border-border p-4">
           <Label htmlFor="admin-club-name">{t("admin.players.unitAdd")}</Label>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               id="admin-club-name"
               value={team}
@@ -72,7 +72,12 @@ export function AdminClubsSection({
               placeholder={t("admin.clubs.placeholder")}
               disabled={loading}
             />
-            <Button type="button" disabled={loading} onClick={() => void handleAddTeam()}>
+            <Button
+              type="button"
+              className="w-full sm:w-auto"
+              disabled={loading}
+              onClick={() => void handleAddTeam()}
+            >
               {t("common.add")}
             </Button>
           </div>

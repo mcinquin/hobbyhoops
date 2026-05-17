@@ -108,24 +108,31 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">{t("admin.title")}</h2>
-          <p className="text-muted-foreground mt-1">
+    <div className="min-w-0 space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="min-w-0">
+          <h2 className="break-words text-2xl font-bold tracking-tight">
+            {t("admin.title")}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground sm:text-base">
             {t("admin.subtitle", { count: cards.length })}
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => void loadData()}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full sm:w-auto"
+          onClick={() => void loadData()}
+        >
           <RefreshCw className="h-4 w-4 mr-1" />
           {t("admin.reload")}
         </Button>
       </div>
 
       <Tabs defaultValue="cards">
-        <TabsList className="flex h-auto w-full flex-wrap justify-start">
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:flex sm:flex-wrap sm:justify-start">
           {tabs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value}>
+            <TabsTrigger key={tab.value} value={tab.value} className="text-xs sm:text-sm">
               {tab.label}
             </TabsTrigger>
           ))}

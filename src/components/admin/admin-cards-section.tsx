@@ -375,13 +375,14 @@ export function AdminCardsSection({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
+    <div className="min-w-0 space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <p className="text-sm text-muted-foreground">
           {t("admin.cards.intro")}
         </p>
         <Button
           size="sm"
+          className="w-full sm:w-auto"
           onClick={() => {
             setEditingCard(null);
             setSaveError(null);
@@ -413,7 +414,147 @@ export function AdminCardsSection({
         />
       </div>
 
-      <div className="rounded-md border border-border overflow-auto">
+      <div className="grid gap-2 md:hidden">
+        <ColumnFilterCombobox
+          value={playerColumnFilter}
+          onChange={(nextValue) => {
+            setPlayerColumnFilter(nextValue);
+            setPage(0);
+          }}
+          placeholder={t("admin.cards.filterPlayerTeam")}
+          suggestions={columnSuggestions.players}
+          className="h-9 text-xs"
+        />
+        <ColumnFilterCombobox
+          value={teamColumnFilter}
+          onChange={(nextValue) => {
+            setTeamColumnFilter(nextValue);
+            setPage(0);
+          }}
+          placeholder={t("admin.cards.filterTeam")}
+          suggestions={columnSuggestions.teams}
+          className="h-9 text-xs"
+        />
+        <div className="grid grid-cols-2 gap-2">
+          <ColumnFilterCombobox
+            value={yearColumnFilter}
+            onChange={(nextValue) => {
+              setYearColumnFilter(nextValue);
+              setPage(0);
+            }}
+            placeholder={t("admin.cards.filterYear")}
+            suggestions={columnSuggestions.years}
+            className="h-9 text-xs"
+          />
+          <ColumnFilterCombobox
+            value={tagsColumnFilter}
+            onChange={(nextValue) => {
+              setTagsColumnFilter(nextValue);
+              setPage(0);
+            }}
+            placeholder={t("admin.cards.filterTags")}
+            suggestions={columnSuggestions.tags}
+            className="h-9 text-xs"
+          />
+        </div>
+        <ColumnFilterCombobox
+          value={brandColumnFilter}
+          onChange={(nextValue) => {
+            setBrandColumnFilter(nextValue);
+            setPage(0);
+          }}
+          placeholder={t("admin.cards.filterBrand")}
+          suggestions={columnSuggestions.brands}
+          className="h-9 text-xs"
+        />
+        <ColumnFilterCombobox
+          value={setColumnFilter}
+          onChange={(nextValue) => {
+            setSetColumnFilter(nextValue);
+            setPage(0);
+          }}
+          placeholder={t("admin.cards.filterSet")}
+          suggestions={columnSuggestions.sets}
+          className="h-9 text-xs"
+        />
+        <ColumnFilterCombobox
+          value={variationColumnFilter}
+          onChange={(nextValue) => {
+            setVariationColumnFilter(nextValue);
+            setPage(0);
+          }}
+          placeholder={t("admin.cards.filterVariation")}
+          suggestions={columnSuggestions.variations}
+          className="h-9 text-xs"
+        />
+      </div>
+
+      <div className="space-y-3 md:hidden">
+        {paged.length ? (
+          paged.map((card) => {
+            const meta = [card.team, card.year].filter(Boolean).join(" · ");
+            const catalog = [card.brand, card.set].filter(Boolean).join(" · ");
+
+            return (
+              <article
+                key={card.id}
+                className="rounded-lg border border-border bg-card p-4 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium leading-tight">
+                      {card.player}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">{meta}</p>
+                  </div>
+                  <CardBadges card={card} labels={badgeLabels} />
+                </div>
+
+                <div className="mt-3 space-y-1 text-sm">
+                  <p className="truncate text-muted-foreground">{catalog}</p>
+                  <p className="truncate">{card.variation}</p>
+                </div>
+
+                <div className="mt-3 flex justify-end gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label={t("admin.cards.editCard", {
+                      player: card.player,
+                    })}
+                    onClick={() => {
+                      setEditingCard(card);
+                      setSaveError(null);
+                      setFormOpen(true);
+                    }}
+                  >
+                    <Pencil className="h-3.5 w-3.5 mr-1" />
+                    {t("common.edit")}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    aria-label={t("admin.cards.deleteCard", {
+                      player: card.player,
+                    })}
+                    onClick={() => setDeleteTarget(card)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-1" />
+                    {t("common.delete")}
+                  </Button>
+                </div>
+              </article>
+            );
+          })
+        ) : (
+          <div className="rounded-lg border border-border p-6 text-center text-sm text-muted-foreground">
+            {t("cards.noneFound")}
+          </div>
+        )}
+      </div>
+
+      <div className="hidden rounded-md border border-border md:block md:overflow-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -567,7 +708,7 @@ export function AdminCardsSection({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
             {t("admin.cards.pageInfo", {
               page: page + 1,

@@ -99,13 +99,13 @@ export function DashboardCharts({ cards }: DashboardChartsProps) {
     .map(([name, count]) => ({ name, count }));
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="bg-card border border-border rounded-lg p-6">
+    <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
+      <div className="min-w-0 rounded-lg border border-border bg-card p-4 sm:p-6">
         <h3 className="text-sm font-medium text-muted-foreground mb-4">
           {t("dashboard.byBrand")}
         </h3>
         <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={brandData}>
+          <BarChart data={brandData} margin={{ left: -20, right: 4 }}>
             <XAxis
               dataKey="name"
               tick={{ fill: "hsl(0, 0%, 70%)", fontSize: 11 }}
@@ -141,12 +141,12 @@ export function DashboardCharts({ cards }: DashboardChartsProps) {
         </ResponsiveContainer>
       </div>
 
-      <div className="bg-card border border-border rounded-lg p-6">
+      <div className="min-w-0 rounded-lg border border-border bg-card p-4 sm:p-6">
         <h3 className="text-sm font-medium text-muted-foreground mb-4">
           {t("dashboard.byYear")}
         </h3>
         <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={yearData}>
+          <BarChart data={yearData} margin={{ left: -20, right: 4 }}>
             <XAxis
               dataKey="name"
               tick={{ fill: "hsl(0, 0%, 70%)", fontSize: 10 }}
@@ -186,12 +186,16 @@ export function DashboardCharts({ cards }: DashboardChartsProps) {
         </ResponsiveContainer>
       </div>
 
-      <div className="bg-card border border-border rounded-lg p-6 lg:col-span-2">
+      <div className="min-w-0 rounded-lg border border-border bg-card p-4 sm:p-6 lg:col-span-2">
         <h3 className="text-sm font-medium text-muted-foreground mb-4">
           {t("dashboard.topPlayers")}
         </h3>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={playerData} layout="vertical">
+          <BarChart
+            data={playerData}
+            layout="vertical"
+            margin={{ left: 0, right: 4 }}
+          >
             <XAxis
               type="number"
               tick={{ fill: "hsl(0, 0%, 70%)", fontSize: 11 }}
@@ -204,7 +208,7 @@ export function DashboardCharts({ cards }: DashboardChartsProps) {
               tick={{ fill: "hsl(0, 0%, 70%)", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
-              width={150}
+              width={96}
             />
             <Tooltip
               content={(props) => (

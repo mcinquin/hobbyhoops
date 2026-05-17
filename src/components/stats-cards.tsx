@@ -67,17 +67,21 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div className="grid min-w-0 grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6 lg:gap-4">
       {stats.map((stat) => (
         <div
           key={stat.id}
-          className="bg-card border border-border rounded-lg p-4"
+          className="min-w-0 rounded-lg border border-border bg-card p-3 sm:p-4"
         >
-          <div className="flex items-center gap-2 mb-2">
-            <stat.icon className={`h-4 w-4 ${stat.color}`} />
-            <span className="text-xs text-muted-foreground">{stat.label}</span>
+          <div className="mb-2 flex min-w-0 items-center gap-2">
+            <stat.icon className={`h-4 w-4 shrink-0 ${stat.color}`} />
+            <span className="min-w-0 truncate text-xs text-muted-foreground">
+              {stat.label}
+            </span>
           </div>
-          <p className={`text-2xl font-bold ${stat.color}`}>{stat.value.toLocaleString()}</p>
+          <p className={`text-xl font-bold sm:text-2xl ${stat.color}`}>
+            {stat.value.toLocaleString()}
+          </p>
         </div>
       ))}
     </div>

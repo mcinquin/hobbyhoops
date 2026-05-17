@@ -70,7 +70,7 @@ export function AdminYearsSection({
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-3 rounded-lg border border-border p-4">
           <Label htmlFor="admin-year-value">{t("admin.players.unitAdd")}</Label>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               id="admin-year-value"
               value={year}
@@ -78,7 +78,12 @@ export function AdminYearsSection({
               placeholder={t("admin.years.placeholder")}
               disabled={loading}
             />
-            <Button type="button" disabled={loading} onClick={() => void handleAddYear()}>
+            <Button
+              type="button"
+              className="w-full sm:w-auto"
+              disabled={loading}
+              onClick={() => void handleAddYear()}
+            >
               {t("common.add")}
             </Button>
           </div>

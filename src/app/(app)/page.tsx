@@ -20,12 +20,14 @@ export default async function DashboardPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">
+    <div className="min-w-0 space-y-6 sm:space-y-8">
+      <div className="min-w-0">
+        <h2 className="text-2xl font-bold tracking-tight break-words">
           {t("dashboard.title")}
         </h2>
-        <p className="text-muted-foreground mt-1">{t("dashboard.subtitle")}</p>
+        <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+          {t("dashboard.subtitle")}
+        </p>
       </div>
 
       <StatsCards
