@@ -14,6 +14,7 @@
     "prestart": "node scripts/check-node.mjs",
     "start": "next start",
     "lint": "eslint",
+    "lint:md": "markdownlint-cli2",
     "audit:ci": "npm audit --audit-level=high",
     "ci": "node scripts/ci.mjs",
     "ci:full": "node scripts/ci.mjs --with-audit",
@@ -23,7 +24,8 @@
     "release": "semantic-release"
   },
   "lint-staged": {
-    "*.{js,jsx,mjs,ts,tsx}": "eslint --fix"
+    "*.{js,jsx,mjs,ts,tsx}": "eslint --fix",
+    "*.md": "markdownlint-cli2 --fix"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
@@ -56,6 +58,7 @@
     "eslint-config-next": "16.2.6",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.4",
+    "markdownlint-cli2": "^0.22.1",
     "semantic-release": "^25.0.3",
     "tailwindcss": "^4",
     "typescript": "~5.9.2"
