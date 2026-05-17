@@ -18,6 +18,7 @@ export default function AdminPage() {
   const [references, setReferences] = useState<References | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("cards");
 
   const tabs = useMemo(
     () => [
@@ -129,10 +130,26 @@ export default function AdminPage() {
         </Button>
       </div>
 
-      <Tabs defaultValue="cards">
-        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:flex sm:flex-wrap sm:justify-start">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <select
+          value={activeTab}
+          onChange={(event) => setActiveTab(event.target.value)}
+          className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm md:hidden"
+        >
           {tabs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value} className="text-xs sm:text-sm">
+            <option key={tab.value} value={tab.value}>
+              {tab.label}
+            </option>
+          ))}
+        </select>
+
+        <TabsList className="hidden !h-auto w-full max-w-full justify-start p-1 md:inline-flex">
+          {tabs.map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="h-8 flex-none px-3 text-xs sm:text-sm"
+            >
               {tab.label}
             </TabsTrigger>
           ))}

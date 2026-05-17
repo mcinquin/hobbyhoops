@@ -489,7 +489,7 @@ export function AdminCardsSection({
         />
       </div>
 
-      <div className="space-y-3 md:hidden">
+      <div className="space-y-2 md:hidden">
         {paged.length ? (
           paged.map((card) => {
             const meta = [card.team, card.year].filter(Boolean).join(" · ");
@@ -498,7 +498,7 @@ export function AdminCardsSection({
             return (
               <article
                 key={card.id}
-                className="rounded-lg border border-border bg-card p-4 shadow-sm"
+                className="rounded-lg border border-border bg-card p-3 shadow-sm"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -510,12 +510,12 @@ export function AdminCardsSection({
                   <CardBadges card={card} labels={badgeLabels} />
                 </div>
 
-                <div className="mt-3 space-y-1 text-sm">
+                <div className="mt-2 space-y-0.5 text-sm">
                   <p className="truncate text-muted-foreground">{catalog}</p>
                   <p className="truncate">{card.variation}</p>
                 </div>
 
-                <div className="mt-3 flex justify-end gap-1">
+                <div className="mt-2 flex justify-end gap-1">
                   <Button
                     variant="ghost"
                     size="sm"
