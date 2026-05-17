@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/mcinquin/hobbyhoops/compare/v1.7.0...v1.7.1) (2026-05-17)
+
+
+### Bug Fixes
+
+* **http-security:** fix some security issue with http ([cf4c669](https://github.com/mcinquin/hobbyhoops/commit/cf4c66956430361e4e9934a9cc1bc7c1b95ab87e))
+
 # [1.7.0](https://github.com/mcinquin/hobbyhoops/compare/v1.6.0...v1.7.0) (2026-05-17)
 
 
