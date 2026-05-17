@@ -70,9 +70,8 @@ Image de production (après chaque release semantic-release) : `ghcr.io/<organis
 Le workflow `.github/workflows/ci.yml` exécute sur chaque push et pull request vers `main` ou `master` :
 
 - `npm ci` puis `npm run ci:full` (Node, ESLint, TypeScript, audit npm high+)
-- build de l’image Docker (validation sur `main`, push d’images de test sur les PR)
-- sur **push vers `main` uniquement** : **semantic-release** (tag Git `vX.Y.Z`, release GitHub, `CHANGELOG.md`, bump de `package.json`)
-- à chaque **GitHub Release publiée** : workflow `release-docker.yml` pousse `ghcr.io/<organisation>/hobbyhoops:X.Y.Z` et `:latest` (aligné sur le tag semantic-release)
+- build et push de l’image Docker de test sur les PR
+- sur **push vers `main` uniquement** : **semantic-release** (tag Git `vX.Y.Z`, release GitHub, `CHANGELOG.md`, bump de `package.json`) puis publication de l’image Docker versionnée depuis le job `release`
 
 En local, lancez `npm run ci` avant de pousser. L’audit réseau complet reste disponible avec `npm run ci:full`.
 
