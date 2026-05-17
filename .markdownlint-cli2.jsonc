@@ -1,0 +1,14 @@
+{
+  "config": {
+    "default": true,
+    "MD013": false,
+    "MD024": {
+      "siblings_only": true
+    },
+    "MD033": {
+      "allowed_elements": ["br"]
+    }
+  },
+  "globs": ["**/*.md"],
+  "ignores": ["node_modules", ".next", "CHANGELOG.md", "CLAUDE.md"]
+}

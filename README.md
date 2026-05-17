@@ -1,99 +1,99 @@
 # HobbyHoops
 
-Application Next.js pour gérer une collection de cartes NBA : collection, fiches joueurs, administration des références et persistance SQLite.
+Next.js application for managing an NBA card collection: collection browsing, player pages, reference administration, and SQLite persistence.
 
-## Prérequis
+## Requirements
 
 - Node.js 24 (voir `.nvmrc`)
 - npm
 
-## Démarrage local
+## Local Setup
 
 ```bash
 cp .env.example .env.local
-# Renseigner AUTH_SECRET dans .env.local (openssl rand -hex 32)
+# Set AUTH_SECRET in .env.local (openssl rand -hex 32)
 npm ci
 npm run dev
 ```
 
-L’application est disponible sur [http://localhost:3000](http://localhost:3000).
+The application is available at [http://localhost:3000](http://localhost:3000).
 
-Au premier lancement, créez le compte administrateur via l’écran de connexion (bootstrap).
+On first launch, create the administrator account from the login screen (bootstrap).
 
-## Langues
+## Languages
 
-Français (par défaut) et anglais (US). Le choix est mémorisé dans le cookie `hh_locale` et modifiable depuis la barre latérale ou l’écran de connexion.
+French (default) and English (US). The selected language is stored in the `hh_locale` cookie and can be changed from the sidebar or the login screen.
 
-Fichiers de traduction : `messages/fr.json`, `messages/en.json`.
+Translation files: `messages/fr.json`, `messages/en.json`.
 
-## Scripts utiles
+## Useful Scripts
 
 ```bash
-npm run ci         # contrôles locaux rapides (recommandé avant push)
-npm run ci:full    # lint + typecheck + audit npm high+ (utilisé par GitHub Actions)
-npm run check      # alias de npm run ci
+npm run ci         # fast local checks (recommended before pushing)
+npm run ci:full    # lint + typecheck + npm audit high+ (used by GitHub Actions)
+npm run check      # alias for npm run ci
 npm run lint
 npm run typecheck
 npm run build
 npm start
-npm run clean      # supprime .next, caches TypeScript, etc.
+npm run clean      # removes .next, TypeScript caches, etc.
 ```
 
-## Données
+## Data
 
-Tout est stocké dans **`data/hobbyhoops.db`** (SQLite via `better-sqlite3`) : collection, références, comptes, sessions et rate limiting. Ce fichier et ses journaux WAL sont **locaux** et ne doivent **jamais** être commités.
+Everything is stored in **`data/hobbyhoops.db`** (SQLite via `better-sqlite3`): collection, references, accounts, sessions, and rate limiting. This file and its WAL journals are **local** and must **never** be committed.
 
-Au premier lancement, la base est créée vide ; créez le compte administrateur via l’écran de connexion.
+On first launch, an empty database is created; create the administrator account from the login screen.
 
-## Déploiement Docker
+## Docker Deployment
 
-L’image Docker démarre avec une **collection vide** : seul un répertoire `data/` inscriptible est nécessaire (la base SQLite y est créée automatiquement).
+The Docker image starts with an **empty collection**: only a writable `data/` directory is required (the SQLite database is created there automatically).
 
 ```bash
 cp .env.example .env
-# Définir AUTH_SECRET dans .env
+# Set AUTH_SECRET in .env
 mkdir -p data && sudo chown -R 1111:1111 data
 docker compose up --build -d
 ```
 
-L’application écoute sur `127.0.0.1:3000`. Les données persistent dans le dossier hôte `data/` (monté sur `/app/data`).
+The application listens on `127.0.0.1:3000`. Data persists in the host `data/` directory (mounted at `/app/data`).
 
-Le conteneur tourne sous l’utilisateur système **`hobbyhoops`** (UID/GID **1111**). Le répertoire `data/` doit être inscriptible par cet utilisateur (voir `chown` ci-dessus).
+The container runs as the **`hobbyhoops`** system user (UID/GID **1111**). The `data/` directory must be writable by this user (see the `chown` command above).
 
-En production derrière un reverse proxy HTTPS, laisser `COOKIE_SECURE` à sa valeur par défaut ou forcez `COOKIE_SECURE=true`.
-Si le proxy réécrit strictement `X-Forwarded-For` / `X-Real-IP`, activez `TRUST_PROXY=true` pour appliquer le rate limit par IP réelle. Sinon, laissez la valeur par défaut afin d’éviter les en-têtes spoofés.
+In production behind an HTTPS reverse proxy, leave `COOKIE_SECURE` at its default value or force `COOKIE_SECURE=true`.
+If the proxy strictly rewrites `X-Forwarded-For` / `X-Real-IP`, enable `TRUST_PROXY=true` to apply rate limiting by real client IP. Otherwise, keep the default value to avoid spoofed headers.
 
-Image de production (après chaque release semantic-release) : `ghcr.io/<organisation>/hobbyhoops:latest`, `ghcr.io/<organisation>/hobbyhoops:1.2.0`, etc.
+Production image (after each semantic-release release): `ghcr.io/<organisation>/hobbyhoops:latest`, `ghcr.io/<organisation>/hobbyhoops:1.2.0`, etc.
 
 ## CI GitHub Actions
 
-Le workflow `.github/workflows/ci.yml` exécute sur chaque push et pull request vers `main` ou `master` :
+The `.github/workflows/ci.yml` workflow runs on every push and pull request to `main` or `master`:
 
-- `npm ci` puis `npm run ci:full` (Node, ESLint, TypeScript, audit npm high+)
-- build et push de l’image Docker de test sur les PR
-- sur **push vers `main` uniquement** : **semantic-release** (tag Git `vX.Y.Z`, release GitHub, `CHANGELOG.md`, bump de `package.json`) puis publication de l’image Docker versionnée depuis le job `release`
+- `npm ci`, then `npm run ci:full` (Node, ESLint, TypeScript, npm audit high+)
+- build and push the test Docker image on PRs
+- on **push to `main` only**: **semantic-release** (Git tag `vX.Y.Z`, GitHub Release, `CHANGELOG.md`, `package.json` bump), then publish the versioned Docker image from the `release` job
 
-En local, lancez `npm run ci` avant de pousser. L’audit réseau complet reste disponible avec `npm run ci:full`.
+Locally, run `npm run ci` before pushing. The full network audit remains available with `npm run ci:full`.
 
 ### Versions (semantic-release)
 
-Config : `release.config.cjs`. Les releases sont créées automatiquement après une CI réussie sur `main`, à partir des commits [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `refactor:`, etc.).
+Config: `release.config.cjs`. Releases are created automatically after a successful CI run on `main`, based on [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `refactor:`, etc.).
 
-- Fusionnez les PR en **squash** avec un titre conventionnel (ex. `feat: ajout du filtre collection`), ou poussez des commits conventionnels directement sur `main`.
-- Les merges du type `Merge pull request #12` ne déclenchent pas de version à eux seuls.
-- Dans les réglages du dépôt GitHub : **Settings → Actions → General → Workflow permissions** → *Read and write permissions* (requis pour que semantic-release pousse le tag et le commit de release).
-- L’image Docker `:latest` et `:X.Y.Z` correspondent au commit du tag Git `vX.Y.Z` créé par semantic-release (pas au SHA intermédiaire du push).
+- Squash-merge PRs with a conventional title (e.g. `feat: add collection filter`), or push conventional commits directly to `main`.
+- Merge commits such as `Merge pull request #12` do not trigger a version by themselves.
+- In the GitHub repository settings: **Settings → Actions → General → Workflow permissions** → *Read and write permissions* (required so semantic-release can push the release tag and commit).
+- Docker images `:latest` and `:X.Y.Z` point to the commit of the `vX.Y.Z` Git tag created by semantic-release (not the intermediate push SHA).
 
-## Pousser sur GitHub
+## Pushing to GitHub
 
-Vérifier qu’aucun secret ni donnée locale ne sera versionné :
+Check that no secret or local data will be versioned:
 
 ```bash
 git status
 git check-ignore -v data/hobbyhoops.db .env.local
 ```
 
-Puis commit et push :
+Then commit and push:
 
 ```bash
 npm run ci
@@ -102,11 +102,11 @@ git commit -m "feat: application HobbyHoops"
 git push origin main
 ```
 
-Ne poussez jamais `.env`, `.env.local`, les comptes locaux ni la base SQLite de développement. Voir [SECURITY.md](SECURITY.md).
+Never push `.env`, `.env.local`, local accounts, or the development SQLite database. See [SECURITY.md](SECURITY.md).
 
-## Qualité du code
+## Code Quality
 
-- **`npm run ci`** : contrôles locaux sans dépendance réseau (Node, lint, typecheck)
-- **`npm run ci:full`** : contrôles GitHub Actions avec audit npm high+
-- **Husky** : `pre-commit` (ESLint sur les fichiers stagés), `pre-push` (`npm run ci`), `commit-msg` (commitlint conventional)
-- **Dependabot** : mises à jour hebdomadaires npm et GitHub Actions
+- **`npm run ci`**: local checks without network dependency (Node, lint, typecheck)
+- **`npm run ci:full`**: GitHub Actions checks with npm audit high+
+- **Husky**: `pre-commit` (ESLint on staged files), `pre-push` (`npm run ci`), `commit-msg` (commitlint conventional)
+- **Dependabot**: weekly npm and GitHub Actions updates
