@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/mcinquin/hobbyhoops/compare/v1.6.0...v1.7.0) (2026-05-17)
+
+
+### Features
+
+* **docker:** hardening docker image ([21c1c23](https://github.com/mcinquin/hobbyhoops/commit/21c1c23f4e94e17e800c40f6262b4a111a78530c))
+
 # [1.6.0](https://github.com/mcinquin/hobbyhoops/compare/v1.5.1...v1.6.0) (2026-05-17)
 
 
