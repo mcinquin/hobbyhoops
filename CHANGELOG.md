@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/mcinquin/hobbyhoops/compare/v1.7.2...v1.8.0) (2026-05-17)
+
+
+### Features
+
+* **ux:** change rendering for collection on mobile device ([5e1a2b2](https://github.com/mcinquin/hobbyhoops/commit/5e1a2b2243ee075f5a33dd26934ee89585564705))
+
 ## [1.7.2](https://github.com/mcinquin/hobbyhoops/compare/v1.7.1...v1.7.2) (2026-05-17)
 
 
