@@ -337,7 +337,7 @@ export function CardTable({ cards, filters }: CardTableProps) {
       </div>
 
       {/* Mobile cards */}
-      <div className="space-y-3 md:hidden">
+      <div className="space-y-2 md:hidden">
         {table.getRowModel().rows.length ? (
           table.getRowModel().rows.map((row) => {
             const card = row.original;
@@ -354,7 +354,7 @@ export function CardTable({ cards, filters }: CardTableProps) {
               <button
                 key={row.id}
                 type="button"
-                className="block w-full rounded-lg border border-border bg-card p-4 text-left shadow-sm transition-colors hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="block w-full rounded-lg border border-border bg-card p-3 text-left shadow-sm transition-colors hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => setSelectedCard(card)}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -367,7 +367,7 @@ export function CardTable({ cards, filters }: CardTableProps) {
                   <CardBadges card={card} labels={badgeLabels} />
                 </div>
 
-                <div className="mt-3 space-y-1 text-sm">
+                <div className="mt-2 space-y-0.5 text-sm">
                   <p className="truncate text-muted-foreground">
                     {card.brand} · {card.set}
                   </p>

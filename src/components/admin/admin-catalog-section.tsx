@@ -183,6 +183,7 @@ export function AdminCatalogSection({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("brands");
 
   const setsForBrand = useMemo(
     () => setsLinkedToBrand(references, brandForSet),
@@ -219,18 +220,34 @@ export function AdminCatalogSection({
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground">{t("admin.catalog.intro")}</p>
 
-      <Tabs defaultValue="brands">
-        <TabsList>
-          <TabsTrigger value="brands">{t("admin.catalog.brands")}</TabsTrigger>
-          <TabsTrigger value="sets">{t("admin.catalog.sets")}</TabsTrigger>
-          <TabsTrigger value="variations">{t("admin.catalog.variations")}</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <select
+          value={activeTab}
+          onChange={(event) => setActiveTab(event.target.value)}
+          className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm md:hidden"
+        >
+          <option value="brands">{t("admin.catalog.brands")}</option>
+          <option value="sets">{t("admin.catalog.sets")}</option>
+          <option value="variations">{t("admin.catalog.variations")}</option>
+        </select>
+
+        <TabsList className="hidden !h-auto w-full max-w-full justify-start p-1 md:inline-flex">
+          <TabsTrigger value="brands" className="h-8 flex-none px-3">
+            {t("admin.catalog.brands")}
+          </TabsTrigger>
+          <TabsTrigger value="sets" className="h-8 flex-none px-3">
+            {t("admin.catalog.sets")}
+          </TabsTrigger>
+          <TabsTrigger value="variations" className="h-8 flex-none px-3">
+            {t("admin.catalog.variations")}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="brands" className="space-y-4 pt-4">
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="space-y-3 rounded-lg border border-border p-4">
               <Label htmlFor="admin-brand-name">{t("admin.players.unitAdd")}</Label>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Input
                   id="admin-brand-name"
                   value={brand}
@@ -240,6 +257,7 @@ export function AdminCatalogSection({
                 />
                 <Button
                   type="button"
+                  className="w-full sm:w-auto"
                   disabled={loading}
                   onClick={() =>
                     void run(async () => {
@@ -293,6 +311,7 @@ export function AdminCatalogSection({
                 />
                 <Button
                   type="button"
+                  className="w-full sm:w-auto"
                   disabled={loading}
                   onClick={() =>
                     void run(async () => {
@@ -354,6 +373,7 @@ export function AdminCatalogSection({
                 />
                 <Button
                   type="button"
+                  className="w-full sm:w-auto"
                   disabled={loading}
                   onClick={() =>
                     void run(async () => {

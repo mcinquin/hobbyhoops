@@ -68,7 +68,13 @@ export function BatchTextImport({
         error={error}
         onSuccessDismiss={() => setSuccess(null)}
       />
-      <Button type="button" size="sm" disabled={disabled || loading} onClick={() => void handleSubmit()}>
+      <Button
+        type="button"
+        size="sm"
+        className="w-full sm:w-auto"
+        disabled={disabled || loading}
+        onClick={() => void handleSubmit()}
+      >
         {loading ? t("admin.batch.importPending") : t("admin.batch.importList")}
       </Button>
     </div>

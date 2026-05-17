@@ -18,6 +18,7 @@ export default function AdminPage() {
   const [references, setReferences] = useState<References | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("cards");
 
   const tabs = useMemo(
     () => [
@@ -108,24 +109,47 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">{t("admin.title")}</h2>
-          <p className="text-muted-foreground mt-1">
+    <div className="min-w-0 space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="min-w-0">
+          <h2 className="break-words text-2xl font-bold tracking-tight">
+            {t("admin.title")}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground sm:text-base">
             {t("admin.subtitle", { count: cards.length })}
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => void loadData()}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full sm:w-auto"
+          onClick={() => void loadData()}
+        >
           <RefreshCw className="h-4 w-4 mr-1" />
           {t("admin.reload")}
         </Button>
       </div>
 
-      <Tabs defaultValue="cards">
-        <TabsList className="flex h-auto w-full flex-wrap justify-start">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <select
+          value={activeTab}
+          onChange={(event) => setActiveTab(event.target.value)}
+          className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm md:hidden"
+        >
           {tabs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value}>
+            <option key={tab.value} value={tab.value}>
+              {tab.label}
+            </option>
+          ))}
+        </select>
+
+        <TabsList className="hidden !h-auto w-full max-w-full justify-start p-1 md:inline-flex">
+          {tabs.map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="h-8 flex-none px-3 text-xs sm:text-sm"
+            >
               {tab.label}
             </TabsTrigger>
           ))}
