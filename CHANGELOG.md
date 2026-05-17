@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/mcinquin/hobbyhoops/compare/v1.8.1...v1.9.0) (2026-05-17)
+
+
+### Features
+
+* **dashboard:** add drill-drown ([a5375ed](https://github.com/mcinquin/hobbyhoops/commit/a5375ed024164b037ca9ee695400ab77e60cf91f))
+
 ## [1.8.1](https://github.com/mcinquin/hobbyhoops/compare/v1.8.0...v1.8.1) (2026-05-17)
 
 
