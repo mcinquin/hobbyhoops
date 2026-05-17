@@ -190,7 +190,15 @@
     "placeholderSetUnderBrand": "ex. sous {brand}",
     "chooseBrandFirst": "Choisissez d'abord une marque",
     "setsForBrandTitle": "Sets de votre collection pour cette marque",
-    "chooseBrandForSetsList": "Choisissez une marque pour lister les sets"
+    "chooseBrandForSetsList": "Choisissez une marque pour lister les sets",
+    "activeFilters": "Filtres actifs :",
+    "activeSearch": "Recherche = {value}",
+    "activePlayer": "Joueur = {value}",
+    "activeTeam": "Équipe = {value}",
+    "activeYear": "Année = {value}",
+    "activeBrand": "Marque = {value}",
+    "activeSet": "Set = {value}",
+    "resetFilters": "Réinitialiser"
   },
   "admin": {
     "title": "Admin",

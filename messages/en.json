@@ -190,7 +190,15 @@
     "placeholderSetUnderBrand": "e.g. under {brand}",
     "chooseBrandFirst": "Choose a brand first",
     "setsForBrandTitle": "Sets in your collection for this brand",
-    "chooseBrandForSetsList": "Choose a brand to list sets"
+    "chooseBrandForSetsList": "Choose a brand to list sets",
+    "activeFilters": "Active filters:",
+    "activeSearch": "Search = {value}",
+    "activePlayer": "Player = {value}",
+    "activeTeam": "Team = {value}",
+    "activeYear": "Year = {value}",
+    "activeBrand": "Brand = {value}",
+    "activeSet": "Set = {value}",
+    "resetFilters": "Reset"
   },
   "admin": {
     "title": "Admin",

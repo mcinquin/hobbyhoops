@@ -1,6 +1,8 @@
 "use client";
 
 import { Card } from "@/lib/types";
+import type { KeyboardEvent } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "@/i18n/client";
 import {
   BarChart,
@@ -32,6 +34,18 @@ const COLORS = [
 
 const tooltipCursor = { fill: "hsl(38, 92%, 50%, 0.12)" };
 
+function collectionHref(key: "brand" | "year" | "player", value: string): string {
+  const params = new URLSearchParams({ [key]: value });
+  return `/collection?${params.toString()}`;
+}
+
+function getDatumName(entry: unknown): string | null {
+  if (typeof entry !== "object" || entry === null) return null;
+  const candidate = entry as { name?: unknown; payload?: { name?: unknown } };
+  const name = candidate.name ?? candidate.payload?.name;
+  return typeof name === "string" && name ? name : null;
+}
+
 function ChartTooltipContent({
   active,
   payload,
@@ -59,7 +73,30 @@ function ChartTooltipContent({
 
 export function DashboardCharts({ cards }: DashboardChartsProps) {
   const t = useTranslations();
+  const router = useRouter();
   const cardsLabel = t("common.cardsLabel");
+
+  function drillDown(key: "brand" | "year" | "player", entry: unknown): void {
+    const name = getDatumName(entry);
+    if (name) router.push(collectionHref(key, name));
+  }
+
+  function openCollectionFilter(
+    key: "brand" | "year" | "player",
+    value: string
+  ): void {
+    router.push(collectionHref(key, value));
+  }
+
+  function handleChartKeyDown(
+    event: KeyboardEvent<SVGElement>,
+    key: "brand" | "year" | "player",
+    value: string
+  ): void {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    openCollectionFilter(key, value);
+  }
 
   const brandData = Object.entries(
     cards.reduce(
@@ -132,9 +169,25 @@ export function DashboardCharts({ cards }: DashboardChartsProps) {
               )}
               cursor={tooltipCursor}
             />
-            <Bar dataKey="count" name={cardsLabel} radius={[4, 4, 0, 0]}>
-              {brandData.map((_, i) => (
-                <Cell key={i} fill={COLORS[i % COLORS.length]} />
+            <Bar
+              dataKey="count"
+              name={cardsLabel}
+              radius={[4, 4, 0, 0]}
+              className="cursor-pointer"
+              onClick={(entry) => drillDown("brand", entry)}
+            >
+              {brandData.map((entry, i) => (
+                <Cell
+                  key={entry.name}
+                  fill={COLORS[i % COLORS.length]}
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`${entry.name} - ${entry.count} ${cardsLabel}`}
+                  onClick={() => openCollectionFilter("brand", entry.name)}
+                  onKeyDown={(event) =>
+                    handleChartKeyDown(event, "brand", entry.name)
+                  }
+                />
               ))}
             </Bar>
           </BarChart>
@@ -181,7 +234,23 @@ export function DashboardCharts({ cards }: DashboardChartsProps) {
               name={cardsLabel}
               fill={CHART_COUNT_COLOR}
               radius={[4, 4, 0, 0]}
-            />
+              className="cursor-pointer"
+              onClick={(entry) => drillDown("year", entry)}
+            >
+              {yearData.map((entry) => (
+                <Cell
+                  key={entry.name}
+                  fill={CHART_COUNT_COLOR}
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`${entry.name} - ${entry.count} ${cardsLabel}`}
+                  onClick={() => openCollectionFilter("year", entry.name)}
+                  onKeyDown={(event) =>
+                    handleChartKeyDown(event, "year", entry.name)
+                  }
+                />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -225,9 +294,25 @@ export function DashboardCharts({ cards }: DashboardChartsProps) {
               )}
               cursor={tooltipCursor}
             />
-            <Bar dataKey="count" name={cardsLabel} radius={[0, 4, 4, 0]}>
-              {playerData.map((_, i) => (
-                <Cell key={i} fill={COLORS[i % COLORS.length]} />
+            <Bar
+              dataKey="count"
+              name={cardsLabel}
+              radius={[0, 4, 4, 0]}
+              className="cursor-pointer"
+              onClick={(entry) => drillDown("player", entry)}
+            >
+              {playerData.map((entry, i) => (
+                <Cell
+                  key={entry.name}
+                  fill={COLORS[i % COLORS.length]}
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`${entry.name} - ${entry.count} ${cardsLabel}`}
+                  onClick={() => openCollectionFilter("player", entry.name)}
+                  onKeyDown={(event) =>
+                    handleChartKeyDown(event, "player", entry.name)
+                  }
+                />
               ))}
             </Bar>
           </BarChart>
