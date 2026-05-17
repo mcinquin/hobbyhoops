@@ -1,3 +1,11 @@
+## [1.8.1](https://github.com/mcinquin/hobbyhoops/compare/v1.8.0...v1.8.1) (2026-05-17)
+
+
+### Bug Fixes
+
+* **ui:** fix issues for admin section on mobile device ([18f1a66](https://github.com/mcinquin/hobbyhoops/commit/18f1a66c0e88014a2d8f02789d394341e78254de))
+* **ui:** fix some issues with ui on mobile device ([4f97bfe](https://github.com/mcinquin/hobbyhoops/commit/4f97bfeeaaf871f92dc09ce278857c27608e350c))
+
 # [1.8.0](https://github.com/mcinquin/hobbyhoops/compare/v1.7.2...v1.8.0) (2026-05-17)
 
 
