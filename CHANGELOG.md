@@ -1,3 +1,10 @@
+## [1.7.2](https://github.com/mcinquin/hobbyhoops/compare/v1.7.1...v1.7.2) (2026-05-17)
+
+
+### Bug Fixes
+
+* **admin:** fix issue on account page (renew password) ([b850541](https://github.com/mcinquin/hobbyhoops/commit/b850541ecc37e011e7ff6e2c4a1f4bc7bbde71a8))
+
 ## [1.7.1](https://github.com/mcinquin/hobbyhoops/compare/v1.7.0...v1.7.1) (2026-05-17)
 
 
