@@ -31,6 +31,7 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     needs: quality
+    if: github.event_name == 'pull_request'
     permissions:
       contents: read
       packages: write
@@ -40,7 +41,6 @@ jobs:
       - uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd
 
       - uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121
-        if: github.event_name == 'pull_request'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -57,8 +57,9 @@ jobs:
       - uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f
         with:
           context: .
-          # Sur main : build de validation uniquement. Les tags semver + latest sont poussés par release-docker.yml.
-          push: ${{ github.event_name == 'pull_request' }}
+          # Validation Docker pour les PR. Sur main, seul le job release construit
+          # l'image quand semantic-release publie vraiment une version.
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -67,7 +68,7 @@ jobs:
   release:
     name: semantic-release
     runs-on: ubuntu-latest
-    needs: docker
+    needs: quality
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: write
