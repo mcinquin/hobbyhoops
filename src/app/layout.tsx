@@ -1,8 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { connection } from "next/server";
 import { LocaleProvider } from "@/i18n/client";
 import { getTranslations } from "@/i18n/server";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0a0a0a",
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getTranslations();

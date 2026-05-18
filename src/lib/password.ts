@@ -20,6 +20,8 @@ export function hashPassword(plain: string): string {
   return `${salt}:${hash.toString("hex")}`;
 }
 
+const DUMMY_HASH = hashPassword("hobbyhoops-timing-safe-dummy");
+
 export function verifyPassword(plain: string, stored: string): boolean {
   const parts = stored.split(":");
   if (parts.length !== 2) return false;
@@ -32,4 +34,12 @@ export function verifyPassword(plain: string, stored: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Run a dummy scrypt derivation so callers can keep constant response time
+ * regardless of whether the target user exists.
+ */
+export function dummyVerify(plain: string): void {
+  verifyPassword(plain, DUMMY_HASH);
 }

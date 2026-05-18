@@ -10,7 +10,10 @@ import {
   formatZodError,
 } from "@/lib/card-schema";
 import { getRequestTranslator } from "@/i18n/request";
-import { rejectCrossSiteMutation } from "@/lib/request-guard";
+import {
+  rejectCrossSiteMutation,
+  rejectOversizedBody,
+} from "@/lib/request-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +29,8 @@ export async function POST(request: NextRequest) {
   if (gate instanceof NextResponse) return gate;
   const crossSite = rejectCrossSiteMutation(request);
   if (crossSite) return crossSite;
+  const oversized = rejectOversizedBody(request);
+  if (oversized) return oversized;
   const t = getRequestTranslator(request);
 
   let body: unknown;
@@ -70,6 +75,8 @@ export async function PUT(request: NextRequest) {
   if (gate instanceof NextResponse) return gate;
   const crossSite = rejectCrossSiteMutation(request);
   if (crossSite) return crossSite;
+  const oversized = rejectOversizedBody(request);
+  if (oversized) return oversized;
   const t = getRequestTranslator(request);
 
   let body: unknown;
@@ -105,8 +112,15 @@ export async function DELETE(request: NextRequest) {
   const crossSite = rejectCrossSiteMutation(request);
   if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id");
+
+  let id: string | null = null;
+  try {
+    const body = (await request.json()) as { id?: unknown };
+    id = typeof body.id === "string" ? body.id.trim() : null;
+  } catch {
+    const { searchParams } = new URL(request.url);
+    id = searchParams.get("id");
+  }
 
   if (!id) {
     return NextResponse.json(

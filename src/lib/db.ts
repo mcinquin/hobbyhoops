@@ -310,47 +310,12 @@ export function writeReferencesState(refs: References): void {
   importReferences(getDb(), refs);
 }
 
-export function getDatabaseHealth(): {
-  ok: boolean;
-  data: Record<string, boolean>;
-} {
+export function getDatabaseHealth(): { ok: boolean } {
   try {
     const db = getDb();
-    const cards = (
-      db.prepare("SELECT COUNT(*) as count FROM cards").get() as { count: number }
-    ).count;
-    const references = (
-      db.prepare("SELECT COUNT(*) as count FROM references_state").get() as {
-        count: number;
-      }
-    ).count;
-    const users = (
-      db.prepare("SELECT COUNT(*) as count FROM users").get() as { count: number }
-    ).count;
-    const sessions = (
-      db.prepare("SELECT COUNT(*) as count FROM sessions").get() as {
-        count: number;
-      }
-    ).count;
-
-    return {
-      ok: true,
-      data: {
-        cards: cards > 0,
-        references: references > 0,
-        users: users > 0,
-        sessions: sessions > 0,
-      },
-    };
+    db.prepare("SELECT 1").get();
+    return { ok: true };
   } catch {
-    return {
-      ok: false,
-      data: {
-        cards: false,
-        references: false,
-        users: false,
-        sessions: false,
-      },
-    };
+    return { ok: false };
   }
 }

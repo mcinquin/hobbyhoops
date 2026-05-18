@@ -343,6 +343,7 @@
     "noValidPlayers": "No valid players.",
     "noValidClubs": "No valid teams.",
     "noValidYears": "No valid years.",
-    "updateFailed": "Update failed."
+    "updateFailed": "Update failed.",
+    "payloadTooLarge": "Request body too large."
   }
 }

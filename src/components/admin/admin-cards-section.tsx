@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useId, useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { Card, References } from "@/lib/types";
 import { CardForm } from "@/components/card-form";
 import { CardBadges } from "@/components/card-badges";
@@ -22,6 +22,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { AdminFeedback } from "@/components/admin/admin-feedback";
+import { Combobox } from "@/components/ui/combobox";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { useTranslations } from "@/i18n/client";
 
@@ -36,114 +37,6 @@ function uniqueSorted(values: string[]): string[] {
   return Array.from(
     new Set(values.map((value) => value.trim()).filter(Boolean))
   ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-}
-
-interface ColumnFilterComboboxProps {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  suggestions: string[];
-  className?: string;
-}
-
-function ColumnFilterCombobox({
-  value,
-  onChange,
-  placeholder,
-  suggestions,
-  className,
-}: ColumnFilterComboboxProps) {
-  const inputId = useId();
-  const listboxId = `${inputId}-listbox`;
-  const [open, setOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const query = value.trim().toLowerCase();
-  const visibleSuggestions = useMemo(
-    () =>
-      suggestions.filter((suggestion) =>
-        suggestion.toLowerCase().includes(query)
-      ),
-    [query, suggestions]
-  );
-
-  function selectSuggestion(nextValue: string): void {
-    onChange(nextValue);
-    setOpen(false);
-    setActiveIndex(0);
-  }
-
-  return (
-    <div className="relative">
-      <Input
-        id={inputId}
-        value={value}
-        onChange={(event) => {
-          onChange(event.target.value);
-          setOpen(true);
-          setActiveIndex(0);
-        }}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
-        onKeyDown={(event) => {
-          if (!open && ["ArrowDown", "ArrowUp"].includes(event.key)) {
-            setOpen(true);
-            return;
-          }
-          if (event.key === "Escape") {
-            setOpen(false);
-            return;
-          }
-          if (visibleSuggestions.length === 0) return;
-          if (event.key === "ArrowDown") {
-            event.preventDefault();
-            setActiveIndex((index) => (index + 1) % visibleSuggestions.length);
-          }
-          if (event.key === "ArrowUp") {
-            event.preventDefault();
-            setActiveIndex(
-              (index) =>
-                (index - 1 + visibleSuggestions.length) %
-                visibleSuggestions.length
-            );
-          }
-          if (event.key === "Enter" && open) {
-            event.preventDefault();
-            selectSuggestion(visibleSuggestions[activeIndex]);
-          }
-        }}
-        placeholder={placeholder}
-        role="combobox"
-        aria-expanded={open && visibleSuggestions.length > 0}
-        aria-controls={listboxId}
-        aria-autocomplete="list"
-        className={className}
-      />
-      {open && visibleSuggestions.length > 0 && (
-        <div
-          id={listboxId}
-          role="listbox"
-          className="absolute left-0 right-0 top-full z-30 mt-1 max-h-56 overflow-auto rounded-md border border-border bg-popover p-1 text-xs font-normal shadow-lg"
-        >
-          {visibleSuggestions.map((suggestion, index) => (
-            <button
-              key={suggestion}
-              type="button"
-              role="option"
-              aria-selected={index === activeIndex}
-              className="block w-full rounded px-2 py-1.5 text-left hover:bg-accent aria-selected:bg-accent"
-              onMouseDown={(event) => {
-                event.preventDefault();
-                selectSuggestion(suggestion);
-              }}
-              onMouseEnter={() => setActiveIndex(index)}
-            >
-              {suggestion}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 export function AdminCardsSection({
@@ -356,9 +249,11 @@ export function AdminCardsSection({
   async function handleDelete() {
     if (!deleteTarget) return;
     setSuccess(null);
-    const res = await fetch(`/api/cards?id=${deleteTarget.id}`, {
+    const res = await fetch("/api/cards", {
       method: "DELETE",
+      headers: { "Content-Type": "application/json" },
       credentials: "include",
+      body: JSON.stringify({ id: deleteTarget.id }),
     });
     if (res.ok) {
       onCardsChange(cards.filter((c) => c.id !== deleteTarget.id));
@@ -415,7 +310,7 @@ export function AdminCardsSection({
       </div>
 
       <div className="grid gap-2 md:hidden">
-        <ColumnFilterCombobox
+        <Combobox
           value={playerColumnFilter}
           onChange={(nextValue) => {
             setPlayerColumnFilter(nextValue);
@@ -425,7 +320,7 @@ export function AdminCardsSection({
           suggestions={columnSuggestions.players}
           className="h-9 text-xs"
         />
-        <ColumnFilterCombobox
+        <Combobox
           value={teamColumnFilter}
           onChange={(nextValue) => {
             setTeamColumnFilter(nextValue);
@@ -436,7 +331,7 @@ export function AdminCardsSection({
           className="h-9 text-xs"
         />
         <div className="grid grid-cols-2 gap-2">
-          <ColumnFilterCombobox
+          <Combobox
             value={yearColumnFilter}
             onChange={(nextValue) => {
               setYearColumnFilter(nextValue);
@@ -446,7 +341,7 @@ export function AdminCardsSection({
             suggestions={columnSuggestions.years}
             className="h-9 text-xs"
           />
-          <ColumnFilterCombobox
+          <Combobox
             value={tagsColumnFilter}
             onChange={(nextValue) => {
               setTagsColumnFilter(nextValue);
@@ -457,7 +352,7 @@ export function AdminCardsSection({
             className="h-9 text-xs"
           />
         </div>
-        <ColumnFilterCombobox
+        <Combobox
           value={brandColumnFilter}
           onChange={(nextValue) => {
             setBrandColumnFilter(nextValue);
@@ -467,7 +362,7 @@ export function AdminCardsSection({
           suggestions={columnSuggestions.brands}
           className="h-9 text-xs"
         />
-        <ColumnFilterCombobox
+        <Combobox
           value={setColumnFilter}
           onChange={(nextValue) => {
             setSetColumnFilter(nextValue);
@@ -477,7 +372,7 @@ export function AdminCardsSection({
           suggestions={columnSuggestions.sets}
           className="h-9 text-xs"
         />
-        <ColumnFilterCombobox
+        <Combobox
           value={variationColumnFilter}
           onChange={(nextValue) => {
             setVariationColumnFilter(nextValue);
@@ -569,7 +464,7 @@ export function AdminCardsSection({
             </TableRow>
             <TableRow>
               <TableHead>
-                <ColumnFilterCombobox
+                <Combobox
                   value={playerColumnFilter}
                   onChange={(nextValue) => {
                     setPlayerColumnFilter(nextValue);
@@ -581,7 +476,7 @@ export function AdminCardsSection({
                 />
               </TableHead>
               <TableHead>
-                <ColumnFilterCombobox
+                <Combobox
                   value={teamColumnFilter}
                   onChange={(nextValue) => {
                     setTeamColumnFilter(nextValue);
@@ -593,7 +488,7 @@ export function AdminCardsSection({
                 />
               </TableHead>
               <TableHead>
-                <ColumnFilterCombobox
+                <Combobox
                   value={yearColumnFilter}
                   onChange={(nextValue) => {
                     setYearColumnFilter(nextValue);
@@ -605,7 +500,7 @@ export function AdminCardsSection({
                 />
               </TableHead>
               <TableHead>
-                <ColumnFilterCombobox
+                <Combobox
                   value={brandColumnFilter}
                   onChange={(nextValue) => {
                     setBrandColumnFilter(nextValue);
@@ -617,7 +512,7 @@ export function AdminCardsSection({
                 />
               </TableHead>
               <TableHead>
-                <ColumnFilterCombobox
+                <Combobox
                   value={setColumnFilter}
                   onChange={(nextValue) => {
                     setSetColumnFilter(nextValue);
@@ -629,7 +524,7 @@ export function AdminCardsSection({
                 />
               </TableHead>
               <TableHead>
-                <ColumnFilterCombobox
+                <Combobox
                   value={variationColumnFilter}
                   onChange={(nextValue) => {
                     setVariationColumnFilter(nextValue);
@@ -641,7 +536,7 @@ export function AdminCardsSection({
                 />
               </TableHead>
               <TableHead>
-                <ColumnFilterCombobox
+                <Combobox
                   value={tagsColumnFilter}
                   onChange={(nextValue) => {
                     setTagsColumnFilter(nextValue);

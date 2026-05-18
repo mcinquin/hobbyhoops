@@ -3,5 +3,8 @@ import { getDataHealth } from "@/lib/data";
 
 export async function GET() {
   const health = getDataHealth();
-  return NextResponse.json({ ok: health.ok }, { status: health.ok ? 200 : 503 });
+  return NextResponse.json(
+    { status: health.ok ? "healthy" : "degraded" },
+    { status: health.ok ? 200 : 503 }
+  );
 }

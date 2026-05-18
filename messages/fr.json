@@ -343,6 +343,7 @@
     "noValidPlayers": "Aucun joueur valide.",
     "noValidClubs": "Aucun club valide.",
     "noValidYears": "Aucune année valide.",
-    "updateFailed": "Échec de la mise à jour."
+    "updateFailed": "Échec de la mise à jour.",
+    "payloadTooLarge": "Corps de requête trop volumineux."
   }
 }

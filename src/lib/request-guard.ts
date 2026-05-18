@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRequestTranslator } from "@/i18n/request";
 
+const MAX_JSON_BODY_BYTES = 512 * 1024;
 const SAFE_FETCH_SITES = new Set(["same-origin", "none"]);
 
 function trustProxyHeaders(): boolean {
@@ -55,5 +56,19 @@ export function rejectCrossSiteMutation(
     );
   }
 
+  return null;
+}
+
+export function rejectOversizedBody(
+  request: NextRequest
+): NextResponse | null {
+  const length = request.headers.get("content-length");
+  if (length && Number.parseInt(length, 10) > MAX_JSON_BODY_BYTES) {
+    const t = getRequestTranslator(request);
+    return NextResponse.json(
+      { error: t("errors.payloadTooLarge") },
+      { status: 413 }
+    );
+  }
   return null;
 }

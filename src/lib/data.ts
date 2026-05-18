@@ -38,9 +38,6 @@ export async function saveCollection(cards: Card[]): Promise<void> {
   replaceAllCards(cards);
 }
 
-export function getDataHealth(): {
-  ok: boolean;
-  data: Record<string, boolean>;
-} {
+export function getDataHealth(): { ok: boolean } {
   return getDatabaseHealth();
 }

@@ -124,9 +124,17 @@
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
   }
   html {
     @apply font-sans scroll-smooth;
+    touch-action: manipulation;
+  }
+  input,
+  select,
+  textarea {
+    font-size: 16px;
   }
 }
 

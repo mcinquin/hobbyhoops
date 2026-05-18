@@ -7,7 +7,7 @@ import {
   SESSION_MAX_AGE_SEC,
 } from "@/lib/auth-session";
 import { loginSchema } from "@/lib/auth-validation";
-import { verifyPassword } from "@/lib/password";
+import { dummyVerify, verifyPassword } from "@/lib/password";
 import {
   checkRateLimit,
   getClientIp,
@@ -16,8 +16,12 @@ import {
 } from "@/lib/rate-limit";
 import { findUserByUsername } from "@/lib/users-store";
 import { authMisconfiguredResponse } from "@/lib/auth-config";
+import { rejectCrossSiteMutation } from "@/lib/request-guard";
 
 export async function POST(request: NextRequest) {
+  const crossSite = rejectCrossSiteMutation(request);
+  if (crossSite) return crossSite;
+
   const misconfigured = authMisconfiguredResponse(request);
   if (misconfigured) return misconfigured;
 
@@ -66,7 +70,10 @@ export async function POST(request: NextRequest) {
   }
 
   const user = findUserByUsername(username);
-  if (!user || !verifyPassword(password, user.passwordHash)) {
+  const passwordValid = user
+    ? verifyPassword(password, user.passwordHash)
+    : (dummyVerify(password), false);
+  if (!user || !passwordValid) {
     const failed = checkRateLimit(failureKey, {
       limit: 5,
       windowMs: 15 * 60 * 1000,

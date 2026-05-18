@@ -20,7 +20,10 @@ import {
 } from "@/lib/reference-schema";
 import { getRequestTranslator } from "@/i18n/request";
 import type { Translator } from "@/i18n/translator";
-import { rejectCrossSiteMutation } from "@/lib/request-guard";
+import {
+  rejectCrossSiteMutation,
+  rejectOversizedBody,
+} from "@/lib/request-guard";
 
 export async function GET(request: NextRequest) {
   const gate = requireAuth(request);
@@ -143,6 +146,8 @@ export async function PATCH(request: NextRequest) {
   if (gate instanceof NextResponse) return gate;
   const crossSite = rejectCrossSiteMutation(request);
   if (crossSite) return crossSite;
+  const oversized = rejectOversizedBody(request);
+  if (oversized) return oversized;
   const t = getRequestTranslator(request);
 
   let body: unknown;

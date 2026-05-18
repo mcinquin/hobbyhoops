@@ -12,8 +12,12 @@ import { hashPassword } from "@/lib/password";
 import { bootstrapFirstUser, type UserRecord } from "@/lib/users-store";
 import { authMisconfiguredResponse } from "@/lib/auth-config";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { rejectCrossSiteMutation } from "@/lib/request-guard";
 
 export async function POST(request: NextRequest) {
+  const crossSite = rejectCrossSiteMutation(request);
+  if (crossSite) return crossSite;
+
   const misconfigured = authMisconfiguredResponse(request);
   if (misconfigured) return misconfigured;
 

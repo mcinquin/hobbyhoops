@@ -2,7 +2,9 @@ const isDev = process.env.NODE_ENV === "development";
 const isProduction = process.env.NODE_ENV === "production";
 
 export function createNonce(): string {
-  return Buffer.from(crypto.randomUUID()).toString("base64");
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Buffer.from(bytes).toString("base64");
 }
 
 export function buildContentSecurityPolicy(nonce: string): string {
