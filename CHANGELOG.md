@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/mcinquin/hobbyhoops/compare/v1.9.0...v1.10.0) (2026-05-20)
+
+
+### Features
+
+* **ui:** Add filter in collection section ([246fd37](https://github.com/mcinquin/hobbyhoops/commit/246fd37516e962c6f8137615b71181e64b64047b))
+
 # [1.9.0](https://github.com/mcinquin/hobbyhoops/compare/v1.8.1...v1.9.0) (2026-05-17)
 
 
