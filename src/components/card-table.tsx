@@ -13,8 +13,12 @@ import {
   SortingState,
 } from "@tanstack/react-table";
 import { Card } from "@/lib/types";
+import { uniqueSorted } from "@/lib/string-list";
 import { CardBadges } from "@/components/card-badges";
 import { CardDetail } from "@/components/card-detail";
+import { CatalogCombobox } from "@/components/catalog-combobox";
+import { ColumnFilterCombobox } from "@/components/column-filter-combobox";
+import { FilterableListBrowser } from "@/components/filterable-list-browser";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +48,7 @@ interface CardTableProps {
     year?: string;
     brand?: string;
     set?: string;
+    variation?: string;
     tag?: string;
   };
   filters?: {
@@ -62,6 +67,15 @@ export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
   const [yearFilter, setYearFilter] = useState(initialFilters?.year ?? "");
   const [brandFilter, setBrandFilter] = useState(initialFilters?.brand ?? "");
   const [setFilter, setSetFilter] = useState(initialFilters?.set ?? "");
+  const [variationFilter, setVariationFilter] = useState(
+    initialFilters?.variation ?? ""
+  );
+  const [variationBrandBrowse, setVariationBrandBrowse] = useState(
+    initialFilters?.brand ?? ""
+  );
+  const [variationSetBrowse, setVariationSetBrowse] = useState(
+    initialFilters?.set ?? ""
+  );
   const [rookieOnly, setRookieOnly] = useState(initialFilters?.tag === "rookie");
   const [autoOnly, setAutoOnly] = useState(initialFilters?.tag === "autograph");
   const [memoOnly, setMemoOnly] = useState(initialFilters?.tag === "memorabilia");
@@ -95,10 +109,16 @@ export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
       result = result.filter((c) => c.year === yearFilter);
     }
     if (brandFilter) {
-      result = result.filter((c) => c.brand === brandFilter);
+      const q = brandFilter.toLowerCase();
+      result = result.filter((c) => c.brand.toLowerCase().includes(q));
     }
     if (setFilter) {
-      result = result.filter((c) => c.set === setFilter);
+      const q = setFilter.toLowerCase();
+      result = result.filter((c) => c.set.toLowerCase().includes(q));
+    }
+    if (variationFilter) {
+      const q = variationFilter.toLowerCase();
+      result = result.filter((c) => c.variation.toLowerCase().includes(q));
     }
     if (rookieOnly) result = result.filter((c) => c.rookie);
     if (autoOnly) result = result.filter((c) => c.autograph);
@@ -113,6 +133,7 @@ export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
     yearFilter,
     brandFilter,
     setFilter,
+    variationFilter,
     rookieOnly,
     autoOnly,
     memoOnly,
@@ -201,36 +222,117 @@ export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
     initialState: { pagination: { pageSize: 50 } },
   });
 
+  const uniquePlayers = useMemo(
+    () => uniqueSorted(cards.map((card) => card.player)),
+    [cards]
+  );
   const uniqueYears = useMemo(
     () => [...new Set(cards.map((c) => c.year).filter(Boolean))].sort().reverse(),
     [cards]
   );
   const uniqueBrands = useMemo(
-    () => [...new Set(cards.map((c) => c.brand).filter(Boolean))].sort(),
+    () => uniqueSorted(cards.map((card) => card.brand)),
+    [cards]
+  );
+  const uniqueTeams = useMemo(
+    () => uniqueSorted(cards.map((card) => card.team)),
     [cards]
   );
 
   const setsForBrand = useMemo(() => {
-    if (!brandFilter) return [];
-    return [
-      ...new Set(
-        cards
-          .filter((c) => c.brand === brandFilter)
-          .map((c) => c.set)
-          .filter(Boolean)
-      ),
-    ].sort((a, b) => a.localeCompare(b));
-  }, [cards, brandFilter]);
+    const brandQuery = brandFilter.trim().toLowerCase();
+    if (!brandQuery) return [];
+    return uniqueSorted(
+      cards
+        .filter((card) => card.brand.toLowerCase().includes(brandQuery))
+        .map((card) => card.set)
+    );
+  }, [brandFilter, cards]);
+
+  const setsForVariationBrowse = useMemo(() => {
+    const brandQuery = variationBrandBrowse.trim().toLowerCase();
+    if (!brandQuery) return [];
+    return uniqueSorted(
+      cards
+        .filter((card) => card.brand.toLowerCase().includes(brandQuery))
+        .map((card) => card.set)
+    );
+  }, [cards, variationBrandBrowse]);
+
+  const variationsForBrowse = useMemo(() => {
+    const brandQuery = variationBrandBrowse.trim().toLowerCase();
+    const setQuery = variationSetBrowse.trim().toLowerCase();
+    return uniqueSorted(
+      cards
+        .filter((card) => {
+          const brandValue = card.brand.toLowerCase();
+          const setValue = card.set.toLowerCase();
+          return (
+            (!brandQuery || brandValue.includes(brandQuery)) &&
+            (!setQuery || setValue.includes(setQuery))
+          );
+        })
+        .map((card) => card.variation)
+    );
+  }, [cards, variationBrandBrowse, variationSetBrowse]);
+
+  const variationsForFilters = useMemo(() => {
+    const brandQuery = brandFilter.trim().toLowerCase();
+    const setQuery = setFilter.trim().toLowerCase();
+    return uniqueSorted(
+      cards
+        .filter((card) => {
+          const brandValue = card.brand.toLowerCase();
+          const setValue = card.set.toLowerCase();
+          return (
+            (!brandQuery || brandValue.includes(brandQuery)) &&
+            (!setQuery || setValue.includes(setQuery))
+          );
+        })
+        .map((card) => card.variation)
+    );
+  }, [brandFilter, cards, setFilter]);
 
   useEffect(() => {
     if (!brandFilter) {
       setSetFilter("");
       return;
     }
-    if (setFilter && !setsForBrand.includes(setFilter)) {
+    if (
+      setFilter &&
+      !setsForBrand.some((setName) =>
+        setName.toLowerCase().includes(setFilter.toLowerCase())
+      )
+    ) {
       setSetFilter("");
     }
   }, [brandFilter, setsForBrand, setFilter]);
+
+  useEffect(() => {
+    if (
+      variationFilter &&
+      !variationsForFilters.some((variation) =>
+        variation.toLowerCase().includes(variationFilter.toLowerCase())
+      )
+    ) {
+      setVariationFilter("");
+    }
+  }, [variationFilter, variationsForFilters]);
+
+  useEffect(() => {
+    if (!variationBrandBrowse) {
+      setVariationSetBrowse("");
+      return;
+    }
+    if (
+      variationSetBrowse &&
+      !setsForVariationBrowse.some((setName) =>
+        setName.toLowerCase().includes(variationSetBrowse.toLowerCase())
+      )
+    ) {
+      setVariationSetBrowse("");
+    }
+  }, [setsForVariationBrowse, variationBrandBrowse, variationSetBrowse]);
 
   const activeFilters = useMemo(
     () =>
@@ -241,6 +343,9 @@ export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
         yearFilter ? t("cards.activeYear", { value: yearFilter }) : "",
         brandFilter ? t("cards.activeBrand", { value: brandFilter }) : "",
         setFilter ? t("cards.activeSet", { value: setFilter }) : "",
+        variationFilter
+          ? t("cards.activeVariation", { value: variationFilter })
+          : "",
         rookieOnly ? t("badges.rookie") : "",
         autoOnly ? t("badges.autograph") : "",
         memoOnly ? t("badges.memorabilia") : "",
@@ -259,9 +364,24 @@ export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
       t,
       teamFilter,
       tradableOnly,
+      variationFilter,
       yearFilter,
     ]
   );
+
+  function selectPlayer(name: string): void {
+    setPlayerFilter(name);
+  }
+
+  function selectVariation(name: string): void {
+    setVariationFilter(name);
+    if (variationBrandBrowse.trim()) {
+      setBrandFilter(variationBrandBrowse);
+    }
+    if (variationSetBrowse.trim()) {
+      setSetFilter(variationSetBrowse);
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -277,17 +397,65 @@ export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
           />
         </div>
 
+        <div className="grid gap-4 lg:grid-cols-2">
+          <FilterableListBrowser
+            title={t("collection.browsePlayers")}
+            items={uniquePlayers}
+            selectedItem={playerFilter || undefined}
+            onSelect={selectPlayer}
+            filterPlaceholder={t("admin.players.filter")}
+            countLabel={t("collection.playersInCollection", {
+              count: uniquePlayers.length,
+            })}
+            filteredCountLabel={(count) => t("admin.players.shown", { count })}
+            emptyLabel={t("admin.players.noneFound")}
+          />
+
+          <div className="space-y-3 rounded-lg border border-border p-4">
+            <h3 className="text-sm font-medium">{t("collection.browseVariations")}</h3>
+            <p className="text-xs text-muted-foreground">
+              {t("collection.variationsBrowseHint")}
+            </p>
+            <CatalogCombobox
+              value={variationBrandBrowse}
+              onChange={setVariationBrandBrowse}
+              placeholder={t("admin.catalog.variationBrandPlaceholder")}
+              suggestions={uniqueBrands}
+            />
+            <CatalogCombobox
+              value={variationSetBrowse}
+              onChange={setVariationSetBrowse}
+              placeholder={t("admin.catalog.variationSetPlaceholder")}
+              suggestions={setsForVariationBrowse}
+              disabled={!variationBrandBrowse.trim()}
+            />
+            <FilterableListBrowser
+              items={variationsForBrowse}
+              selectedItem={variationFilter || undefined}
+              onSelect={selectVariation}
+              filterPlaceholder={t("admin.cards.filterVariation")}
+              countLabel={t("collection.variationsInCollection", {
+                count: variationsForBrowse.length,
+              })}
+              emptyLabel={t("collection.variationsNoneFound")}
+              className="border-0 p-0"
+            />
+          </div>
+        </div>
+
         <div className="grid gap-2 sm:grid-cols-2 lg:flex lg:flex-wrap">
-          <Input
-            placeholder={t("cards.filterPlayer")}
+          <ColumnFilterCombobox
             value={playerFilter}
-            onChange={(e) => setPlayerFilter(e.target.value)}
+            onChange={setPlayerFilter}
+            placeholder={t("cards.filterPlayer")}
+            suggestions={uniquePlayers}
             className="h-9 text-xs lg:h-8 lg:w-40"
           />
-          <Input
-            placeholder={t("cards.filterTeam")}
+          <ColumnFilterCombobox
             value={teamFilter}
-            onChange={(e) => setTeamFilter(e.target.value)}
+            onChange={setTeamFilter}
+            placeholder={t("cards.filterTeam")}
+            suggestions={uniqueTeams}
             className="h-9 text-xs lg:h-8 lg:w-36"
           />
           <select
@@ -302,38 +470,30 @@ export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
               </option>
             ))}
           </select>
-          <select
+          <ColumnFilterCombobox
             value={brandFilter}
-            onChange={(e) => setBrandFilter(e.target.value)}
-            className="h-9 rounded-md border border-input bg-background px-2 text-xs lg:h-8 lg:max-w-[200px]"
-          >
-            <option value="">{t("cards.allBrands")}</option>
-            {uniqueBrands.map((b) => (
-              <option key={b} value={b}>
-                {b}
-              </option>
-            ))}
-          </select>
-          <select
+            onChange={setBrandFilter}
+            placeholder={t("cards.allBrands")}
+            suggestions={uniqueBrands}
+            className="h-9 text-xs lg:h-8 lg:max-w-[200px]"
+          />
+          <ColumnFilterCombobox
             value={setFilter}
-            onChange={(e) => setSetFilter(e.target.value)}
-            disabled={!brandFilter}
-            title={
-              brandFilter
-                ? t("cards.setsForBrandTitle")
-                : t("cards.chooseBrandForSetsList")
+            onChange={setSetFilter}
+            placeholder={
+              brandFilter ? t("cards.allSets") : t("cards.setNeedsBrand")
             }
-            className="h-9 rounded-md border border-input bg-background px-2 text-xs disabled:cursor-not-allowed disabled:opacity-50 sm:col-span-2 lg:h-8 lg:min-w-[140px] lg:max-w-[220px]"
-          >
-            <option value="">
-              {brandFilter ? t("cards.allSets") : t("cards.setNeedsBrand")}
-            </option>
-            {setsForBrand.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+            suggestions={setsForBrand}
+            disabled={!brandFilter.trim()}
+            className="h-9 text-xs disabled:cursor-not-allowed disabled:opacity-50 sm:col-span-2 lg:h-8 lg:min-w-[140px] lg:max-w-[220px]"
+          />
+          <ColumnFilterCombobox
+            value={variationFilter}
+            onChange={setVariationFilter}
+            placeholder={t("admin.cards.filterVariation")}
+            suggestions={variationsForFilters}
+            className="h-9 text-xs sm:col-span-2 lg:h-8 lg:min-w-[160px] lg:max-w-[240px]"
+          />
 
           <div className="flex flex-wrap gap-1 sm:col-span-2 lg:col-span-1">
             <Button

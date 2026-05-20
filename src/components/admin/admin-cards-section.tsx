@@ -1,9 +1,11 @@
 "use client";
 
-import { useDeferredValue, useId, useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { Card, References } from "@/lib/types";
+import { uniqueSorted } from "@/lib/string-list";
 import { CardForm } from "@/components/card-form";
 import { CardBadges } from "@/components/card-badges";
+import { ColumnFilterCombobox } from "@/components/column-filter-combobox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,120 +32,6 @@ interface AdminCardsSectionProps {
   references: References;
   onCardsChange: (cards: Card[]) => void;
   onReferencesChange: (references: References) => void;
-}
-
-function uniqueSorted(values: string[]): string[] {
-  return Array.from(
-    new Set(values.map((value) => value.trim()).filter(Boolean))
-  ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-}
-
-interface ColumnFilterComboboxProps {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  suggestions: string[];
-  className?: string;
-}
-
-function ColumnFilterCombobox({
-  value,
-  onChange,
-  placeholder,
-  suggestions,
-  className,
-}: ColumnFilterComboboxProps) {
-  const inputId = useId();
-  const listboxId = `${inputId}-listbox`;
-  const [open, setOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const query = value.trim().toLowerCase();
-  const visibleSuggestions = useMemo(
-    () =>
-      suggestions.filter((suggestion) =>
-        suggestion.toLowerCase().includes(query)
-      ),
-    [query, suggestions]
-  );
-
-  function selectSuggestion(nextValue: string): void {
-    onChange(nextValue);
-    setOpen(false);
-    setActiveIndex(0);
-  }
-
-  return (
-    <div className="relative">
-      <Input
-        id={inputId}
-        value={value}
-        onChange={(event) => {
-          onChange(event.target.value);
-          setOpen(true);
-          setActiveIndex(0);
-        }}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
-        onKeyDown={(event) => {
-          if (!open && ["ArrowDown", "ArrowUp"].includes(event.key)) {
-            setOpen(true);
-            return;
-          }
-          if (event.key === "Escape") {
-            setOpen(false);
-            return;
-          }
-          if (visibleSuggestions.length === 0) return;
-          if (event.key === "ArrowDown") {
-            event.preventDefault();
-            setActiveIndex((index) => (index + 1) % visibleSuggestions.length);
-          }
-          if (event.key === "ArrowUp") {
-            event.preventDefault();
-            setActiveIndex(
-              (index) =>
-                (index - 1 + visibleSuggestions.length) %
-                visibleSuggestions.length
-            );
-          }
-          if (event.key === "Enter" && open) {
-            event.preventDefault();
-            selectSuggestion(visibleSuggestions[activeIndex]);
-          }
-        }}
-        placeholder={placeholder}
-        role="combobox"
-        aria-expanded={open && visibleSuggestions.length > 0}
-        aria-controls={listboxId}
-        aria-autocomplete="list"
-        className={className}
-      />
-      {open && visibleSuggestions.length > 0 && (
-        <div
-          id={listboxId}
-          role="listbox"
-          className="absolute left-0 right-0 top-full z-30 mt-1 max-h-56 overflow-auto rounded-md border border-border bg-popover p-1 text-xs font-normal shadow-lg"
-        >
-          {visibleSuggestions.map((suggestion, index) => (
-            <button
-              key={suggestion}
-              type="button"
-              role="option"
-              aria-selected={index === activeIndex}
-              className="block w-full rounded px-2 py-1.5 text-left hover:bg-accent aria-selected:bg-accent"
-              onMouseDown={(event) => {
-                event.preventDefault();
-                selectSuggestion(suggestion);
-              }}
-              onMouseEnter={() => setActiveIndex(index)}
-            >
-              {suggestion}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 export function AdminCardsSection({
