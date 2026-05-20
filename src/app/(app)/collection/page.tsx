@@ -46,6 +46,7 @@ export default async function CollectionPage({
           year: filterValueSchema.parse(firstParam(params, "year")),
           brand: filterValueSchema.parse(firstParam(params, "brand")),
           set: filterValueSchema.parse(firstParam(params, "set")),
+          variation: filterValueSchema.parse(firstParam(params, "variation")),
           tag: tagSchema.parse(firstParam(params, "tag")),
         }}
       />
