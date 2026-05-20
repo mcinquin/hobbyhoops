@@ -103,13 +103,7 @@
   },
   "collection": {
     "title": "Collection",
-    "subtitle": "Browse, filter, and search your entire collection.",
-    "browsePlayers": "Players in your collection",
-    "playersInCollection": "{count} players in your collection",
-    "browseVariations": "Variations in your collection",
-    "variationsBrowseHint": "Filter by brand and set, then search or pick a variation.",
-    "variationsInCollection": "{count} variation(s) for this selection",
-    "variationsNoneFound": "No variations found for this brand and set."
+    "subtitle": "Browse, filter, and search your entire collection."
   },
   "players": {
     "title": "Players",

@@ -103,13 +103,7 @@
   },
   "collection": {
     "title": "Collection",
-    "subtitle": "Parcourez, filtrez et recherchez toute votre collection.",
-    "browsePlayers": "Joueurs de la collection",
-    "playersInCollection": "{count} joueurs dans la collection",
-    "browseVariations": "Variations de la collection",
-    "variationsBrowseHint": "Filtrez par marque et set, puis recherchez ou sélectionnez une variation.",
-    "variationsInCollection": "{count} variation(s) pour cette sélection",
-    "variationsNoneFound": "Aucune variation trouvée pour cette marque et ce set."
+    "subtitle": "Parcourez, filtrez et recherchez toute votre collection."
   },
   "players": {
     "title": "Joueurs",
