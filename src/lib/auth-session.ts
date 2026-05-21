@@ -93,7 +93,7 @@ export function sessionCookieOptions(
   return {
     httpOnly: true,
     secure: isCookieSecure(request),
-    sameSite: "lax" as const,
+    sameSite: "strict" as const,
     path: "/",
     maxAge: maxAgeSec,
   };

@@ -11,23 +11,16 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import {
-  Search,
-  ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from "lucide-react";
 import type { FrNbaPlayer } from "@/lib/types";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { SortableTableHead } from "@/components/data-table/sortable-table-head";
+import { TablePagination } from "@/components/data-table/table-pagination";
+import { FilterChipButton } from "@/components/filter-chip-button";
+import { SearchField } from "@/components/search-field";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
@@ -148,49 +141,35 @@ export function FrNbaTable({ players }: FrNbaTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder={t("guides.frNba.search")}
-          className="pl-9"
-        />
-      </div>
+      <SearchField
+        label={t("guides.frNba.search")}
+        placeholder={t("guides.frNba.search")}
+        value={search}
+        onChange={setSearch}
+        className="max-w-md"
+      />
 
       <div className="flex flex-wrap gap-2">
-        <Button
-          variant={rookieOnly ? "default" : "outline"}
-          size="sm"
-          className="h-8 text-xs"
-          onClick={() => setRookieOnly(!rookieOnly)}
-        >
-          {t("guides.frNba.rookieCard")}
-        </Button>
-        <Button
-          variant={autoOnly ? "default" : "outline"}
-          size="sm"
-          className="h-8 text-xs"
-          onClick={() => setAutoOnly(!autoOnly)}
-        >
-          {t("guides.frNba.auto")}
-        </Button>
-        <Button
-          variant={patchOnly ? "default" : "outline"}
-          size="sm"
-          className="h-8 text-xs"
-          onClick={() => setPatchOnly(!patchOnly)}
-        >
-          {t("guides.frNba.patch")}
-        </Button>
-        <Button
-          variant={immaculateOnly ? "default" : "outline"}
-          size="sm"
-          className="h-8 text-xs"
-          onClick={() => setImmaculateOnly(!immaculateOnly)}
-        >
-          {t("guides.frNba.immaculate")}
-        </Button>
+        <FilterChipButton
+          label={t("guides.frNba.rookieCard")}
+          pressed={rookieOnly}
+          onPressedChange={setRookieOnly}
+        />
+        <FilterChipButton
+          label={t("guides.frNba.auto")}
+          pressed={autoOnly}
+          onPressedChange={setAutoOnly}
+        />
+        <FilterChipButton
+          label={t("guides.frNba.patch")}
+          pressed={patchOnly}
+          onPressedChange={setPatchOnly}
+        />
+        <FilterChipButton
+          label={t("guides.frNba.immaculate")}
+          pressed={immaculateOnly}
+          onPressedChange={setImmaculateOnly}
+        />
       </div>
 
       <p className="text-sm text-muted-foreground">
@@ -240,18 +219,7 @@ export function FrNbaTable({ players }: FrNbaTableProps) {
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className="cursor-pointer select-none whitespace-nowrap"
-                    onClick={header.column.getToggleSortingHandler()}
-                  >
-                    <div className="flex items-center gap-1">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                      {header.column.getCanSort() && (
-                        <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
-                      )}
-                    </div>
-                  </TableHead>
+                  <SortableTableHead key={header.id} header={header} />
                 ))}
               </TableRow>
             ))}
@@ -281,52 +249,7 @@ export function FrNbaTable({ players }: FrNbaTableProps) {
         </Table>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-muted-foreground">
-          {t("common.pageOf", {
-            page: table.getState().pagination.pageIndex + 1,
-            total: table.getPageCount(),
-          })}
-        </p>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={t("common.firstPage")}
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronsLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={t("common.previousPage")}
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={t("common.nextPage")}
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={t("common.lastPage")}
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronsRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <TablePagination table={table} />
     </div>
   );
 }

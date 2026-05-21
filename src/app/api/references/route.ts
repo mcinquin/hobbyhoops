@@ -20,6 +20,7 @@ import {
 } from "@/lib/reference-schema";
 import { getRequestTranslator } from "@/i18n/request";
 import type { Translator } from "@/i18n/translator";
+import { parseJsonBody } from "@/lib/parse-json-body";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
 
 export async function GET(request: NextRequest) {
@@ -145,14 +146,10 @@ export async function PATCH(request: NextRequest) {
   if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: t("errors.invalidJson") }, { status: 400 });
-  }
+  const parsedBody = await parseJsonBody(request);
+  if (!parsedBody.ok) return parsedBody.response;
 
-  const parsed = referencePatchSchema.safeParse(body);
+  const parsed = referencePatchSchema.safeParse(parsedBody.data);
   if (!parsed.success) {
     return NextResponse.json(
       { error: formatZodError(parsed.error, t) },

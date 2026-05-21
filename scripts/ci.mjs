@@ -8,6 +8,7 @@ const includeAudit = process.argv.includes("--with-audit");
 
 const steps = [
   { name: "Node.js", command: "node", args: ["scripts/check-node.mjs"] },
+  { name: "AUTH_SECRET", command: "node", args: ["scripts/check-auth-secret.mjs"] },
   { name: "ESLint", command: "npm", args: ["run", "lint"] },
   { name: "Markdownlint", command: "npm", args: ["run", "lint:md"] },
   { name: "TypeScript", command: "npm", args: ["run", "typecheck"] },

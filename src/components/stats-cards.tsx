@@ -14,19 +14,36 @@ interface StatsCardsProps {
   };
 }
 
+function countCardStats(cards: Card[]) {
+  return cards.reduce(
+    (acc, card) => {
+      acc.total += 1;
+      if (card.autograph) acc.autographs += 1;
+      if (card.memorabilia) acc.memorabilia += 1;
+      if (card.serialNumber) acc.numbered += 1;
+      if (card.rookie) acc.rookies += 1;
+      if (card.tradable) acc.tradable += 1;
+      return acc;
+    },
+    {
+      total: 0,
+      autographs: 0,
+      memorabilia: 0,
+      numbered: 0,
+      rookies: 0,
+      tradable: 0,
+    }
+  );
+}
+
 export function StatsCards({ cards, labels }: StatsCardsProps) {
-  const total = cards.length;
-  const autographs = cards.filter((c) => c.autograph).length;
-  const memorabilia = cards.filter((c) => c.memorabilia).length;
-  const serialNumbered = cards.filter((c) => c.serialNumber).length;
-  const rookies = cards.filter((c) => c.rookie).length;
-  const tradable = cards.filter((c) => c.tradable).length;
+  const counts = countCardStats(cards);
 
   const stats = [
     {
       id: "total",
       label: labels.total,
-      value: total,
+      value: counts.total,
       icon: Library,
       color: "text-foreground",
       href: "/collection",
@@ -34,7 +51,7 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
     {
       id: "autographs",
       label: labels.autographs,
-      value: autographs,
+      value: counts.autographs,
       icon: PenTool,
       color: "text-amber-500",
       href: "/collection?tag=autograph",
@@ -42,7 +59,7 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
     {
       id: "memorabilia",
       label: labels.memorabilia,
-      value: memorabilia,
+      value: counts.memorabilia,
       icon: Puzzle,
       color: "text-blue-500",
       href: "/collection?tag=memorabilia",
@@ -50,7 +67,7 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
     {
       id: "numbered",
       label: labels.numbered,
-      value: serialNumbered,
+      value: counts.numbered,
       icon: Hash,
       color: "text-red-500",
       href: "/collection?tag=numbered",
@@ -58,7 +75,7 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
     {
       id: "rookies",
       label: labels.rookies,
-      value: rookies,
+      value: counts.rookies,
       icon: Library,
       color: "text-emerald-500",
       href: "/collection?tag=rookie",
@@ -66,7 +83,7 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
     {
       id: "tradable",
       label: labels.tradable,
-      value: tradable,
+      value: counts.tradable,
       icon: ArrowLeftRight,
       color: "text-purple-500",
       href: "/collection?tag=tradable",

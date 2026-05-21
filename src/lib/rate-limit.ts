@@ -2,6 +2,8 @@ import { createHash } from "crypto";
 import { getDb } from "./db";
 import { runInTransaction } from "./sqlite";
 
+let warnedDirectRateLimit = false;
+
 type RateLimitRow = {
   count: number;
   reset_at: number;
@@ -35,8 +37,22 @@ export function getClientIp(request: Request): string {
     }
   }
 
-  // Next.js n'expose pas toujours l'IP socket. Par défaut, ne pas faire
-  // confiance aux en-têtes proxy spoofables.
+  const nextIp = (request as Request & { ip?: string }).ip?.trim();
+  if (nextIp) {
+    return nextIp;
+  }
+
+  if (
+    process.env.NODE_ENV === "production" &&
+    !trustProxyHeaders() &&
+    !warnedDirectRateLimit
+  ) {
+    warnedDirectRateLimit = true;
+    console.warn(
+      "[hobbyhoops] TRUST_PROXY=false en production : les limites de débit partagent une clé unique. Activez TRUST_PROXY derrière un reverse proxy qui réécrit X-Forwarded-For."
+    );
+  }
+
   return "direct";
 }
 

@@ -8,18 +8,26 @@ import {
 } from "@/lib/auth-session";
 import { loginSchema } from "@/lib/auth-validation";
 import { verifyPassword } from "@/lib/password";
+import { parseJsonBody } from "@/lib/parse-json-body";
 import {
   checkRateLimit,
   getClientIp,
   peekRateLimit,
   resetRateLimit,
 } from "@/lib/rate-limit";
+import { rejectCrossSiteMutation } from "@/lib/request-guard";
+import { deleteAllStoredSessionsForUser } from "@/lib/session-store";
 import { findUserByUsername } from "@/lib/users-store";
 import { authMisconfiguredResponse } from "@/lib/auth-config";
 
 export async function POST(request: NextRequest) {
   const misconfigured = authMisconfiguredResponse(request);
   if (misconfigured) return misconfigured;
+
+  const crossSite = rejectCrossSiteMutation(request, {
+    requireFetchMetadata: true,
+  });
+  if (crossSite) return crossSite;
 
   const t = getRequestTranslator(request);
   const ip = getClientIp(request);
@@ -37,14 +45,10 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: t("errors.invalidRequest") }, { status: 400 });
-  }
+  const parsedBody = await parseJsonBody(request);
+  if (!parsedBody.ok) return parsedBody.response;
 
-  const parsed = loginSchema.safeParse(body);
+  const parsed = loginSchema.safeParse(parsedBody.data);
   if (!parsed.success) {
     return NextResponse.json({ error: t("errors.loginRequired") }, { status: 400 });
   }
@@ -87,6 +91,7 @@ export async function POST(request: NextRequest) {
   }
 
   resetRateLimit(failureKey);
+  await deleteAllStoredSessionsForUser(user.id);
 
   const token = await createSessionToken(user.id, user.username);
   const res = NextResponse.json({ ok: true, username: user.username });

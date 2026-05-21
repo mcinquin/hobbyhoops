@@ -8,14 +8,25 @@ import {
   SESSION_MAX_AGE_SEC,
 } from "@/lib/auth-session";
 import { bootstrapSchema, validateNewPassword } from "@/lib/auth-validation";
+import {
+  isBootstrapTokenRequired,
+  isBootstrapTokenValid,
+} from "@/lib/bootstrap-token";
 import { hashPassword } from "@/lib/password";
+import { parseJsonBody } from "@/lib/parse-json-body";
 import { bootstrapFirstUser, type UserRecord } from "@/lib/users-store";
 import { authMisconfiguredResponse } from "@/lib/auth-config";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { rejectCrossSiteMutation } from "@/lib/request-guard";
 
 export async function POST(request: NextRequest) {
   const misconfigured = authMisconfiguredResponse(request);
   if (misconfigured) return misconfigured;
+
+  const crossSite = rejectCrossSiteMutation(request, {
+    requireFetchMetadata: true,
+  });
+  if (crossSite) return crossSite;
 
   const t = getRequestTranslator(request);
   const ip = getClientIp(request);
@@ -33,14 +44,17 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: t("errors.invalidRequest") }, { status: 400 });
+  if (isBootstrapTokenRequired() && !isBootstrapTokenValid(request)) {
+    return NextResponse.json(
+      { error: t("errors.bootstrapUnavailable") },
+      { status: 403 }
+    );
   }
 
-  const parsed = bootstrapSchema.safeParse(body);
+  const parsedBody = await parseJsonBody(request);
+  if (!parsedBody.ok) return parsedBody.response;
+
+  const parsed = bootstrapSchema.safeParse(parsedBody.data);
   if (!parsed.success) {
     return NextResponse.json(
       { error: t("errors.bootstrapUsernameInvalid") },
@@ -66,7 +80,7 @@ export async function POST(request: NextRequest) {
   const created = await bootstrapFirstUser(newUser);
   if (created === "exists") {
     return NextResponse.json(
-      { error: t("errors.bootstrapExists") },
+      { error: t("errors.bootstrapUnavailable") },
       { status: 403 }
     );
   }

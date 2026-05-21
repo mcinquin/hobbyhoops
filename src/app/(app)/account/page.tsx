@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { AdminFeedback } from "@/components/admin/admin-feedback";
 import { cn } from "@/lib/utils";
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth-validation";
+import { PageHeader } from "@/components/page-header";
 import { useTranslations } from "@/i18n/client";
 
 export default function AccountPage() {
@@ -76,12 +77,7 @@ export default function AccountPage() {
 
   return (
     <div className="space-y-6 max-w-md">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">{t("account.title")}</h2>
-        <p className="text-muted-foreground mt-1 text-sm">
-          {t("account.description")}
-        </p>
-      </div>
+      <PageHeader title={t("account.title")} subtitle={t("account.description")} />
 
       <form
         onSubmit={handleSubmit}

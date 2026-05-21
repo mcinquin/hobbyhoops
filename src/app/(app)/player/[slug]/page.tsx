@@ -1,5 +1,6 @@
 import { getCollection } from "@/lib/data";
 import { CardBadges } from "@/components/card-badges";
+import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getTranslations } from "@/i18n/server";
@@ -59,16 +60,16 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
         {t("players.allPlayers")}
       </Link>
 
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">{playerName}</h2>
-          <p className="text-muted-foreground">{team}</p>
-        </div>
-        <div className="text-right">
-          <p className="text-3xl font-bold text-amber-500">{cards.length}</p>
-          <p className="text-xs text-muted-foreground">{t("common.cards")}</p>
-        </div>
-      </div>
+      <PageHeader
+        title={playerName}
+        subtitle={team}
+        actions={
+          <div className="text-right">
+            <p className="text-3xl font-bold text-amber-500">{cards.length}</p>
+            <p className="text-xs text-muted-foreground">{t("common.cards")}</p>
+          </div>
+        }
+      />
 
       <div className="flex gap-4 text-sm">
         {rookies > 0 && (

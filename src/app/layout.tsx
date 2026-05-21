@@ -1,5 +1,4 @@
-import type { Metadata } from "next";
-import { connection } from "next/server";
+import type { Metadata, Viewport } from "next";
 import { LocaleProvider } from "@/i18n/client";
 import { getTranslations } from "@/i18n/server";
 import "./globals.css";
@@ -9,15 +8,25 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: t("meta.title"),
     description: t("meta.description"),
+    appleWebApp: {
+      capable: true,
+      title: t("meta.title"),
+    },
   };
 }
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0a0a0a",
+};
 
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  await connection();
   const { locale } = await getTranslations();
 
   return (

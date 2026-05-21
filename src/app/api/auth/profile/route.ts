@@ -13,6 +13,7 @@ import {
   validateNewPassword,
 } from "@/lib/auth-validation";
 import { hashPassword, verifyPassword } from "@/lib/password";
+import { parseJsonBody } from "@/lib/parse-json-body";
 import {
   findUserById,
   getUsers,
@@ -21,23 +22,37 @@ import {
 } from "@/lib/users-store";
 import { deleteAllStoredSessionsForUser } from "@/lib/session-store";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
+import { checkRateLimit, getClientIp, peekRateLimit } from "@/lib/rate-limit";
 
 export async function PUT(request: NextRequest) {
   const session = getSessionFromRequest(request);
   if (!session) return unauthorized(request);
-  const crossSite = rejectCrossSiteMutation(request);
+  const crossSite = rejectCrossSiteMutation(request, {
+    requireFetchMetadata: true,
+  });
   if (crossSite) return crossSite;
 
   const t = getRequestTranslator(request);
+  const ip = getClientIp(request);
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: t("errors.invalidRequest") }, { status: 400 });
+  const updateLimit = checkRateLimit(`profile:${ip}:${session.userId}`, {
+    limit: 20,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!updateLimit.allowed) {
+    return NextResponse.json(
+      { error: t("errors.profileRateLimit") },
+      {
+        status: 429,
+        headers: { "Retry-After": String(updateLimit.retryAfterSec) },
+      }
+    );
   }
 
-  const parsed = profileUpdateSchema.safeParse(body);
+  const parsedBody = await parseJsonBody(request);
+  if (!parsedBody.ok) return parsedBody.response;
+
+  const parsed = profileUpdateSchema.safeParse(parsedBody.data);
   if (!parsed.success) {
     return NextResponse.json(
       { error: t("errors.profileCurrentRequired") },
@@ -52,7 +67,35 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: t("errors.profileNotFound") }, { status: 404 });
   }
 
+  const passwordFailureKey = `profile-pwd:${ip}:${session.userId}`;
+  const pwdLockout = peekRateLimit(passwordFailureKey, {
+    limit: 5,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (!pwdLockout.allowed) {
+    return NextResponse.json(
+      { error: t("errors.profilePasswordRateLimit") },
+      {
+        status: 429,
+        headers: { "Retry-After": String(pwdLockout.retryAfterSec) },
+      }
+    );
+  }
+
   if (!verifyPassword(currentPassword, user.passwordHash)) {
+    const failed = checkRateLimit(passwordFailureKey, {
+      limit: 5,
+      windowMs: 15 * 60 * 1000,
+    });
+    if (!failed.allowed) {
+      return NextResponse.json(
+        { error: t("errors.profilePasswordRateLimit") },
+        {
+          status: 429,
+          headers: { "Retry-After": String(failed.retryAfterSec) },
+        }
+      );
+    }
     return NextResponse.json(
       { error: t("errors.profileWrongPassword") },
       { status: 401 }

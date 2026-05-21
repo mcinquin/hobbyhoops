@@ -11,6 +11,8 @@ interface BrandMarkProps {
   nameClassName?: string;
   /** Hauteur du pictogramme (cartes). */
   logoHeight?: number;
+  priority?: boolean;
+  homeAriaLabel?: string;
 }
 
 export function BrandMark({
@@ -18,6 +20,8 @@ export function BrandMark({
   logoClassName,
   nameClassName,
   logoHeight = 56,
+  priority = false,
+  homeAriaLabel = "HobbyHoops — accueil",
 }: BrandMarkProps) {
   return (
     <Link
@@ -27,14 +31,14 @@ export function BrandMark({
         "hover:opacity-90 focus-visible:ring-2 focus-visible:ring-amber-500/60",
         className
       )}
-      aria-label="HobbyHoops — accueil"
+      aria-label={homeAriaLabel}
     >
       <Image
         src="/brand/logo.svg"
         alt=""
         width={Math.round(logoHeight * LOGO_ASPECT)}
         height={logoHeight}
-        priority
+        priority={priority}
         unoptimized
         className={cn(
           "mx-auto block h-auto w-auto max-w-full object-contain object-center",

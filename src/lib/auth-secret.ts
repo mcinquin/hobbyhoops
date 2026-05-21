@@ -2,7 +2,7 @@ export const SESSION_COOKIE_NAME = "hh_session";
 
 export function getAuthSecret(): string {
   const secret = process.env.AUTH_SECRET?.trim();
-  const minLength = process.env.NODE_ENV === "production" ? 32 : 16;
+  const minLength = 32;
   if (!secret || secret.length < minLength) {
     throw new Error(
       `AUTH_SECRET doit être défini (${minLength} caractères minimum) pour lancer l'application.`

@@ -10,6 +10,7 @@ import {
   formatZodError,
 } from "@/lib/card-schema";
 import { getRequestTranslator } from "@/i18n/request";
+import { parseJsonBody } from "@/lib/parse-json-body";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
 
 export const dynamic = "force-dynamic";
@@ -28,14 +29,10 @@ export async function POST(request: NextRequest) {
   if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: t("errors.invalidJson") }, { status: 400 });
-  }
+  const parsedBody = await parseJsonBody(request);
+  if (!parsedBody.ok) return parsedBody.response;
 
-  const prepared = prepareCardWriteInput(body);
+  const prepared = prepareCardWriteInput(parsedBody.data);
   delete prepared.id;
   const parsed = cardCreateSchema.safeParse(prepared);
   if (!parsed.success) {
@@ -72,14 +69,12 @@ export async function PUT(request: NextRequest) {
   if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: t("errors.invalidJson") }, { status: 400 });
-  }
+  const parsedBody = await parseJsonBody(request);
+  if (!parsedBody.ok) return parsedBody.response;
 
-  const parsed = cardUpdateSchema.safeParse(prepareCardWriteInput(body));
+  const parsed = cardUpdateSchema.safeParse(
+    prepareCardWriteInput(parsedBody.data)
+  );
   if (!parsed.success) {
     return NextResponse.json(
       { error: formatZodError(parsed.error, t) },

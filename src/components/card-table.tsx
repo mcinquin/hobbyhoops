@@ -1,78 +1,143 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useId, useRef } from "react";
 import Link from "next/link";
 import {
   useReactTable,
   getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   flexRender,
-  ColumnDef,
-  SortingState,
+  type ColumnDef,
 } from "@tanstack/react-table";
-import { Card } from "@/lib/types";
-import { uniqueSorted } from "@/lib/string-list";
+import {
+  setsForBrandFilter,
+  variationsForFilters,
+  type CollectionSortKey,
+} from "@/lib/collection-query";
+import { Card, type References } from "@/lib/types";
 import { CardBadges } from "@/components/card-badges";
 import { CardDetail } from "@/components/card-detail";
+import { ClickableTableRow } from "@/components/data-table/clickable-table-row";
+import { SortableTableHead } from "@/components/data-table/sortable-table-head";
+import { ServerTablePagination } from "@/components/data-table/server-table-pagination";
 import { ColumnFilterCombobox } from "@/components/column-filter-combobox";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { FilterChipButton } from "@/components/filter-chip-button";
+import { SearchField } from "@/components/search-field";
+import { useCollectionUrlFilters } from "@/hooks/use-collection-url-filters";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  ArrowUpDown,
-  Search,
-} from "lucide-react";
 import { useTranslations } from "@/i18n/client";
+
+/**
+ * Isolated search input — its own useState + debounce so that
+ * every keystroke only re-renders THIS tiny component, not the
+ * entire CardTable (heavy: TanStack table, comboboxes, etc.).
+ *
+ * External URL changes (e.g. "reset filters" link) are detected via
+ * the getDerivedStateFromProps pattern (calling setState during render),
+ * which is React's official approach for syncing state from props without
+ * using effects. The `sentValue` state prevents re-syncing our own URL updates.
+ */
+function SearchInput({
+  urlValue,
+  onSearch,
+  label,
+  placeholder,
+}: {
+  urlValue: string;
+  onSearch: (value: string) => void;
+  label: string;
+  placeholder: string;
+}) {
+  const [inputValue, setInputValue] = useState(urlValue);
+  const [prevUrlValue, setPrevUrlValue] = useState(urlValue);
+  // Tracks the value we last sent via onSearch — distinguishes our own
+  // URL updates from external navigation/resets.
+  const [sentValue, setSentValue] = useState(urlValue);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // getDerivedStateFromProps: sync input when URL changes externally.
+  if (prevUrlValue !== urlValue) {
+    setPrevUrlValue(urlValue);
+    if (sentValue !== urlValue) {
+      setInputValue(urlValue);
+    }
+  }
+
+  function handleChange(newValue: string) {
+    setInputValue(newValue);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSentValue(newValue);
+      onSearch(newValue);
+    }, 300);
+  }
+
+  return (
+    <SearchField
+      value={inputValue}
+      onChange={handleChange}
+      label={label}
+      placeholder={placeholder}
+    />
+  );
+}
+
+const SORT_COLUMN_KEYS = [
+  "player",
+  "team",
+  "year",
+  "brand",
+  "set",
+  "variation",
+] as const satisfies readonly CollectionSortKey[];
 
 interface CardTableProps {
   cards: Card[];
-  initialFilters?: {
-    search?: string;
-    player?: string;
-    team?: string;
-    year?: string;
-    brand?: string;
-    set?: string;
-    variation?: string;
-    tag?: string;
-  };
-  filters?: {
-    tradableOnly?: boolean;
-  };
+  totalCount: number;
+  pageCount: number;
+  references: References;
 }
 
-export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
+export function CardTable({
+  cards,
+  totalCount,
+  pageCount,
+  references,
+}: CardTableProps) {
   const t = useTranslations();
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = useState(initialFilters?.search ?? "");
+  const yearSelectId = useId();
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+  const { filters: urlFilters, updateFilters, toggleSort, isPending } =
+    useCollectionUrlFilters();
 
-  const [playerFilter, setPlayerFilter] = useState(initialFilters?.player ?? "");
-  const [teamFilter, setTeamFilter] = useState(initialFilters?.team ?? "");
-  const [yearFilter, setYearFilter] = useState(initialFilters?.year ?? "");
-  const [brandFilter, setBrandFilter] = useState(initialFilters?.brand ?? "");
-  const [setFilter, setSetFilter] = useState(initialFilters?.set ?? "");
-  const [variationFilter, setVariationFilter] = useState(
-    initialFilters?.variation ?? ""
-  );
-  const [rookieOnly, setRookieOnly] = useState(initialFilters?.tag === "rookie");
-  const [autoOnly, setAutoOnly] = useState(initialFilters?.tag === "autograph");
-  const [memoOnly, setMemoOnly] = useState(initialFilters?.tag === "memorabilia");
-  const [serialOnly, setSerialOnly] = useState(initialFilters?.tag === "numbered");
-  const tradableOnly = filters?.tradableOnly || initialFilters?.tag === "tradable";
+  const rookieOnly = urlFilters.tag === "rookie";
+  const autoOnly = urlFilters.tag === "autograph";
+  const memoOnly = urlFilters.tag === "memorabilia";
+  const serialOnly = urlFilters.tag === "numbered";
+  const tradableOnly = urlFilters.tag === "tradable";
+
+  function sortState(column: CollectionSortKey): false | "asc" | "desc" {
+    if (urlFilters.sort !== column) return false;
+    return urlFilters.sortDesc ? "desc" : "asc";
+  }
+  const sortColumnLabels: Record<(typeof SORT_COLUMN_KEYS)[number], string> =
+    useMemo(
+      () => ({
+        player: t("cards.player"),
+        team: t("cards.team"),
+        year: t("cards.year"),
+        brand: t("cards.brand"),
+        set: t("cards.set"),
+        variation: t("cards.variation"),
+      }),
+      [t]
+    );
+
   const badgeLabels = useMemo(
     () => ({
       rookie: t("badges.rookie"),
@@ -83,54 +148,6 @@ export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
     }),
     [t]
   );
-
-  const filteredCards = useMemo(() => {
-    let result = cards;
-    if (tradableOnly) {
-      result = result.filter((c) => c.tradable);
-    }
-    if (playerFilter) {
-      const q = playerFilter.toLowerCase();
-      result = result.filter((c) => c.player.toLowerCase().includes(q));
-    }
-    if (teamFilter) {
-      const q = teamFilter.toLowerCase();
-      result = result.filter((c) => c.team.toLowerCase().includes(q));
-    }
-    if (yearFilter) {
-      result = result.filter((c) => c.year === yearFilter);
-    }
-    if (brandFilter) {
-      const q = brandFilter.toLowerCase();
-      result = result.filter((c) => c.brand.toLowerCase().includes(q));
-    }
-    if (setFilter) {
-      const q = setFilter.toLowerCase();
-      result = result.filter((c) => c.set.toLowerCase().includes(q));
-    }
-    if (variationFilter) {
-      const q = variationFilter.toLowerCase();
-      result = result.filter((c) => c.variation.toLowerCase().includes(q));
-    }
-    if (rookieOnly) result = result.filter((c) => c.rookie);
-    if (autoOnly) result = result.filter((c) => c.autograph);
-    if (memoOnly) result = result.filter((c) => c.memorabilia);
-    if (serialOnly) result = result.filter((c) => c.serialNumber);
-    return result;
-  }, [
-    cards,
-    tradableOnly,
-    playerFilter,
-    teamFilter,
-    yearFilter,
-    brandFilter,
-    setFilter,
-    variationFilter,
-    rookieOnly,
-    autoOnly,
-    memoOnly,
-    serialOnly,
-  ]);
 
   const columns: ColumnDef<Card>[] = useMemo(
     () => [
@@ -202,99 +219,76 @@ export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
   // TanStack Table renvoie des helpers non mémoïsables compatibles React Compiler.
   // eslint-disable-next-line react-hooks/incompatible-library -- useReactTable
   const table = useReactTable({
-    data: filteredCards,
+    data: cards,
     columns,
-    state: { sorting, globalFilter },
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    initialState: { pagination: { pageSize: 50 } },
   });
 
-  const uniquePlayers = useMemo(
-    () => uniqueSorted(cards.map((card) => card.player)),
-    [cards]
-  );
-  const uniqueYears = useMemo(
-    () => [...new Set(cards.map((c) => c.year).filter(Boolean))].sort().reverse(),
-    [cards]
-  );
-  const uniqueBrands = useMemo(
-    () => uniqueSorted(cards.map((card) => card.brand)),
-    [cards]
-  );
-  const uniqueTeams = useMemo(
-    () => uniqueSorted(cards.map((card) => card.team)),
-    [cards]
+  const setSuggestions = useMemo(
+    () => setsForBrandFilter(references, urlFilters.brand),
+    [references, urlFilters.brand]
   );
 
-  const setsForBrand = useMemo(() => {
-    const brandQuery = brandFilter.trim().toLowerCase();
-    if (!brandQuery) return [];
-    return uniqueSorted(
-      cards
-        .filter((card) => card.brand.toLowerCase().includes(brandQuery))
-        .map((card) => card.set)
-    );
-  }, [brandFilter, cards]);
-
-  const variationsForFilters = useMemo(() => {
-    const brandQuery = brandFilter.trim().toLowerCase();
-    const setQuery = setFilter.trim().toLowerCase();
-    return uniqueSorted(
-      cards
-        .filter((card) => {
-          const brandValue = card.brand.toLowerCase();
-          const setValue = card.set.toLowerCase();
-          return (
-            (!brandQuery || brandValue.includes(brandQuery)) &&
-            (!setQuery || setValue.includes(setQuery))
-          );
-        })
-        .map((card) => card.variation)
-    );
-  }, [brandFilter, cards, setFilter]);
+  const variationSuggestions = useMemo(
+    () =>
+      variationsForFilters(
+        references,
+        urlFilters.brand,
+        urlFilters.set
+      ),
+    [references, urlFilters.brand, urlFilters.set]
+  );
 
   useEffect(() => {
-    if (!brandFilter) {
-      setSetFilter("");
+    if (!urlFilters.brand) {
+      if (urlFilters.set) updateFilters({ set: "" }, { immediate: true });
       return;
     }
     if (
-      setFilter &&
-      !setsForBrand.some((setName) =>
-        setName.toLowerCase().includes(setFilter.toLowerCase())
+      urlFilters.set &&
+      !setSuggestions.some((setName) =>
+        setName.toLowerCase().includes(urlFilters.set.toLowerCase())
       )
     ) {
-      setSetFilter("");
+      updateFilters({ set: "" }, { immediate: true });
     }
-  }, [brandFilter, setsForBrand, setFilter]);
+  }, [urlFilters.brand, urlFilters.set, setSuggestions, updateFilters]);
 
   useEffect(() => {
     if (
-      variationFilter &&
-      !variationsForFilters.some((variation) =>
-        variation.toLowerCase().includes(variationFilter.toLowerCase())
+      urlFilters.variation &&
+      !variationSuggestions.some((variation) =>
+        variation.toLowerCase().includes(urlFilters.variation.toLowerCase())
       )
     ) {
-      setVariationFilter("");
+      updateFilters({ variation: "" }, { immediate: true });
     }
-  }, [variationFilter, variationsForFilters]);
+  }, [urlFilters.variation, variationSuggestions, updateFilters]);
+
+  function toggleTag(tag: typeof urlFilters.tag) {
+    updateFilters(
+      { tag: urlFilters.tag === tag ? "" : tag },
+      { immediate: true }
+    );
+  }
 
   const activeFilters = useMemo(
     () =>
       [
-        globalFilter ? t("cards.activeSearch", { value: globalFilter }) : "",
-        playerFilter ? t("cards.activePlayer", { value: playerFilter }) : "",
-        teamFilter ? t("cards.activeTeam", { value: teamFilter }) : "",
-        yearFilter ? t("cards.activeYear", { value: yearFilter }) : "",
-        brandFilter ? t("cards.activeBrand", { value: brandFilter }) : "",
-        setFilter ? t("cards.activeSet", { value: setFilter }) : "",
-        variationFilter
-          ? t("cards.activeVariation", { value: variationFilter })
+        urlFilters.search
+          ? t("cards.activeSearch", { value: urlFilters.search })
+          : "",
+        urlFilters.player
+          ? t("cards.activePlayer", { value: urlFilters.player })
+          : "",
+        urlFilters.team ? t("cards.activeTeam", { value: urlFilters.team }) : "",
+        urlFilters.year ? t("cards.activeYear", { value: urlFilters.year }) : "",
+        urlFilters.brand
+          ? t("cards.activeBrand", { value: urlFilters.brand })
+          : "",
+        urlFilters.set ? t("cards.activeSet", { value: urlFilters.set }) : "",
+        urlFilters.variation
+          ? t("cards.activeVariation", { value: urlFilters.variation })
           : "",
         rookieOnly ? t("badges.rookie") : "",
         autoOnly ? t("badges.autograph") : "",
@@ -304,18 +298,12 @@ export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
       ].filter(Boolean),
     [
       autoOnly,
-      brandFilter,
-      globalFilter,
       memoOnly,
-      playerFilter,
       rookieOnly,
       serialOnly,
-      setFilter,
       t,
-      teamFilter,
       tradableOnly,
-      variationFilter,
-      yearFilter,
+      urlFilters,
     ]
   );
 
@@ -323,108 +311,106 @@ export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
     <div className="space-y-4">
       {/* Search and filters */}
       <div className="flex flex-col gap-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={t("cards.searchAll")}
-            value={globalFilter}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            className="pl-9"
-          />
-        </div>
+        <SearchInput
+          urlValue={urlFilters.search}
+          onSearch={(value) =>
+            updateFilters({ search: value }, { immediate: true })
+          }
+          label={t("cards.searchAll")}
+          placeholder={t("cards.searchAll")}
+        />
 
         <div className="grid gap-2 sm:grid-cols-2 lg:flex lg:flex-wrap">
           <ColumnFilterCombobox
-            value={playerFilter}
-            onChange={setPlayerFilter}
+            value={urlFilters.player}
+            onChange={(value) => updateFilters({ player: value })}
             placeholder={t("cards.filterPlayer")}
-            suggestions={uniquePlayers}
+            suggestions={references.players}
             className="h-9 text-xs lg:h-8 lg:w-40"
           />
           <ColumnFilterCombobox
-            value={teamFilter}
-            onChange={setTeamFilter}
+            value={urlFilters.team}
+            onChange={(value) => updateFilters({ team: value })}
             placeholder={t("cards.filterTeam")}
-            suggestions={uniqueTeams}
+            suggestions={references.teams}
             className="h-9 text-xs lg:h-8 lg:w-36"
           />
-          <select
-            value={yearFilter}
-            onChange={(e) => setYearFilter(e.target.value)}
-            className="h-9 rounded-md border border-input bg-background px-2 text-xs lg:h-8"
-          >
-            <option value="">{t("cards.allYears")}</option>
-            {uniqueYears.map((y) => (
-              <option key={y} value={y!}>
-                {y}
-              </option>
-            ))}
-          </select>
+          <div className="flex flex-col gap-1">
+            <label htmlFor={yearSelectId} className="sr-only">
+              {t("cards.year")}
+            </label>
+            <select
+              id={yearSelectId}
+              value={urlFilters.year}
+              onChange={(e) =>
+                updateFilters({ year: e.target.value }, { immediate: true })
+              }
+              className="h-9 rounded-md border border-input bg-background px-2 text-xs lg:h-8"
+            >
+              <option value="">{t("cards.allYears")}</option>
+              {[...references.years].reverse().map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </select>
+          </div>
           <ColumnFilterCombobox
-            value={brandFilter}
-            onChange={setBrandFilter}
+            value={urlFilters.brand}
+            onChange={(value) => updateFilters({ brand: value })}
             placeholder={t("cards.allBrands")}
-            suggestions={uniqueBrands}
+            suggestions={references.brands}
             className="h-9 text-xs lg:h-8 lg:max-w-[200px]"
           />
           <ColumnFilterCombobox
-            value={setFilter}
-            onChange={setSetFilter}
+            value={urlFilters.set}
+            onChange={(value) => updateFilters({ set: value })}
             placeholder={
-              brandFilter ? t("cards.allSets") : t("cards.setNeedsBrand")
+              urlFilters.brand ? t("cards.allSets") : t("cards.setNeedsBrand")
             }
-            suggestions={setsForBrand}
-            disabled={!brandFilter.trim()}
+            suggestions={setSuggestions}
+            disabled={!urlFilters.brand.trim()}
             className="h-9 text-xs disabled:cursor-not-allowed disabled:opacity-50 sm:col-span-2 lg:h-8 lg:min-w-[140px] lg:max-w-[220px]"
           />
           <ColumnFilterCombobox
-            value={variationFilter}
-            onChange={setVariationFilter}
+            value={urlFilters.variation}
+            onChange={(value) => updateFilters({ variation: value })}
             placeholder={t("admin.cards.filterVariation")}
-            suggestions={variationsForFilters}
+            suggestions={variationSuggestions}
             className="h-9 text-xs sm:col-span-2 lg:h-8 lg:min-w-[160px] lg:max-w-[240px]"
           />
 
           <div className="flex flex-wrap gap-1 sm:col-span-2 lg:col-span-1">
-            <Button
-              variant={rookieOnly ? "default" : "outline"}
-              size="sm"
-              className="h-8 text-xs px-2"
-              onClick={() => setRookieOnly(!rookieOnly)}
-            >
-              {t("badges.rookie")}
-            </Button>
-            <Button
-              variant={autoOnly ? "default" : "outline"}
-              size="sm"
-              className="h-8 text-xs px-2"
-              onClick={() => setAutoOnly(!autoOnly)}
-            >
-              {t("badges.autograph")}
-            </Button>
-            <Button
-              variant={memoOnly ? "default" : "outline"}
-              size="sm"
-              className="h-8 text-xs px-2"
-              onClick={() => setMemoOnly(!memoOnly)}
-            >
-              {t("badges.memorabilia")}
-            </Button>
-            <Button
-              variant={serialOnly ? "default" : "outline"}
-              size="sm"
-              className="h-8 text-xs px-2"
-              onClick={() => setSerialOnly(!serialOnly)}
-            >
-              {t("badges.numbered")}
-            </Button>
+            <FilterChipButton
+              label={t("badges.rookie")}
+              pressed={rookieOnly}
+              onPressedChange={() => toggleTag("rookie")}
+            />
+            <FilterChipButton
+              label={t("badges.autograph")}
+              pressed={autoOnly}
+              onPressedChange={() => toggleTag("autograph")}
+            />
+            <FilterChipButton
+              label={t("badges.memorabilia")}
+              pressed={memoOnly}
+              onPressedChange={() => toggleTag("memorabilia")}
+            />
+            <FilterChipButton
+              label={t("badges.numbered")}
+              pressed={serialOnly}
+              onPressedChange={() => toggleTag("numbered")}
+            />
           </div>
         </div>
 
         <div className="text-xs text-muted-foreground">
-          {t("cards.count", { count: filteredCards.length })}
-          {filteredCards.length !== cards.length &&
-            ` ${t("common.filteredOf", { total: cards.length })}`}
+          {t("cards.count", { count: totalCount })}
+          {totalCount > cards.length &&
+            ` · ${t("cards.pageSlice", {
+              from: (urlFilters.page - 1) * urlFilters.pageSize + 1,
+              to: (urlFilters.page - 1) * urlFilters.pageSize + cards.length,
+            })}`}
         </div>
         {activeFilters.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-3 text-xs">
@@ -448,6 +434,12 @@ export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
           </div>
         )}
       </div>
+
+      {/* Results — dimmed during pending server transition */}
+      <div
+        className={isPending ? "pointer-events-none opacity-50 transition-opacity duration-150" : "transition-opacity duration-150"}
+        aria-busy={isPending}
+      >
 
       {/* Mobile cards */}
       <div className="space-y-2 md:hidden">
@@ -505,35 +497,37 @@ export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
       <div className="hidden rounded-md border border-border md:block md:overflow-auto">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className="cursor-pointer select-none whitespace-nowrap"
-                    onClick={header.column.getToggleSortingHandler()}
-                  >
-                    <div className="flex items-center gap-1">
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      {header.column.getCanSort() && (
-                        <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
-                      )}
-                    </div>
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
+            <TableRow>
+              {SORT_COLUMN_KEYS.map((columnKey) => (
+                <SortableTableHead
+                  key={columnKey}
+                  label={sortColumnLabels[columnKey]}
+                  sortKey={columnKey}
+                  sorted={sortState(columnKey)}
+                  onSortToggle={() => toggleSort(columnKey)}
+                />
+              ))}
+              <SortableTableHead label={t("cards.tags")} />
+              <SortableTableHead
+                label={t("cards.number")}
+                sortKey="serialNumber"
+                sorted={sortState("serialNumber")}
+                onSortToggle={() => toggleSort("serialNumber")}
+              />
+              <SortableTableHead
+                label={t("cards.grading")}
+                sortKey="grading"
+                sorted={sortState("grading")}
+                onSortToggle={() => toggleSort("grading")}
+              />
+            </TableRow>
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
+                <ClickableTableRow
                   key={row.id}
-                  className="cursor-pointer hover:bg-accent/50"
-                  onClick={() => setSelectedCard(row.original)}
+                  onActivate={() => setSelectedCard(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-2">
@@ -543,7 +537,7 @@ export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
                       )}
                     </TableCell>
                   ))}
-                </TableRow>
+                </ClickableTableRow>
               ))
             ) : (
               <TableRow>
@@ -559,53 +553,13 @@ export function CardTable({ cards, initialFilters, filters }: CardTableProps) {
         </Table>
       </div>
 
-      {/* Pagination */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-muted-foreground">
-          {t("common.pageOf", {
-            page: table.getState().pagination.pageIndex + 1,
-            total: table.getPageCount(),
-          })}
-        </p>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={t("common.firstPage")}
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronsLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={t("common.previousPage")}
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={t("common.nextPage")}
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={t("common.lastPage")}
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronsRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <ServerTablePagination
+        page={urlFilters.page}
+        pageCount={pageCount}
+        onPageChange={(page) => updateFilters({ page }, { immediate: true })}
+      />
+
+      </div>{/* end results wrapper */}
 
       {/* Detail dialog */}
       {selectedCard && (

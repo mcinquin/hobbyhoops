@@ -1,5 +1,6 @@
 import { getCollection } from "@/lib/data";
 import Link from "next/link";
+import { PageHeader } from "@/components/page-header";
 import { getTranslations } from "@/i18n/server";
 
 export default async function PlayersPage() {
@@ -45,14 +46,10 @@ export default async function PlayersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">
-          {t("players.title")}
-        </h2>
-        <p className="text-muted-foreground mt-1">
-          {t("players.count", { count: players.length })}
-        </p>
-      </div>
+      <PageHeader
+        title={t("players.title")}
+        subtitle={t("players.count", { count: players.length })}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {players.map((player) => (

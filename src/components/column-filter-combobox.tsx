@@ -1,15 +1,18 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 
 interface ColumnFilterComboboxProps {
+  /** The currently applied filter value (from URL / parent state). */
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
   suggestions: string[];
   className?: string;
   disabled?: boolean;
+  /** Debounce delay in ms for free-text changes. Defaults to 300. */
+  debounceMs?: number;
 }
 
 export function ColumnFilterCombobox({
@@ -19,12 +22,34 @@ export function ColumnFilterCombobox({
   suggestions,
   className,
   disabled,
+  debounceMs = 300,
 }: ColumnFilterComboboxProps) {
   const inputId = useId();
   const listboxId = `${inputId}-listbox`;
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const query = value.trim().toLowerCase();
+
+  // Local input text — decoupled from the URL-derived `value` prop so that
+  // every keystroke only re-renders this component, not the full CardTable.
+  //
+  // External URL changes (e.g. "reset filters" navigation) are synced via the
+  // getDerivedStateFromProps pattern: calling setState during render is React's
+  // official approach for deriving state from props without using effects.
+  // `sentValue` prevents re-syncing our own URL updates back to the input.
+  const [inputText, setInputText] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
+  const [sentValue, setSentValue] = useState(value);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // getDerivedStateFromProps: sync input when the URL filter changes externally.
+  if (prevValue !== value) {
+    setPrevValue(value);
+    if (sentValue !== value) {
+      setInputText(value);
+    }
+  }
+
+  const query = inputText.trim().toLowerCase();
   const visibleSuggestions = useMemo(
     () =>
       suggestions.filter((suggestion) =>
@@ -34,21 +59,31 @@ export function ColumnFilterCombobox({
   );
 
   function selectSuggestion(nextValue: string): void {
+    setInputText(nextValue);
+    setSentValue(nextValue);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     onChange(nextValue);
     setOpen(false);
     setActiveIndex(0);
+  }
+
+  function handleInputChange(newText: string): void {
+    setInputText(newText);
+    setOpen(true);
+    setActiveIndex(0);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSentValue(newText);
+      onChange(newText);
+    }, debounceMs);
   }
 
   return (
     <div className="relative">
       <Input
         id={inputId}
-        value={value}
-        onChange={(event) => {
-          onChange(event.target.value);
-          setOpen(true);
-          setActiveIndex(0);
-        }}
+        value={inputText}
+        onChange={(event) => handleInputChange(event.target.value)}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onKeyDown={(event) => {

@@ -4,7 +4,8 @@
     "description": "Suivi et gestion de votre collection de cartes NBA"
   },
   "brand": {
-    "tagline": "Votre terrain pour les cartes NBA."
+    "tagline": "Votre terrain pour les cartes NBA.",
+    "homeAria": "HobbyHoops — accueil"
   },
   "locale": {
     "label": "Langue",
@@ -23,7 +24,8 @@
     "logout": "Déconnexion",
     "logoutPending": "Déconnexion…",
     "openMenu": "Ouvrir le menu",
-    "sheetTitle": "Navigation"
+    "sheetTitle": "Navigation",
+    "skipToContent": "Aller au contenu principal"
   },
   "common": {
     "loading": "Chargement…",
@@ -91,6 +93,7 @@
     "title": "Tableau de bord",
     "subtitle": "Vue d'ensemble de votre collection de cartes NBA",
     "recentAdditions": "Ajouts récents",
+    "noRecent": "Aucun ajout récent.",
     "byBrand": "Cartes par marque",
     "byYear": "Cartes par année",
     "topPlayers": "Top 10 joueurs",
@@ -166,6 +169,7 @@
     "setNeedsBrand": "Set (choisir une marque)",
     "setFilterTitle": "Filtrez d'abord par marque pour activer le filtre set",
     "count": "{count} cartes",
+    "pageSlice": "affichage {from}–{to}",
     "noneFound": "Aucune carte trouvée.",
     "teamLabel": "Équipe",
     "yearLabel": "Année",
@@ -239,6 +243,7 @@
     "unavailable": "Données indisponibles.",
     "errorTitle": "Impossible de charger l'administration.",
     "tabs": {
+      "aria": "Sections d'administration",
       "cards": "Cartes",
       "players": "Joueurs",
       "catalog": "Marques / Sets / Variations",
@@ -353,6 +358,13 @@
     "bootstrapRateLimit": "Trop de tentatives de création de compte. Réessayez plus tard.",
     "bootstrapUsernameInvalid": "Pseudo invalide (3–32 caractères : lettres, chiffres, _ et - uniquement).",
     "bootstrapExists": "Un compte existe déjà. Connectez-vous.",
+    "bootstrapUnavailable": "Création de compte indisponible.",
+    "profileRateLimit": "Trop de modifications de profil. Réessayez plus tard.",
+    "profilePasswordRateLimit": "Trop de tentatives de mot de passe. Réessayez plus tard.",
+    "rateLimit": "Trop de requêtes. Réessayez plus tard.",
+    "requestTooLarge": "Corps de requête trop volumineux.",
+    "invalidLocale": "Langue invalide.",
+    "photoUrlInvalid": "URL de photo invalide (https ou data:image uniquement).",
     "passwordMin": "Le mot de passe doit contenir au moins {min} caractères.",
     "profileCurrentRequired": "Mot de passe actuel requis.",
     "profileNotFound": "Compte introuvable.",
@@ -373,6 +385,11 @@
     "noValidPlayers": "Aucun joueur valide.",
     "noValidClubs": "Aucun club valide.",
     "noValidYears": "Aucune année valide.",
-    "updateFailed": "Échec de la mise à jour."
+    "updateFailed": "Échec de la mise à jour.",
+    "pageError": "Une erreur est survenue",
+    "pageErrorHint": "Réessayez ou rechargez la page. Si le problème persiste, contactez l'administrateur.",
+    "notFoundTitle": "Page introuvable",
+    "notFoundDescription": "Cette page n'existe pas ou a été déplacée.",
+    "notFoundBack": "Retour à l'accueil"
   }
 }
