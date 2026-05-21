@@ -1,3 +1,10 @@
+## [1.12.1](https://github.com/mcinquin/hobbyhoops/compare/v1.12.0...v1.12.1) (2026-05-21)
+
+
+### Bug Fixes
+
+* **logo:** fix logo issue ([38d7354](https://github.com/mcinquin/hobbyhoops/commit/38d7354f1be69f997abb675205c301851105de0c))
+
 # [1.12.0](https://github.com/mcinquin/hobbyhoops/compare/v1.11.0...v1.12.0) (2026-05-21)
 
 
