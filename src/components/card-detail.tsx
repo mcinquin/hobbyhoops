@@ -14,7 +14,7 @@ import {
   cardComparableSalesQuery,
   ebaySoldListingsUrl,
 } from "@/lib/card-sales-links";
-import { useTranslations } from "@/i18n/client";
+import { useI18n, useTranslations } from "@/i18n/client";
 
 interface CardDetailProps {
   card: Card;
@@ -22,11 +22,8 @@ interface CardDetailProps {
   onClose: () => void;
 }
 
-function formatAddedDate(value: string | null): string {
-  return formatOpeningDateLabel(value);
-}
-
 export function CardDetail({ card, open, onClose }: CardDetailProps) {
+  const { locale } = useI18n();
   const t = useTranslations();
   const salesQuery = cardComparableSalesQuery(card);
   const badgeLabels = {
@@ -61,7 +58,7 @@ export function CardDetail({ card, open, onClose }: CardDetailProps) {
             {card.openingDate ? (
               <>
                 {t("cards.addedOn", {
-                  date: formatAddedDate(card.openingDate),
+                  date: formatOpeningDateLabel(card.openingDate, locale),
                 })}
               </>
             ) : (

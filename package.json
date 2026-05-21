@@ -20,6 +20,7 @@
     "ci:full": "node scripts/ci.mjs --with-audit",
     "check": "npm run ci",
     "clean": "node scripts/clean.mjs",
+    "optimize:logo": "node scripts/optimize-logo.mjs",
     "prepare": "husky",
     "release": "semantic-release"
   },

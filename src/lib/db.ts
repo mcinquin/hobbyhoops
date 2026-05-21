@@ -528,6 +528,31 @@ export function readAllCards(): Card[] {
   return rows.map(rowToCard);
 }
 
+export function queryCardsPage(
+  whereSql: string,
+  params: (string | number)[],
+  options: {
+    sortColumn: string;
+    sortDesc: boolean;
+    limit: number;
+    offset: number;
+  }
+): Card[] {
+  const orderColumn = options.sortColumn;
+  const direction = options.sortDesc ? "DESC" : "ASC";
+  const sql = `SELECT * FROM cards ${whereSql} ORDER BY ${orderColumn} ${direction}, id ASC LIMIT ? OFFSET ?`;
+  const rows = getDb()
+    .prepare(sql)
+    .all(...params, options.limit, options.offset) as Record<string, unknown>[];
+  return rows.map(rowToCard);
+}
+
+export function countCards(whereSql: string, params: (string | number)[]): number {
+  const sql = `SELECT COUNT(*) as count FROM cards ${whereSql}`;
+  const row = getDb().prepare(sql).get(...params) as { count: number };
+  return row.count;
+}
+
 export function replaceAllCards(cards: Card[]): void {
   importCards(getDb(), cards);
 }

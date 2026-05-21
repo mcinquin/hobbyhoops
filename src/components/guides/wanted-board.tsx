@@ -11,16 +11,15 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import { Search, ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import type { WantedBlock, WantedEntry } from "@/lib/types";
 import { ColumnFilterCombobox } from "@/components/column-filter-combobox";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { SortableTableHead } from "@/components/data-table/sortable-table-head";
+import { TablePagination } from "@/components/data-table/table-pagination";
+import { SearchField } from "@/components/search-field";
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
@@ -114,15 +113,13 @@ export function WantedBoard({ blocks }: WantedBoardProps) {
       ))}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        <div className="relative min-w-0 flex-1 sm:max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={t("guides.wanted.search")}
-            className="pl-9"
-          />
-        </div>
+        <SearchField
+          label={t("guides.wanted.search")}
+          placeholder={t("guides.wanted.search")}
+          value={search}
+          onChange={setSearch}
+          className="min-w-0 flex-1 sm:max-w-sm"
+        />
         <ColumnFilterCombobox
           value={variationFilter}
           onChange={setVariationFilter}
@@ -165,18 +162,7 @@ export function WantedBoard({ blocks }: WantedBoardProps) {
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className="cursor-pointer select-none whitespace-nowrap"
-                    onClick={header.column.getToggleSortingHandler()}
-                  >
-                    <div className="flex items-center gap-1">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                      {header.column.getCanSort() && (
-                        <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
-                      )}
-                    </div>
-                  </TableHead>
+                  <SortableTableHead key={header.id} header={header} />
                 ))}
               </TableRow>
             ))}
@@ -206,52 +192,7 @@ export function WantedBoard({ blocks }: WantedBoardProps) {
         </Table>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-muted-foreground">
-          {t("common.pageOf", {
-            page: table.getState().pagination.pageIndex + 1,
-            total: table.getPageCount(),
-          })}
-        </p>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={t("common.firstPage")}
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronsLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={t("common.previousPage")}
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={t("common.nextPage")}
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={t("common.lastPage")}
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronsRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <TablePagination table={table} />
     </div>
   );
 }

@@ -62,7 +62,11 @@ export function Sidebar({ username, onNavigate, className }: SidebarProps) {
       )}
     >
       <div className="p-6 border-b border-border">
-        <BrandMark logoHeight={52} className="w-full" />
+        <BrandMark
+          logoHeight={52}
+          className="w-full"
+          homeAriaLabel={t("brand.homeAria")}
+        />
         <p className="text-xs text-muted-foreground mt-3 leading-snug text-center">
           {t("brand.tagline")}
         </p>

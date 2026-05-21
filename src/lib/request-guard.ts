@@ -25,11 +25,20 @@ function getPublicOrigin(request: NextRequest): string {
 }
 
 export function rejectCrossSiteMutation(
-  request: NextRequest
+  request: NextRequest,
+  options?: { requireFetchMetadata?: boolean }
 ): NextResponse | null {
   const t = getRequestTranslator(request);
   const requestOrigin = getPublicOrigin(request);
   const origin = request.headers.get("origin");
+  const fetchSite = request.headers.get("sec-fetch-site");
+
+  if (options?.requireFetchMetadata && !origin && !fetchSite) {
+    return NextResponse.json(
+      { error: t("errors.crossSiteRequest") },
+      { status: 403 }
+    );
+  }
 
   if (origin) {
     try {
@@ -47,7 +56,6 @@ export function rejectCrossSiteMutation(
     }
   }
 
-  const fetchSite = request.headers.get("sec-fetch-site");
   if (fetchSite && !SAFE_FETCH_SITES.has(fetchSite)) {
     return NextResponse.json(
       { error: t("errors.crossSiteRequest") },

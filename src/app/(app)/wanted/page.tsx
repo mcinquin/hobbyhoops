@@ -1,4 +1,5 @@
 import { WantedBoard } from "@/components/guides/wanted-board";
+import { PageHeader } from "@/components/page-header";
 import { getWantedBlocks } from "@/lib/data";
 import { getTranslations } from "@/i18n/server";
 
@@ -8,10 +9,10 @@ export default async function WantedPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">{t("guides.wanted.title")}</h2>
-        <p className="mt-1 text-muted-foreground">{t("guides.wanted.subtitle")}</p>
-      </div>
+      <PageHeader
+        title={t("guides.wanted.title")}
+        subtitle={t("guides.wanted.subtitle")}
+      />
       <WantedBoard blocks={blocks} />
     </div>
   );

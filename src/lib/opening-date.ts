@@ -77,6 +77,16 @@ export function compareOpeningDates(
   return leftTs - rightTs;
 }
 
-export function formatOpeningDateLabel(value: string | null | undefined): string {
-  return normalizeOpeningDate(value) ?? "—";
+export function formatOpeningDateLabel(
+  value: string | null | undefined,
+  locale: "fr" | "en" = "fr"
+): string {
+  const normalized = normalizeOpeningDate(value);
+  if (!normalized) return "—";
+  if (locale === "en") {
+    const match = normalized.match(OPENING_DATE_REGEX);
+    if (!match) return normalized;
+    return `${match[2]}/${match[1]}/${match[3]}`;
+  }
+  return normalized;
 }

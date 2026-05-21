@@ -1,16 +1,21 @@
 import dynamic from "next/dynamic";
+import { Suspense } from "react";
 import { getCollection } from "@/lib/data";
 import { getTranslations } from "@/i18n/server";
+import { PageHeader } from "@/components/page-header";
 import { StatsCards } from "@/components/stats-cards";
 import { RecentCards } from "@/components/recent-cards";
+import { ChartSkeleton } from "@/components/skeletons/page-skeletons";
 
-const DashboardCharts = dynamic(() =>
-  import("@/components/dashboard-charts").then((mod) => mod.DashboardCharts)
+const DashboardCharts = dynamic(
+  () =>
+    import("@/components/dashboard-charts").then((mod) => mod.DashboardCharts),
+  { loading: () => <ChartSkeleton /> }
 );
 
 export default async function DashboardPage() {
   const cards = getCollection();
-  const { t } = await getTranslations();
+  const { t, locale } = await getTranslations();
   const badgeLabels = {
     rookie: t("badges.rookie"),
     autograph: t("badges.autograph"),
@@ -21,14 +26,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-w-0 space-y-6 sm:space-y-8">
-      <div className="min-w-0">
-        <h2 className="text-2xl font-bold tracking-tight break-words">
-          {t("dashboard.title")}
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground sm:text-base">
-          {t("dashboard.subtitle")}
-        </p>
-      </div>
+      <PageHeader
+        title={t("dashboard.title")}
+        subtitle={t("dashboard.subtitle")}
+      />
 
       <StatsCards
         cards={cards}
@@ -41,11 +42,15 @@ export default async function DashboardPage() {
           tradable: t("dashboard.stats.tradable"),
         }}
       />
-      <DashboardCharts cards={cards} />
+      <Suspense fallback={<ChartSkeleton />}>
+        <DashboardCharts cards={cards} />
+      </Suspense>
       <RecentCards
         cards={cards}
         title={t("dashboard.recentAdditions")}
         badgeLabels={badgeLabels}
+        locale={locale}
+        emptyLabel={t("dashboard.noRecent")}
       />
     </div>
   );

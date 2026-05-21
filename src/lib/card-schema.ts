@@ -36,13 +36,21 @@ const nullableSerialNumber = z
     "errors.invalidSerialFormat"
   );
 
-const nullableString = (max: number) =>
-  z
-    .string()
-    .trim()
-    .max(max)
-    .nullish()
-    .transform((value) => (value == null || value === "" ? null : value));
+function isSafePhotoUrl(value: string): boolean {
+  if (/^https:\/\//i.test(value)) return true;
+  return /^data:image\/(png|jpe?g|gif|webp);base64,/i.test(value);
+}
+
+const nullablePhoto = z
+  .string()
+  .trim()
+  .max(500)
+  .nullish()
+  .transform((value) => (value == null || value === "" ? null : value))
+  .refine(
+    (value) => value === null || isSafePhotoUrl(value),
+    "errors.photoUrlInvalid"
+  );
 
 const nullableCount = z
   .number()
@@ -79,7 +87,7 @@ const cardFields = {
   openingDate: nullableOpeningDate,
   protection: optionalLabel,
   storage: optionalLabel,
-  photo: nullableString(500),
+  photo: nullablePhoto,
   tradable: z.boolean(),
   rookie: z.boolean(),
 };
