@@ -14,10 +14,14 @@ svg = svg
   .replace(/>\s+</g, "><")
   .trim();
 
-svg = svg.replace(/(-?\d*\.\d+)/g, (match) => {
-  const value = Number(match);
-  if (!Number.isFinite(value)) return match;
-  return String(Math.round(value));
+// Round floating-point coordinates in path data only — never touch XML attributes
+// like version="1.0". We restrict the match to inside d="..." and similar path data.
+svg = svg.replace(/\bd="([^"]*)"/g, (attrMatch, pathData) => {
+  const rounded = pathData.replace(/(-?\d*\.\d+)/g, (num) => {
+    const value = Number(num);
+    return Number.isFinite(value) ? String(Math.round(value)) : num;
+  });
+  return `d="${rounded}"`;
 });
 
 writeFileSync(logoPath, `${svg}\n`, "utf8");
