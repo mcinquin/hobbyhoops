@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import type { Card, References } from "./types";
+import type { Card, FrNbaPlayer, References, WantedBlock } from "./types";
 import { normalizeCardSerialFields } from "./card-serial";
 import { normalizeOpeningDate } from "./opening-date";
 import { EMPTY_REFERENCES } from "./references-defaults";
@@ -8,7 +8,7 @@ import { createDatabase, runInTransaction, type AppDatabase } from "./sqlite";
 
 type SqlInputValue = string | number | bigint | Buffer | null;
 
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 6;
 
 const globalForDb = globalThis as typeof globalThis & {
   hobbyhoopsDb?: AppDatabase;
@@ -82,7 +82,210 @@ function initSchema(db: AppDatabase): void {
       count INTEGER NOT NULL,
       reset_at INTEGER NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS wanted_entries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      set_name TEXT NOT NULL,
+      variation TEXT NOT NULL,
+      slot INTEGER,
+      player TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS fr_nba_players (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      player TEXT NOT NULL,
+      draft_year TEXT NOT NULL DEFAULT '',
+      drafted_by TEXT NOT NULL DEFAULT '',
+      rookie_card INTEGER,
+      auto TEXT,
+      patch INTEGER,
+      immaculate INTEGER
+    );
   `);
+}
+
+function nullableBoolFromDb(value: unknown): boolean | null {
+  if (value == null) return null;
+  return Boolean(value);
+}
+
+function nullableBoolToDb(value: boolean | null): number | null {
+  if (value == null) return null;
+  return value ? 1 : 0;
+}
+
+function normalizeFrNbaAuto(value: string | null): string | null {
+  if (!value) return null;
+  const lower = value.trim().toLowerCase();
+  if (lower === "on card") return "On card";
+  if (lower === "sticker") return "Sticker";
+  return value.trim();
+}
+
+function rowToFrNbaPlayer(row: Record<string, unknown>): FrNbaPlayer {
+  const auto = row.auto == null ? null : String(row.auto);
+  return {
+    player: String(row.player),
+    draftYear: String(row.draft_year),
+    draftedBy: String(row.drafted_by),
+    rookieCard: nullableBoolFromDb(row.rookie_card),
+    auto: normalizeFrNbaAuto(auto),
+    patch: nullableBoolFromDb(row.patch),
+    immaculate: nullableBoolFromDb(row.immaculate),
+  };
+}
+
+function importWantedBlocks(db: AppDatabase, blocks: WantedBlock[]): void {
+  const insert = db.prepare(`
+    INSERT INTO wanted_entries (set_name, variation, slot, player)
+    VALUES (@set_name, @variation, @slot, @player)
+  `);
+
+  runInTransaction(db, () => {
+    db.prepare("DELETE FROM wanted_entries").run();
+    for (const block of blocks) {
+      for (const entry of block.entries) {
+        insert.run({
+          set_name: block.set,
+          variation: entry.variation,
+          slot: entry.slot,
+          player: entry.player,
+        });
+      }
+    }
+  });
+}
+
+function importFrNbaPlayers(db: AppDatabase, players: FrNbaPlayer[]): void {
+  const insert = db.prepare(`
+    INSERT INTO fr_nba_players (
+      player, draft_year, drafted_by, rookie_card, auto, patch, immaculate
+    ) VALUES (
+      @player, @draft_year, @drafted_by, @rookie_card, @auto, @patch, @immaculate
+    )
+  `);
+
+  runInTransaction(db, () => {
+    db.prepare("DELETE FROM fr_nba_players").run();
+    for (const player of players) {
+      insert.run({
+        player: player.player,
+        draft_year: player.draftYear,
+        drafted_by: player.draftedBy,
+        rookie_card: nullableBoolToDb(player.rookieCard),
+        auto: player.auto,
+        patch: nullableBoolToDb(player.patch),
+        immaculate: nullableBoolToDb(player.immaculate),
+      });
+    }
+  });
+}
+
+function wantedBlocksFromRows(
+  rows: { set_name: string; variation: string; slot: number | null; player: string }[]
+): WantedBlock[] {
+  const bySet = new Map<string, WantedBlock>();
+
+  for (const row of rows) {
+    let block = bySet.get(row.set_name);
+    if (!block) {
+      block = { set: row.set_name, variations: [], entries: [] };
+      bySet.set(row.set_name, block);
+    }
+    if (!block.variations.includes(row.variation)) {
+      block.variations.push(row.variation);
+    }
+    block.entries.push({
+      variation: row.variation,
+      slot: row.slot,
+      player: row.player,
+    });
+  }
+
+  return [...bySet.values()].sort((a, b) => a.set.localeCompare(b.set));
+}
+
+function readGuidesStatePayloads(db: AppDatabase): {
+  wanted: WantedBlock[];
+  frNba: FrNbaPlayer[];
+} | null {
+  try {
+    const row = db
+      .prepare(
+        "SELECT wanted_payload, fr_nba_payload FROM guides_state WHERE id = 1"
+      )
+      .get() as { wanted_payload: string; fr_nba_payload: string } | undefined;
+    if (!row) return null;
+
+    const wanted = JSON.parse(row.wanted_payload) as WantedBlock[];
+    const frNba = JSON.parse(row.fr_nba_payload) as FrNbaPlayer[];
+    return {
+      wanted: Array.isArray(wanted) ? wanted : [],
+      frNba: Array.isArray(frNba) ? frNba : [],
+    };
+  } catch {
+    return null;
+  }
+}
+
+function seedGuidesTablesIfEmpty(db: AppDatabase): void {
+  const wantedCount = (
+    db.prepare("SELECT COUNT(*) as count FROM wanted_entries").get() as {
+      count: number;
+    }
+  ).count;
+  const frNbaCount = (
+    db.prepare("SELECT COUNT(*) as count FROM fr_nba_players").get() as {
+      count: number;
+    }
+  ).count;
+  if (wantedCount > 0 && frNbaCount > 0) return;
+
+  const legacy = readGuidesStatePayloads(db);
+  if (!legacy) return;
+
+  if (wantedCount === 0 && legacy.wanted.length > 0) {
+    importWantedBlocks(db, legacy.wanted);
+  }
+
+  if (frNbaCount === 0 && legacy.frNba.length > 0) {
+    importFrNbaPlayers(db, legacy.frNba);
+  }
+}
+
+export function readWantedBlocks(): WantedBlock[] {
+  const rows = getDb()
+    .prepare(
+      `SELECT set_name, variation, slot, player
+       FROM wanted_entries
+       ORDER BY set_name, variation, slot, player`
+    )
+    .all() as {
+    set_name: string;
+    variation: string;
+    slot: number | null;
+    player: string;
+  }[];
+  return wantedBlocksFromRows(rows);
+}
+
+export function readFrNbaPlayers(): FrNbaPlayer[] {
+  const rows = getDb()
+    .prepare(
+      `SELECT player, draft_year, drafted_by, rookie_card, auto, patch, immaculate
+       FROM fr_nba_players
+       ORDER BY player COLLATE NOCASE`
+    )
+    .all() as Record<string, unknown>[];
+  return rows.map(rowToFrNbaPlayer);
+}
+
+export function replaceAllWantedBlocks(blocks: WantedBlock[]): void {
+  importWantedBlocks(getDb(), blocks);
+}
+
+export function replaceAllFrNbaPlayers(players: FrNbaPlayer[]): void {
+  importFrNbaPlayers(getDb(), players);
 }
 
 function getSchemaVersion(db: AppDatabase): number {
@@ -259,6 +462,41 @@ function runSchemaMigrations(db: AppDatabase): void {
     db.exec("DROP TABLE IF EXISTS french_players");
   }
 
+  if (version < 6) {
+    if (version < 5) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS guides_state (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          wanted_payload TEXT NOT NULL DEFAULT '[]',
+          fr_nba_payload TEXT NOT NULL DEFAULT '[]'
+        );
+      `);
+    }
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS wanted_entries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        set_name TEXT NOT NULL,
+        variation TEXT NOT NULL,
+        slot INTEGER,
+        player TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS fr_nba_players (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        player TEXT NOT NULL,
+        draft_year TEXT NOT NULL DEFAULT '',
+        drafted_by TEXT NOT NULL DEFAULT '',
+        rookie_card INTEGER,
+        auto TEXT,
+        patch INTEGER,
+        immaculate INTEGER
+      );
+    `);
+    seedGuidesTablesIfEmpty(db);
+    db.exec("DROP TABLE IF EXISTS guides_state");
+  }
+
   setSchemaVersion(db, SCHEMA_VERSION);
 }
 
@@ -332,6 +570,16 @@ export function getDatabaseHealth(): {
         count: number;
       }
     ).count;
+    const wanted = (
+      db.prepare("SELECT COUNT(*) as count FROM wanted_entries").get() as {
+        count: number;
+      }
+    ).count;
+    const frNba = (
+      db.prepare("SELECT COUNT(*) as count FROM fr_nba_players").get() as {
+        count: number;
+      }
+    ).count;
 
     return {
       ok: true,
@@ -340,6 +588,8 @@ export function getDatabaseHealth(): {
         references: references > 0,
         users: users > 0,
         sessions: sessions > 0,
+        wanted: wanted > 0,
+        frNba: frNba > 0,
       },
     };
   } catch {
@@ -350,6 +600,8 @@ export function getDatabaseHealth(): {
         references: false,
         users: false,
         sessions: false,
+        wanted: false,
+        frNba: false,
       },
     };
   }

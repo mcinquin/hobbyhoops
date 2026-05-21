@@ -10,6 +10,8 @@ import {
   Settings,
   UserCircle,
   LogOut,
+  ListChecks,
+  Flag,
 } from "lucide-react";
 import { APP_VERSION } from "@/lib/app-version";
 import { useTranslations } from "@/i18n/client";
@@ -33,6 +35,8 @@ export function Sidebar({ username, onNavigate, className }: SidebarProps) {
     () => [
       { href: "/", label: t("nav.dashboard"), icon: LayoutDashboard },
       { href: "/collection", label: t("nav.collection"), icon: Library },
+      { href: "/wanted", label: t("nav.wanted"), icon: ListChecks },
+      { href: "/fr-nba", label: t("nav.frNba"), icon: Flag },
       { href: "/player", label: t("nav.players"), icon: Users },
       { href: "/admin", label: t("nav.admin"), icon: Settings },
       { href: "/account", label: t("nav.account"), icon: UserCircle },

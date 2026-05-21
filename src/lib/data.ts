@@ -1,14 +1,26 @@
-import { Card, References } from "./types";
+import { Card, FrNbaPlayer, References, WantedBlock } from "./types";
 import {
   getDatabaseHealth,
   readAllCards,
+  readFrNbaPlayers,
   readReferencesState,
+  readWantedBlocks,
   replaceAllCards,
+  replaceAllFrNbaPlayers,
+  replaceAllWantedBlocks,
   writeReferencesState,
 } from "./db";
 
 export function getCollection(): Card[] {
   return readAllCards();
+}
+
+export function getWantedBlocks(): WantedBlock[] {
+  return readWantedBlocks();
+}
+
+export function getFrNbaPlayers(): FrNbaPlayer[] {
+  return readFrNbaPlayers();
 }
 
 /** Lit les références persistées (sans enrichissement collection). */
@@ -36,6 +48,14 @@ export function getReferences(): References {
 
 export async function saveCollection(cards: Card[]): Promise<void> {
   replaceAllCards(cards);
+}
+
+export async function saveWantedBlocks(blocks: WantedBlock[]): Promise<void> {
+  replaceAllWantedBlocks(blocks);
+}
+
+export async function saveFrNbaPlayers(players: FrNbaPlayer[]): Promise<void> {
+  replaceAllFrNbaPlayers(players);
 }
 
 export function getDataHealth(): {

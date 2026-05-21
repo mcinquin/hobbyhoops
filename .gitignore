@@ -11,8 +11,8 @@ build/
 .env.*
 !.env.example
 
-# Local runtime data
-data/
+# Local runtime data (SQLite, etc.)
+/data/
 
 # Tooling
 tsconfig.tsbuildinfo
