@@ -21,6 +21,28 @@ export interface Card {
   rookie: boolean;
 }
 
+export interface WantedEntry {
+  variation: string;
+  slot: number | null;
+  player: string;
+}
+
+export interface WantedBlock {
+  set: string;
+  variations: string[];
+  entries: WantedEntry[];
+}
+
+export interface FrNbaPlayer {
+  player: string;
+  draftYear: string;
+  draftedBy: string;
+  rookieCard: boolean | null;
+  auto: string | null;
+  patch: boolean | null;
+  immaculate: boolean | null;
+}
+
 export interface References {
   players: string[];
   teams: string[];

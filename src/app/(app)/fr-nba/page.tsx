@@ -1,5 +1,5 @@
 import { FrNbaTable } from "@/components/guides/fr-nba-table";
-import { getFrNbaPlayers } from "@/lib/guide-data";
+import { getFrNbaPlayers } from "@/lib/data";
 import { getTranslations } from "@/i18n/server";
 
 export default async function FrNbaPage() {

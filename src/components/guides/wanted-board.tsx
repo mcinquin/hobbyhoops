@@ -12,7 +12,7 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { Search, ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
-import type { WantedBlock, WantedEntry } from "@/lib/guide-data";
+import type { WantedBlock, WantedEntry } from "@/lib/types";
 import { ColumnFilterCombobox } from "@/components/column-filter-combobox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

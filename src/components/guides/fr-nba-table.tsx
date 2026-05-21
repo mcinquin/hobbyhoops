@@ -19,7 +19,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import type { FrNbaPlayer } from "@/lib/guide-data";
+import type { FrNbaPlayer } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

@@ -1,5 +1,5 @@
 import { WantedBoard } from "@/components/guides/wanted-board";
-import { getWantedBlocks } from "@/lib/guide-data";
+import { getWantedBlocks } from "@/lib/data";
 import { getTranslations } from "@/i18n/server";
 
 export default async function WantedPage() {
