@@ -89,6 +89,7 @@ export function WantedBoard({ blocks }: WantedBoardProps) {
     [t]
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- useReactTable
   const table = useReactTable({
     data: filteredRows,
     columns,

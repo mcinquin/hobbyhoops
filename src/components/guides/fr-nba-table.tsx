@@ -133,6 +133,7 @@ export function FrNbaTable({ players }: FrNbaTableProps) {
     [t]
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- useReactTable
   const table = useReactTable({
     data: filteredPlayers,
     columns,
