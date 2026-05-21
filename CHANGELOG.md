@@ -1,3 +1,13 @@
+# [1.11.0](https://github.com/mcinquin/hobbyhoops/compare/v1.10.0...v1.11.0) (2026-05-21)
+
+
+### Features
+
+* **section:** add new section for wanted and fr NBA ([7aefab1](https://github.com/mcinquin/hobbyhoops/commit/7aefab1c712a780719d3f77069051cc4805ff1f6))
+* **section:** add new section for wanted and fr NBA ([6c587b2](https://github.com/mcinquin/hobbyhoops/commit/6c587b271f8301dc54c553b76f489e92befb7c44))
+* **section:** add new section for wanted and fr NBA ([1be7f9c](https://github.com/mcinquin/hobbyhoops/commit/1be7f9cfbfd940d77c224028ee1660952e9a318a))
+* **section:** add wanted and fr NBA sections ([6b5f59c](https://github.com/mcinquin/hobbyhoops/commit/6b5f59cdd10b42f1f4fdbcf6348bd125903de727))
+
 # [1.10.0](https://github.com/mcinquin/hobbyhoops/compare/v1.9.0...v1.10.0) (2026-05-20)
 
 
