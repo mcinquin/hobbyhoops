@@ -15,6 +15,8 @@
     "aria": "Main navigation",
     "dashboard": "Dashboard",
     "collection": "Collection",
+    "wanted": "Wanted",
+    "frNba": "Fr NBA",
     "players": "Players",
     "admin": "Admin",
     "account": "My account",
@@ -104,6 +106,33 @@
   "collection": {
     "title": "Collection",
     "subtitle": "Browse, filter, and search your entire collection."
+  },
+  "guides": {
+    "wanted": {
+      "title": "Wanted",
+      "subtitle": "Cards you are looking for, by set and variation (Excel import).",
+      "search": "Search player or variation…",
+      "variation": "Variation",
+      "slot": "#",
+      "player": "Player",
+      "allVariations": "All variations",
+      "filterVariation": "Variation…",
+      "count": "{count} entries"
+    },
+    "frNba": {
+      "title": "Fr NBA",
+      "subtitle": "French players in the NBA: draft info, rookie card, auto, patch, and Immaculate.",
+      "search": "Search player, team, or year…",
+      "player": "Player",
+      "draftYear": "Draft",
+      "draftedBy": "Drafted by",
+      "rookieCard": "Rookie card",
+      "auto": "Auto",
+      "patch": "Patch",
+      "immaculate": "Immaculate",
+      "yes": "Yes",
+      "count": "{count} players"
+    }
   },
   "players": {
     "title": "Players",

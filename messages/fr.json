@@ -15,6 +15,8 @@
     "aria": "Navigation principale",
     "dashboard": "Tableau de bord",
     "collection": "Collection",
+    "wanted": "Wanted",
+    "frNba": "Fr NBA",
     "players": "Joueurs",
     "admin": "Admin",
     "account": "Mon compte",
@@ -104,6 +106,33 @@
   "collection": {
     "title": "Collection",
     "subtitle": "Parcourez, filtrez et recherchez toute votre collection."
+  },
+  "guides": {
+    "wanted": {
+      "title": "Wanted",
+      "subtitle": "Liste des cartes recherchées par set et variation (import Excel).",
+      "search": "Rechercher un joueur ou une variation…",
+      "variation": "Variation",
+      "slot": "N°",
+      "player": "Joueur",
+      "allVariations": "Toutes les variations",
+      "filterVariation": "Variation…",
+      "count": "{count} entrées"
+    },
+    "frNba": {
+      "title": "Fr NBA",
+      "subtitle": "Joueurs français en NBA : draft, rookie card, auto, patch et Immaculate.",
+      "search": "Rechercher un joueur, une équipe ou une année…",
+      "player": "Joueur",
+      "draftYear": "Draft",
+      "draftedBy": "Drafté par",
+      "rookieCard": "Rookie card",
+      "auto": "Auto",
+      "patch": "Patch",
+      "immaculate": "Immaculate",
+      "yes": "Oui",
+      "count": "{count} joueurs"
+    }
   },
   "players": {
     "title": "Joueurs",
