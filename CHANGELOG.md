@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/mcinquin/hobbyhoops/compare/v1.11.0...v1.12.0) (2026-05-21)
+
+
+### Features
+
+* **audit:** implement audit recommendations ([b55938b](https://github.com/mcinquin/hobbyhoops/commit/b55938b1c434618609c0793f69573afe7dbc2a35))
+
 # [1.11.0](https://github.com/mcinquin/hobbyhoops/compare/v1.10.0...v1.11.0) (2026-05-21)
 
 
