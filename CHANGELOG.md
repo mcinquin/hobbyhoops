@@ -1,3 +1,10 @@
+## [1.13.1](https://github.com/mcinquin/hobbyhoops/compare/v1.13.0...v1.13.1) (2026-05-24)
+
+
+### Bug Fixes
+
+* **link:** add bidirectional link for card variation ([6e9865c](https://github.com/mcinquin/hobbyhoops/commit/6e9865c7906eb92c6b4667fb4d7c0f1b3361ec9a))
+
 # [1.13.0](https://github.com/mcinquin/hobbyhoops/compare/v1.12.1...v1.13.0) (2026-05-24)
 
 
