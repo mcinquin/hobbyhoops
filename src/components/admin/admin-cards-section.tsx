@@ -200,6 +200,7 @@ export function AdminCardsSection({
         setFormOpen(false);
         setSuccess(t("admin.cards.updated"));
         void refreshCards().catch(() => undefined);
+        void refreshReferences().catch(() => undefined);
         return true;
       }
 
@@ -234,6 +235,7 @@ export function AdminCardsSection({
       setFormOpen(false);
       setSuccess(t("admin.cards.created"));
       void refreshCards().catch(() => undefined);
+      void refreshReferences().catch(() => undefined);
       return true;
     } catch {
       setSaveError(t("admin.cards.saveFailed"));

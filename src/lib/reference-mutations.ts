@@ -232,3 +232,24 @@ export function removeVariation(
   pruneVariationsGlobal(refs, name);
   return refs;
 }
+
+/** Enrichit les listes de référence à partir d'une carte (saisie libre dans le formulaire). */
+export function syncReferencesFromCard(
+  refs: References,
+  card: {
+    player: string;
+    team: string;
+    year: string | null;
+    brand: string;
+    set: string;
+    variation: string;
+  }
+): References {
+  if (card.player) addPlayer(refs, card.player);
+  if (card.team) addTeam(refs, card.team);
+  if (card.year) addYear(refs, card.year);
+  if (card.brand) addBrand(refs, card.brand);
+  if (card.brand && card.set) addSet(refs, card.brand, card.set);
+  if (card.set && card.variation) addVariation(refs, card.set, card.variation);
+  return refs;
+}
