@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollection, saveCollection } from "@/lib/data";
+import { getCollection, mutateReferences, saveCollection } from "@/lib/data";
 import { requireAuth } from "@/lib/auth-api";
 import { normalizeCardSerialFields } from "@/lib/card-serial";
 import { prepareCardWriteInput } from "@/lib/card-write";
 import { formatTodayOpeningDateFr } from "@/lib/opening-date";
+import { syncReferencesFromCard } from "@/lib/reference-mutations";
 import {
   cardCreateSchema,
   cardUpdateSchema,
@@ -59,6 +60,9 @@ export async function POST(request: NextRequest) {
   };
 
   await saveCollection([...cards, created]);
+  await mutateReferences((refs) => {
+    syncReferencesFromCard(refs, created);
+  });
   return NextResponse.json(created, { status: 201 });
 }
 
@@ -88,10 +92,14 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: t("errors.cardNotFound") }, { status: 404 });
   }
 
-  const updated = [...cards];
-  updated[index] = normalizeCardSerialFields(parsed.data);
-  await saveCollection(updated);
-  return NextResponse.json(updated[index]);
+  const nextCards = [...cards];
+  const saved = normalizeCardSerialFields(parsed.data);
+  nextCards[index] = saved;
+  await saveCollection(nextCards);
+  await mutateReferences((refs) => {
+    syncReferencesFromCard(refs, saved);
+  });
+  return NextResponse.json(saved);
 }
 
 export async function DELETE(request: NextRequest) {
