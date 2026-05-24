@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/mcinquin/hobbyhoops/compare/v1.12.1...v1.13.0) (2026-05-24)
+
+
+### Features
+
+* **admin:** add deletion, modification and addition for cards in all sections ([2c38498](https://github.com/mcinquin/hobbyhoops/commit/2c38498871dcc894dfc0a36c2c4e59aa78dc0183))
+
 ## [1.12.1](https://github.com/mcinquin/hobbyhoops/compare/v1.12.0...v1.12.1) (2026-05-21)
 
 
