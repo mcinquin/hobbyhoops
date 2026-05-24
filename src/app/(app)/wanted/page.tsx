@@ -13,7 +13,7 @@ export default async function WantedPage() {
         title={t("guides.wanted.title")}
         subtitle={t("guides.wanted.subtitle")}
       />
-      <WantedBoard blocks={blocks} />
+      <WantedBoard initialBlocks={blocks} />
     </div>
   );
 }

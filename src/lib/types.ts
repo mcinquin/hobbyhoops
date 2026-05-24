@@ -22,6 +22,7 @@ export interface Card {
 }
 
 export interface WantedEntry {
+  id: number;
   variation: string;
   slot: number | null;
   player: string;
@@ -34,6 +35,7 @@ export interface WantedBlock {
 }
 
 export interface FrNbaPlayer {
+  id: number;
   player: string;
   draftYear: string;
   draftedBy: string;

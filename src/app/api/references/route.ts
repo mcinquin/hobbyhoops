@@ -8,6 +8,11 @@ import {
   addTeam,
   addVariation,
   addYear,
+  removeBrand,
+  removePlayer,
+  removeSet,
+  removeTeam,
+  removeVariation,
   uniqueBrandSetEntries,
   uniqueSetVariationEntries,
   uniqueStrings,
@@ -112,6 +117,26 @@ async function applyReferencePatch(body: ReferencePatchBody) {
         for (const year of years) addYear(state, year);
       });
     }
+    case "removePlayer":
+      return mutateReferences((state) => {
+        removePlayer(state, body.player);
+      });
+    case "removeTeam":
+      return mutateReferences((state) => {
+        removeTeam(state, body.team);
+      });
+    case "removeBrand":
+      return mutateReferences((state) => {
+        removeBrand(state, body.brand);
+      });
+    case "removeSet":
+      return mutateReferences((state) => {
+        removeSet(state, body.brand, body.set);
+      });
+    case "removeVariation":
+      return mutateReferences((state) => {
+        removeVariation(state, body.set, body.variation);
+      });
     default:
       return null;
   }

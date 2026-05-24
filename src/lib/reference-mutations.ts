@@ -144,3 +144,91 @@ export function addYear(refs: References, year: string): References {
   refs.years = addUniqueSorted(refs.years, [name]);
   return refs;
 }
+
+function removeFromSorted(list: string[], value: string): string[] {
+  return list.filter((item) => item !== value);
+}
+
+function pruneVariationsGlobal(refs: References, variation: string): void {
+  const stillUsed = Object.values(refs.setVariations).some((list) =>
+    list.includes(variation)
+  );
+  if (!stillUsed) {
+    refs.variations = removeFromSorted(refs.variations, variation);
+  }
+}
+
+export function removePlayer(refs: References, player: string): References {
+  const name = normLabel(player);
+  if (!name) return refs;
+  refs.players = removeFromSorted(refs.players, name);
+  return refs;
+}
+
+export function removeTeam(refs: References, team: string): References {
+  const name = normLabel(team);
+  if (!name) return refs;
+  refs.teams = removeFromSorted(refs.teams, name);
+  return refs;
+}
+
+export function removeBrand(refs: References, brand: string): References {
+  const name = normLabel(brand);
+  if (!name) return refs;
+  refs.brands = removeFromSorted(refs.brands, name);
+  delete refs.brandSets[name];
+  return refs;
+}
+
+export function removeSet(
+  refs: References,
+  brand: string,
+  set: string
+): References {
+  const brandName = normLabel(brand);
+  const setName = normLabel(set);
+  if (!brandName || !setName) return refs;
+
+  if (refs.brandSets[brandName]) {
+    refs.brandSets[brandName] = removeFromSorted(
+      refs.brandSets[brandName],
+      setName
+    );
+    if (refs.brandSets[brandName].length === 0) {
+      delete refs.brandSets[brandName];
+    }
+  }
+
+  refs.sets = removeFromSorted(refs.sets, setName);
+
+  const variationsInSet = refs.setVariations[setName] ?? [];
+  delete refs.setVariations[setName];
+  for (const variation of variationsInSet) {
+    pruneVariationsGlobal(refs, variation);
+  }
+
+  return refs;
+}
+
+export function removeVariation(
+  refs: References,
+  set: string,
+  variation: string
+): References {
+  const setName = normLabel(set);
+  const name = normLabel(variation);
+  if (!setName || !name) return refs;
+
+  if (refs.setVariations[setName]) {
+    refs.setVariations[setName] = removeFromSorted(
+      refs.setVariations[setName],
+      name
+    );
+    if (refs.setVariations[setName].length === 0) {
+      delete refs.setVariations[setName];
+    }
+  }
+
+  pruneVariationsGlobal(refs, name);
+  return refs;
+}

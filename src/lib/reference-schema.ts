@@ -103,6 +103,38 @@ export const referencePatchSchema = z.discriminatedUnion("action", [
       years: yearsArray,
     })
     .strict(),
+  z
+    .object({
+      action: z.literal("removePlayer"),
+      player: label,
+    })
+    .strict(),
+  z
+    .object({
+      action: z.literal("removeTeam"),
+      team: label,
+    })
+    .strict(),
+  z
+    .object({
+      action: z.literal("removeBrand"),
+      brand: label,
+    })
+    .strict(),
+  z
+    .object({
+      action: z.literal("removeSet"),
+      brand: label,
+      set: label,
+    })
+    .strict(),
+  z
+    .object({
+      action: z.literal("removeVariation"),
+      set: label,
+      variation: label,
+    })
+    .strict(),
 ]);
 
 export type ReferencePatchBody = z.infer<typeof referencePatchSchema>;

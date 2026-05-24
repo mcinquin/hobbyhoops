@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,8 @@ interface FilterableListBrowserProps {
   emptyLabel: string;
   title?: string;
   className?: string;
+  /** Remplace la liste par défaut (ex. liste avec bouton supprimer). */
+  renderList?: (filtered: string[]) => ReactNode;
 }
 
 export function FilterableListBrowser({
@@ -27,6 +29,7 @@ export function FilterableListBrowser({
   emptyLabel,
   title,
   className,
+  renderList,
 }: FilterableListBrowserProps) {
   const [search, setSearch] = useState("");
 
@@ -55,7 +58,9 @@ export function FilterableListBrowser({
           : ""}
       </p>
       <div className="max-h-56 overflow-auto rounded-lg border border-border p-3 text-sm">
-        {filtered.length === 0 ? (
+        {renderList ? (
+          renderList(filtered)
+        ) : filtered.length === 0 ? (
           <p className="text-muted-foreground">{emptyLabel}</p>
         ) : (
           <ul className="grid gap-1 sm:grid-cols-2">
