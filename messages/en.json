@@ -48,6 +48,7 @@
     "pageOf": "Page {page} of {total}",
     "filteredOf": "(filtered from {total})",
     "noneFound": "No results found.",
+    "no": "No",
     "ebay": "eBay"
   },
   "badges": {
@@ -115,12 +116,22 @@
       "title": "Wanted",
       "subtitle": "Cards you are looking for, by set and variation (Excel import).",
       "search": "Search player or variation…",
+      "set": "Set",
+      "setPlaceholder": "e.g. Prizm",
       "variation": "Variation",
       "slot": "#",
+      "slotOptional": "Optional",
       "player": "Player",
       "allVariations": "All variations",
       "filterVariation": "Variation…",
-      "count": "{count} entries"
+      "count": "{count} entries",
+      "addEntry": "Add an entry",
+      "fieldsRequired": "Set, variation, and player are required.",
+      "slotInvalid": "Slot number must be a positive integer.",
+      "added": "Entry added.",
+      "deleted": "Entry removed.",
+      "actions": "Actions",
+      "deleteEntry": "Remove {player}"
     },
     "frNba": {
       "title": "Fr NBA",
@@ -134,7 +145,14 @@
       "patch": "Patch",
       "immaculate": "Immaculate",
       "yes": "Yes",
-      "count": "{count} players"
+      "no": "No",
+      "unset": "—",
+      "count": "{count} players",
+      "addPlayer": "Add player",
+      "addTitle": "Add Fr NBA player",
+      "editTitle": "Edit player",
+      "editPlayer": "Edit {player}",
+      "actions": "Actions"
     }
   },
   "players": {
@@ -242,6 +260,9 @@
     "loadError": "Load error.",
     "unavailable": "Data unavailable.",
     "errorTitle": "Could not load admin.",
+    "deleteTitle": "Confirm deletion",
+    "deleteConfirmNamed": "Remove « {name} » from the reference list? Existing cards are not changed.",
+    "deleteItem": "Delete {name}",
     "tabs": {
       "aria": "Admin sections",
       "cards": "Cards",
@@ -287,7 +308,8 @@
       "shown": "· {count} shown",
       "noneFound": "No players found.",
       "nameRequired": "Enter a player name.",
-      "added": "Player added."
+      "added": "Player added.",
+      "deleted": "Player removed."
     },
     "clubs": {
       "intro": "Add NBA teams to the reference list, one at a time or by pasting from a CSV or spreadsheet.",
@@ -299,7 +321,8 @@
       "added": "Team added.",
       "batchDescSpreadsheet": "One team per line, or a \"team\" / \"club\" column.",
       "batchPlaceholder": "San Antonio Spurs\nOklahoma City Thunder\nteam\nLos Angeles Lakers",
-      "placeholder": "e.g. San Antonio Spurs"
+      "placeholder": "e.g. San Antonio Spurs",
+      "deleted": "Team removed."
     },
     "years": {
       "intro": "Add years or seasons to the reference list, one at a time or by pasting from a CSV or spreadsheet.",
@@ -336,7 +359,17 @@
       "variationAdded": "Variation added.",
       "batchBrandsPlaceholder": "Panini\nTopps\nbrand\nUpper Deck",
       "batchSetsPlaceholder": "Panini;Prizm\nTopps,Chrome\nbrand;set\nPanini;Select",
-      "batchVariationsPlaceholder": "Prizm;RC Silver Prizm\nSelect,Base\nset;variation\nPrizm;Gold /10"
+      "batchVariationsPlaceholder": "Prizm;RC Silver Prizm\nSelect,Base\nset;variation\nPrizm;Gold /10",
+      "filterBrands": "Filter brands…",
+      "brandsCount": "{count} referenced brands",
+      "noBrands": "No brands.",
+      "brandDeleted": "Brand removed.",
+      "setsCount": "{count} referenced sets",
+      "noSets": "No sets.",
+      "setDeleted": "Set removed.",
+      "variationsCount": "{count} referenced variations",
+      "noVariations": "No variations.",
+      "variationDeleted": "Variation removed."
     },
     "batch": {
       "empty": "Paste or type at least one line.",
@@ -385,6 +418,9 @@
     "noValidPlayers": "No valid players.",
     "noValidClubs": "No valid teams.",
     "noValidYears": "No valid years.",
+    "wantedIdMissing": "Missing wanted entry id.",
+    "wantedNotFound": "Wanted entry not found.",
+    "frNbaNotFound": "Fr NBA player not found.",
     "updateFailed": "Update failed.",
     "pageError": "Something went wrong",
     "pageErrorHint": "Try again or reload the page. If the problem persists, contact your administrator.",

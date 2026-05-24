@@ -1,6 +1,12 @@
 import fs from "fs";
 import path from "path";
-import type { Card, FrNbaPlayer, References, WantedBlock } from "./types";
+import type {
+  Card,
+  FrNbaPlayer,
+  References,
+  WantedBlock,
+  WantedEntry,
+} from "./types";
 import { normalizeCardSerialFields } from "./card-serial";
 import { normalizeOpeningDate } from "./opening-date";
 import { EMPTY_REFERENCES } from "./references-defaults";
@@ -125,6 +131,7 @@ function normalizeFrNbaAuto(value: string | null): string | null {
 function rowToFrNbaPlayer(row: Record<string, unknown>): FrNbaPlayer {
   const auto = row.auto == null ? null : String(row.auto);
   return {
+    id: Number(row.id),
     player: String(row.player),
     draftYear: String(row.draft_year),
     draftedBy: String(row.drafted_by),
@@ -156,6 +163,39 @@ function importWantedBlocks(db: AppDatabase, blocks: WantedBlock[]): void {
   });
 }
 
+export function insertWantedEntry(input: {
+  set: string;
+  variation: string;
+  slot: number | null;
+  player: string;
+}): WantedEntry {
+  const db = getDb();
+  const result = db
+    .prepare(
+      `INSERT INTO wanted_entries (set_name, variation, slot, player)
+       VALUES (@set_name, @variation, @slot, @player)`
+    )
+    .run({
+      set_name: input.set.trim(),
+      variation: input.variation.trim(),
+      slot: input.slot,
+      player: input.player.trim(),
+    });
+  const id = Number(result.lastInsertRowid);
+  return {
+    id,
+    variation: input.variation.trim(),
+    slot: input.slot,
+    player: input.player.trim(),
+  };
+}
+
+export function deleteWantedEntry(id: number): boolean {
+  const db = getDb();
+  const result = db.prepare("DELETE FROM wanted_entries WHERE id = ?").run(id);
+  return result.changes > 0;
+}
+
 function importFrNbaPlayers(db: AppDatabase, players: FrNbaPlayer[]): void {
   const insert = db.prepare(`
     INSERT INTO fr_nba_players (
@@ -182,7 +222,13 @@ function importFrNbaPlayers(db: AppDatabase, players: FrNbaPlayer[]): void {
 }
 
 function wantedBlocksFromRows(
-  rows: { set_name: string; variation: string; slot: number | null; player: string }[]
+  rows: {
+    id: number;
+    set_name: string;
+    variation: string;
+    slot: number | null;
+    player: string;
+  }[]
 ): WantedBlock[] {
   const bySet = new Map<string, WantedBlock>();
 
@@ -196,6 +242,7 @@ function wantedBlocksFromRows(
       block.variations.push(row.variation);
     }
     block.entries.push({
+      id: row.id,
       variation: row.variation,
       slot: row.slot,
       player: row.player,
@@ -256,11 +303,12 @@ function seedGuidesTablesIfEmpty(db: AppDatabase): void {
 export function readWantedBlocks(): WantedBlock[] {
   const rows = getDb()
     .prepare(
-      `SELECT set_name, variation, slot, player
+      `SELECT id, set_name, variation, slot, player
        FROM wanted_entries
        ORDER BY set_name, variation, slot, player`
     )
     .all() as {
+    id: number;
     set_name: string;
     variation: string;
     slot: number | null;
@@ -272,7 +320,7 @@ export function readWantedBlocks(): WantedBlock[] {
 export function readFrNbaPlayers(): FrNbaPlayer[] {
   const rows = getDb()
     .prepare(
-      `SELECT player, draft_year, drafted_by, rookie_card, auto, patch, immaculate
+      `SELECT id, player, draft_year, drafted_by, rookie_card, auto, patch, immaculate
        FROM fr_nba_players
        ORDER BY player COLLATE NOCASE`
     )
@@ -286,6 +334,70 @@ export function replaceAllWantedBlocks(blocks: WantedBlock[]): void {
 
 export function replaceAllFrNbaPlayers(players: FrNbaPlayer[]): void {
   importFrNbaPlayers(getDb(), players);
+}
+
+function frNbaPlayerToRow(
+  player: Omit<FrNbaPlayer, "id">
+): Record<string, SqlInputValue> {
+  return {
+    player: player.player.trim(),
+    draft_year: player.draftYear.trim(),
+    drafted_by: player.draftedBy.trim(),
+    rookie_card: nullableBoolToDb(player.rookieCard),
+    auto: player.auto,
+    patch: nullableBoolToDb(player.patch),
+    immaculate: nullableBoolToDb(player.immaculate),
+  };
+}
+
+export function insertFrNbaPlayer(
+  player: Omit<FrNbaPlayer, "id">
+): FrNbaPlayer {
+  const db = getDb();
+  const row = frNbaPlayerToRow(player);
+  const result = db
+    .prepare(
+      `INSERT INTO fr_nba_players (
+        player, draft_year, drafted_by, rookie_card, auto, patch, immaculate
+      ) VALUES (
+        @player, @draft_year, @drafted_by, @rookie_card, @auto, @patch, @immaculate
+      )`
+    )
+    .run(row);
+  const id = Number(result.lastInsertRowid);
+  return { id, ...player };
+}
+
+export function updateFrNbaPlayer(
+  id: number,
+  player: Omit<FrNbaPlayer, "id">
+): FrNbaPlayer | null {
+  const db = getDb();
+  const row = frNbaPlayerToRow(player);
+  const result = db
+    .prepare(
+      `UPDATE fr_nba_players SET
+        player = @player,
+        draft_year = @draft_year,
+        drafted_by = @drafted_by,
+        rookie_card = @rookie_card,
+        auto = @auto,
+        patch = @patch,
+        immaculate = @immaculate
+      WHERE id = @id`
+    )
+    .run({ ...row, id });
+  if (result.changes === 0) return null;
+  return {
+    id,
+    player: player.player.trim(),
+    draftYear: player.draftYear.trim(),
+    draftedBy: player.draftedBy.trim(),
+    rookieCard: player.rookieCard,
+    auto: player.auto,
+    patch: player.patch,
+    immaculate: player.immaculate,
+  };
 }
 
 function getSchemaVersion(db: AppDatabase): number {

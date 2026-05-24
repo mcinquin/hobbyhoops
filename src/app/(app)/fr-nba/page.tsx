@@ -13,7 +13,7 @@ export default async function FrNbaPage() {
         title={t("guides.frNba.title")}
         subtitle={t("guides.frNba.subtitle")}
       />
-      <FrNbaTable players={players} />
+      <FrNbaTable initialPlayers={players} />
     </div>
   );
 }

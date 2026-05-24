@@ -13,7 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AdminDeletableList } from "@/components/admin/admin-deletable-list";
 import { AdminFeedback } from "@/components/admin/admin-feedback";
+import { FilterableListBrowser } from "@/components/filterable-list-browser";
 import { useTranslations } from "@/i18n/client";
 
 interface AdminCatalogSectionProps {
@@ -200,6 +202,38 @@ export function AdminCatalogSection({
     [references, setForVariation]
   );
 
+  const brandSetEntries = useMemo(() => {
+    const entries: { key: string; brand: string; set: string }[] = [];
+    for (const brandName of references.brands) {
+      for (const setLabel of references.brandSets[brandName] ?? []) {
+        entries.push({
+          key: `${brandName}\u0000${setLabel}`,
+          brand: brandName,
+          set: setLabel,
+        });
+      }
+    }
+    return entries.sort((a, b) =>
+      a.brand.localeCompare(b.brand) || a.set.localeCompare(b.set)
+    );
+  }, [references]);
+
+  const setVariationEntries = useMemo(() => {
+    const entries: { key: string; set: string; variation: string }[] = [];
+    for (const setName of references.sets) {
+      for (const variationName of references.setVariations[setName] ?? []) {
+        entries.push({
+          key: `${setName}\u0000${variationName}`,
+          set: setName,
+          variation: variationName,
+        });
+      }
+    }
+    return entries.sort((a, b) =>
+      a.set.localeCompare(b.set) || a.variation.localeCompare(b.variation)
+    );
+  }, [references]);
+
   async function run(action: () => Promise<References>, successMessage: string) {
     setError(null);
     setSuccess(null);
@@ -288,6 +322,32 @@ export function AdminCatalogSection({
               }}
             />
           </div>
+
+          <FilterableListBrowser
+            items={references.brands}
+            filterPlaceholder={t("admin.catalog.filterBrands")}
+            countLabel={t("admin.catalog.brandsCount", {
+              count: references.brands.length,
+            })}
+            emptyLabel={t("admin.catalog.noBrands")}
+            className="max-w-none"
+            renderList={(filtered) => (
+              <AdminDeletableList
+                items={filtered}
+                getKey={(name) => name}
+                renderLabel={(name) => name}
+                emptyLabel={t("admin.catalog.noBrands")}
+                disabled={loading}
+                onDelete={async (name) => {
+                  await run(
+                    () =>
+                      patchReferences({ action: "removeBrand", brand: name }),
+                    t("admin.catalog.brandDeleted")
+                  );
+                }}
+              />
+            )}
+          />
         </TabsContent>
 
         <TabsContent value="sets" className="space-y-4 pt-4">
@@ -342,6 +402,32 @@ export function AdminCatalogSection({
                 );
               }}
             />
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              {t("admin.catalog.setsCount", { count: brandSetEntries.length })}
+            </p>
+            <div className="max-h-56 overflow-auto rounded-lg border border-border p-3 text-sm">
+              <AdminDeletableList
+                items={brandSetEntries}
+                getKey={(entry) => entry.key}
+                renderLabel={(entry) => `${entry.brand} · ${entry.set}`}
+                emptyLabel={t("admin.catalog.noSets")}
+                disabled={loading}
+                onDelete={async (entry) => {
+                  await run(
+                    () =>
+                      patchReferences({
+                        action: "removeSet",
+                        brand: entry.brand,
+                        set: entry.set,
+                      }),
+                    t("admin.catalog.setDeleted")
+                  );
+                }}
+              />
+            </div>
           </div>
         </TabsContent>
 
@@ -411,6 +497,34 @@ export function AdminCatalogSection({
                 );
               }}
             />
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              {t("admin.catalog.variationsCount", {
+                count: setVariationEntries.length,
+              })}
+            </p>
+            <div className="max-h-56 overflow-auto rounded-lg border border-border p-3 text-sm">
+              <AdminDeletableList
+                items={setVariationEntries}
+                getKey={(entry) => entry.key}
+                renderLabel={(entry) => `${entry.set} · ${entry.variation}`}
+                emptyLabel={t("admin.catalog.noVariations")}
+                disabled={loading}
+                onDelete={async (entry) => {
+                  await run(
+                    () =>
+                      patchReferences({
+                        action: "removeVariation",
+                        set: entry.set,
+                        variation: entry.variation,
+                      }),
+                    t("admin.catalog.variationDeleted")
+                  );
+                }}
+              />
+            </div>
           </div>
         </TabsContent>
       </Tabs>

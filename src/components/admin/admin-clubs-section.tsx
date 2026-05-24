@@ -8,6 +8,7 @@ import { BatchTextImport } from "@/components/admin/batch-text-import";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AdminDeletableList } from "@/components/admin/admin-deletable-list";
 import { AdminFeedback } from "@/components/admin/admin-feedback";
 import { Search } from "lucide-react";
 import { useTranslations } from "@/i18n/client";
@@ -117,15 +118,19 @@ export function AdminClubsSection({
           {search ? ` ${t("admin.clubs.shown", { count: filtered.length })}` : ""}
         </p>
         <div className="max-h-72 overflow-auto rounded-lg border border-border p-3 text-sm">
-          {filtered.length === 0 ? (
-            <p className="text-muted-foreground">{t("admin.clubs.noneFound")}</p>
-          ) : (
-            <ul className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
-              {filtered.map((name) => (
-                <li key={name}>{name}</li>
-              ))}
-            </ul>
-          )}
+          <AdminDeletableList
+            items={filtered}
+            getKey={(name) => name}
+            renderLabel={(name) => name}
+            emptyLabel={t("admin.clubs.noneFound")}
+            disabled={loading}
+            onDelete={async (name) => {
+              onReferencesChange(
+                await patchReferences({ action: "removeTeam", team: name })
+              );
+              setSuccess(t("admin.clubs.deleted"));
+            }}
+          />
         </div>
       </div>
     </div>

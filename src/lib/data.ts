@@ -10,12 +10,16 @@ import {
   getDatabaseHealth,
   queryCardsPage,
   readAllCards,
+  deleteWantedEntry,
+  insertFrNbaPlayer,
+  insertWantedEntry,
   readFrNbaPlayers,
   readReferencesState,
   readWantedBlocks,
   replaceAllCards,
   replaceAllFrNbaPlayers,
   replaceAllWantedBlocks,
+  updateFrNbaPlayer,
   writeReferencesState,
 } from "./db";
 
@@ -88,6 +92,30 @@ export async function saveWantedBlocks(blocks: WantedBlock[]): Promise<void> {
 
 export async function saveFrNbaPlayers(players: FrNbaPlayer[]): Promise<void> {
   replaceAllFrNbaPlayers(players);
+}
+
+export function createWantedEntry(input: {
+  set: string;
+  variation: string;
+  slot: number | null;
+  player: string;
+}) {
+  return insertWantedEntry(input);
+}
+
+export function removeWantedEntry(id: number): boolean {
+  return deleteWantedEntry(id);
+}
+
+export function createFrNbaPlayer(player: Omit<FrNbaPlayer, "id">): FrNbaPlayer {
+  return insertFrNbaPlayer(player);
+}
+
+export function editFrNbaPlayer(
+  id: number,
+  player: Omit<FrNbaPlayer, "id">
+): FrNbaPlayer | null {
+  return updateFrNbaPlayer(id, player);
 }
 
 export function getDataHealth(): {

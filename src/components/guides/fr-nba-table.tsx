@@ -15,8 +15,10 @@ import type { FrNbaPlayer } from "@/lib/types";
 import { SortableTableHead } from "@/components/data-table/sortable-table-head";
 import { TablePagination } from "@/components/data-table/table-pagination";
 import { FilterChipButton } from "@/components/filter-chip-button";
+import { FrNbaPlayerForm } from "@/components/guides/fr-nba-player-form";
 import { SearchField } from "@/components/search-field";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -24,10 +26,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Pencil, Plus } from "lucide-react";
 import { useTranslations } from "@/i18n/client";
 
 interface FrNbaTableProps {
-  players: FrNbaPlayer[];
+  initialPlayers: FrNbaPlayer[];
 }
 
 function BoolCell({ value, yesLabel }: { value: boolean | null; yesLabel: string }) {
@@ -41,8 +44,11 @@ function BoolCell({ value, yesLabel }: { value: boolean | null; yesLabel: string
   return <span className="text-muted-foreground">—</span>;
 }
 
-export function FrNbaTable({ players }: FrNbaTableProps) {
+export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
   const t = useTranslations();
+  const [players, setPlayers] = useState(initialPlayers);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingPlayer, setEditingPlayer] = useState<FrNbaPlayer | null>(null);
   const [search, setSearch] = useState("");
   const [rookieOnly, setRookieOnly] = useState(false);
   const [patchOnly, setPatchOnly] = useState(false);
@@ -122,9 +128,43 @@ export function FrNbaTable({ players }: FrNbaTableProps) {
           <BoolCell value={row.original.immaculate} yesLabel={t("guides.frNba.yes")} />
         ),
       },
+      {
+        id: "actions",
+        header: t("guides.frNba.actions"),
+        enableSorting: false,
+        cell: ({ row }) => (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            aria-label={t("guides.frNba.editPlayer", { player: row.original.player })}
+            onClick={() => {
+              setEditingPlayer(row.original);
+              setFormOpen(true);
+            }}
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+        ),
+      },
     ],
     [t]
   );
+
+  function handlePlayerSaved(saved: FrNbaPlayer) {
+    setPlayers((current) => {
+      const index = current.findIndex((item) => item.id === saved.id);
+      if (index === -1) {
+        return [...current, saved].sort((a, b) =>
+          a.player.localeCompare(b.player)
+        );
+      }
+      const next = [...current];
+      next[index] = saved;
+      return next;
+    });
+  }
 
   // eslint-disable-next-line react-hooks/incompatible-library -- useReactTable
   const table = useReactTable({
@@ -141,6 +181,20 @@ export function FrNbaTable({ players }: FrNbaTableProps) {
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => {
+            setEditingPlayer(null);
+            setFormOpen(true);
+          }}
+        >
+          <Plus className="mr-1 h-4 w-4" />
+          {t("guides.frNba.addPlayer")}
+        </Button>
+      </div>
+
       <SearchField
         label={t("guides.frNba.search")}
         placeholder={t("guides.frNba.search")}
@@ -192,17 +246,32 @@ export function FrNbaTable({ players }: FrNbaTableProps) {
             return (
               <div
                 key={row.id}
-                className="rounded-lg border border-border bg-card p-3 text-sm"
+                className="flex items-start justify-between gap-3 rounded-lg border border-border bg-card p-3 text-sm"
               >
-                <p className="font-medium">{p.player}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {p.draftYear} · {p.draftedBy}
-                </p>
-                {tags.length > 0 && (
-                  <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-                    {tags.join(" · ")}
+                <div className="min-w-0">
+                  <p className="font-medium">{p.player}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {p.draftYear} · {p.draftedBy}
                   </p>
-                )}
+                  {tags.length > 0 && (
+                    <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                      {tags.join(" · ")}
+                    </p>
+                  )}
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  aria-label={t("guides.frNba.editPlayer", { player: p.player })}
+                  onClick={() => {
+                    setEditingPlayer(p);
+                    setFormOpen(true);
+                  }}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
               </div>
             );
           })
@@ -250,6 +319,16 @@ export function FrNbaTable({ players }: FrNbaTableProps) {
       </div>
 
       <TablePagination table={table} />
+
+      <FrNbaPlayerForm
+        player={editingPlayer}
+        open={formOpen}
+        onClose={() => {
+          setFormOpen(false);
+          setEditingPlayer(null);
+        }}
+        onSaved={handlePlayerSaved}
+      />
     </div>
   );
 }

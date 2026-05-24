@@ -5,6 +5,7 @@ import { References } from "@/lib/types";
 import { parseSingleColumnValues } from "@/lib/csv-parse";
 import { patchReferences } from "@/lib/references-client";
 import { BatchTextImport } from "@/components/admin/batch-text-import";
+import { AdminDeletableList } from "@/components/admin/admin-deletable-list";
 import { FilterableListBrowser } from "@/components/filterable-list-browser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,6 +105,21 @@ export function AdminPlayersSection({
         filteredCountLabel={(count) => t("admin.players.shown", { count })}
         emptyLabel={t("admin.players.noneFound")}
         className="max-w-none border-0 p-0"
+        renderList={(filtered) => (
+          <AdminDeletableList
+            items={filtered}
+            getKey={(name) => name}
+            renderLabel={(name) => name}
+            emptyLabel={t("admin.players.noneFound")}
+            disabled={loading}
+            onDelete={async (name) => {
+              onReferencesChange(
+                await patchReferences({ action: "removePlayer", player: name })
+              );
+              setSuccess(t("admin.players.deleted"));
+            }}
+          />
+        )}
       />
     </div>
   );

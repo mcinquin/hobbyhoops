@@ -48,6 +48,7 @@
     "pageOf": "Page {page} sur {total}",
     "filteredOf": "(filtrées sur {total})",
     "noneFound": "Aucun résultat trouvé.",
+    "no": "Non",
     "ebay": "eBay"
   },
   "badges": {
@@ -115,12 +116,22 @@
       "title": "Wanted",
       "subtitle": "Liste des cartes recherchées par set et variation (import Excel).",
       "search": "Rechercher un joueur ou une variation…",
+      "set": "Set",
+      "setPlaceholder": "ex. Prizm",
       "variation": "Variation",
       "slot": "N°",
+      "slotOptional": "Optionnel",
       "player": "Joueur",
       "allVariations": "Toutes les variations",
       "filterVariation": "Variation…",
-      "count": "{count} entrées"
+      "count": "{count} entrées",
+      "addEntry": "Ajouter une entrée",
+      "fieldsRequired": "Set, variation et joueur sont obligatoires.",
+      "slotInvalid": "Le numéro de slot doit être un entier positif.",
+      "added": "Entrée ajoutée.",
+      "deleted": "Entrée supprimée.",
+      "actions": "Actions",
+      "deleteEntry": "Supprimer {player}"
     },
     "frNba": {
       "title": "Fr NBA",
@@ -134,7 +145,14 @@
       "patch": "Patch",
       "immaculate": "Immaculate",
       "yes": "Oui",
-      "count": "{count} joueurs"
+      "no": "Non",
+      "unset": "—",
+      "count": "{count} joueurs",
+      "addPlayer": "Ajouter un joueur",
+      "addTitle": "Ajouter un joueur Fr NBA",
+      "editTitle": "Modifier le joueur",
+      "editPlayer": "Modifier {player}",
+      "actions": "Actions"
     }
   },
   "players": {
@@ -242,6 +260,9 @@
     "loadError": "Erreur de chargement.",
     "unavailable": "Données indisponibles.",
     "errorTitle": "Impossible de charger l'administration.",
+    "deleteTitle": "Confirmer la suppression",
+    "deleteConfirmNamed": "Supprimer « {name} » de la liste de référence ? Les cartes déjà enregistrées ne sont pas modifiées.",
+    "deleteItem": "Supprimer {name}",
     "tabs": {
       "aria": "Sections d'administration",
       "cards": "Cartes",
@@ -287,7 +308,8 @@
       "shown": "· {count} affichés",
       "noneFound": "Aucun joueur trouvé.",
       "nameRequired": "Indiquez un nom de joueur.",
-      "added": "Joueur ajouté."
+      "added": "Joueur ajouté.",
+      "deleted": "Joueur supprimé."
     },
     "clubs": {
       "intro": "Ajoutez des clubs (équipes NBA) à la liste de référence, unitairement ou en collant une liste depuis un CSV ou un tableur.",
@@ -299,7 +321,8 @@
       "added": "Club ajouté.",
       "batchDescSpreadsheet": "Un club par ligne, ou une colonne « club » / « team ».",
       "batchPlaceholder": "San Antonio Spurs\nOklahoma City Thunder\nclub\nLos Angeles Lakers",
-      "placeholder": "ex. San Antonio Spurs"
+      "placeholder": "ex. San Antonio Spurs",
+      "deleted": "Club supprimé."
     },
     "years": {
       "intro": "Ajoutez des années ou saisons à la liste de référence, unitairement ou en collant une liste depuis un CSV ou un tableur.",
@@ -336,7 +359,17 @@
       "variationAdded": "Variation ajoutée.",
       "batchBrandsPlaceholder": "Panini\nTopps\nmarque\nUpper Deck",
       "batchSetsPlaceholder": "Panini;Prizm\nTopps,Chrome\nmarque;set\nPanini;Select",
-      "batchVariationsPlaceholder": "Prizm;RC Silver Prizm\nSelect,Base\nset;variation\nPrizm;Gold /10"
+      "batchVariationsPlaceholder": "Prizm;RC Silver Prizm\nSelect,Base\nset;variation\nPrizm;Gold /10",
+      "filterBrands": "Filtrer les marques…",
+      "brandsCount": "{count} marques référencées",
+      "noBrands": "Aucune marque.",
+      "brandDeleted": "Marque supprimée.",
+      "setsCount": "{count} sets référencés",
+      "noSets": "Aucun set.",
+      "setDeleted": "Set supprimé.",
+      "variationsCount": "{count} variations référencées",
+      "noVariations": "Aucune variation.",
+      "variationDeleted": "Variation supprimée."
     },
     "batch": {
       "empty": "Collez ou saisissez au moins une ligne.",
@@ -385,6 +418,9 @@
     "noValidPlayers": "Aucun joueur valide.",
     "noValidClubs": "Aucun club valide.",
     "noValidYears": "Aucune année valide.",
+    "wantedIdMissing": "Identifiant wanted manquant.",
+    "wantedNotFound": "Entrée wanted introuvable.",
+    "frNbaNotFound": "Joueur Fr NBA introuvable.",
     "updateFailed": "Échec de la mise à jour.",
     "pageError": "Une erreur est survenue",
     "pageErrorHint": "Réessayez ou rechargez la page. Si le problème persiste, contactez l'administrateur.",
