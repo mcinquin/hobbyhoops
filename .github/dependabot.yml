@@ -4,6 +4,11 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # @types/node suit les versions majeures de Node.js.
+    # Les versions impaires (25, 27, 29…) sont non-LTS — on les ignore.
+    ignore:
+      - dependency-name: "@types/node"
+        versions: ["25.*", "27.*", "29.*", "31.*", "33.*"]
     groups:
       next:
         patterns:
@@ -23,3 +28,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # Node.js LTS uniquement : versions majeures paires (20, 22, 24, 26, 28…).
+    # Les versions majeures impaires (25, 27, 29…) sont non-LTS.
+    ignore:
+      - dependency-name: "node"
+        versions: ["25.*", "27.*", "29.*", "31.*", "33.*"]
