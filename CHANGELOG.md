@@ -1,3 +1,10 @@
+# [1.19.0](https://github.com/mcinquin/hobbyhoops/compare/v1.18.1...v1.19.0) (2026-05-25)
+
+
+### Features
+
+* **ui:** add stick for left sidebar ([5635b84](https://github.com/mcinquin/hobbyhoops/commit/5635b844063ea77c19ddf9e0c12b93fd5fd8054d))
+
 ## [1.18.1](https://github.com/mcinquin/hobbyhoops/compare/v1.18.0...v1.18.1) (2026-05-25)
 
 
