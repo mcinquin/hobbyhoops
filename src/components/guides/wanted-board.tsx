@@ -16,6 +16,7 @@ import { ColumnFilterCombobox } from "@/components/column-filter-combobox";
 import { SortableTableHead } from "@/components/data-table/sortable-table-head";
 import { TablePagination } from "@/components/data-table/table-pagination";
 import { SearchField } from "@/components/search-field";
+import { useStableTablePagination } from "@/hooks/use-stable-table-pagination";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -230,17 +231,26 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
     [handleDelete, loading, t]
   );
 
+  const filterResetKey = `${search}\0${variationFilter}`;
+
+  const tablePagination = useStableTablePagination({
+    pageSize: 25,
+    resetKey: filterResetKey,
+    rowCount: filteredRows.length,
+  });
+
   // eslint-disable-next-line react-hooks/incompatible-library -- useReactTable
   const table = useReactTable({
     data: filteredRows,
     columns,
-    state: { sorting },
+    state: { sorting, pagination: tablePagination.pagination },
     onSortingChange: setSorting,
+    onPaginationChange: tablePagination.onPaginationChange,
+    autoResetPageIndex: tablePagination.autoResetPageIndex,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 25 } },
   });
 
   return (

@@ -6,6 +6,7 @@ import { uniqueSorted } from "@/lib/string-list";
 import { CardForm } from "@/components/card-form";
 import { CardBadges } from "@/components/card-badges";
 import { ColumnFilterCombobox } from "@/components/column-filter-combobox";
+import { PaginationControls } from "@/components/data-table/pagination-controls";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -26,6 +27,7 @@ import {
 import { AdminFeedback } from "@/components/admin/admin-feedback";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { useTranslations } from "@/i18n/client";
+import { useClampedPage } from "@/hooks/use-clamped-page";
 
 interface AdminCardsSectionProps {
   cards: Card[];
@@ -47,7 +49,6 @@ export function AdminCardsSection({
   const [deleteTarget, setDeleteTarget] = useState<Card | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
   const [playerColumnFilter, setPlayerColumnFilter] = useState("");
   const [teamColumnFilter, setTeamColumnFilter] = useState("");
   const [yearColumnFilter, setYearColumnFilter] = useState("");
@@ -160,8 +161,19 @@ export function AdminCardsSection({
     deferredYearColumnFilter,
   ]);
 
-  const paged = filtered.slice(page * pageSize, (page + 1) * pageSize);
   const totalPages = Math.ceil(filtered.length / pageSize);
+  const filterResetKey = [
+    deferredSearch,
+    deferredPlayerColumnFilter,
+    deferredTeamColumnFilter,
+    deferredYearColumnFilter,
+    deferredBrandColumnFilter,
+    deferredSetColumnFilter,
+    deferredVariationColumnFilter,
+    deferredTagsColumnFilter,
+  ].join("\0");
+  const [page, setPage] = useClampedPage(Math.max(1, totalPages), filterResetKey);
+  const paged = filtered.slice(page * pageSize, (page + 1) * pageSize);
 
   async function refreshCards(): Promise<Card[]> {
     const res = await fetch("/api/cards", {
@@ -296,10 +308,7 @@ export function AdminCardsSection({
         <Input
           placeholder={t("admin.cards.search")}
           value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(0);
-          }}
+          onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
         />
       </div>
@@ -309,7 +318,6 @@ export function AdminCardsSection({
           value={playerColumnFilter}
           onChange={(nextValue) => {
             setPlayerColumnFilter(nextValue);
-            setPage(0);
           }}
           placeholder={t("admin.cards.filterPlayerTeam")}
           suggestions={columnSuggestions.players}
@@ -319,7 +327,6 @@ export function AdminCardsSection({
           value={teamColumnFilter}
           onChange={(nextValue) => {
             setTeamColumnFilter(nextValue);
-            setPage(0);
           }}
           placeholder={t("admin.cards.filterTeam")}
           suggestions={columnSuggestions.teams}
@@ -330,7 +337,6 @@ export function AdminCardsSection({
             value={yearColumnFilter}
             onChange={(nextValue) => {
               setYearColumnFilter(nextValue);
-              setPage(0);
             }}
             placeholder={t("admin.cards.filterYear")}
             suggestions={columnSuggestions.years}
@@ -340,7 +346,6 @@ export function AdminCardsSection({
             value={tagsColumnFilter}
             onChange={(nextValue) => {
               setTagsColumnFilter(nextValue);
-              setPage(0);
             }}
             placeholder={t("admin.cards.filterTags")}
             suggestions={columnSuggestions.tags}
@@ -351,7 +356,6 @@ export function AdminCardsSection({
           value={brandColumnFilter}
           onChange={(nextValue) => {
             setBrandColumnFilter(nextValue);
-            setPage(0);
           }}
           placeholder={t("admin.cards.filterBrand")}
           suggestions={columnSuggestions.brands}
@@ -361,7 +365,6 @@ export function AdminCardsSection({
           value={setColumnFilter}
           onChange={(nextValue) => {
             setSetColumnFilter(nextValue);
-            setPage(0);
           }}
           placeholder={t("admin.cards.filterSet")}
           suggestions={columnSuggestions.sets}
@@ -371,7 +374,6 @@ export function AdminCardsSection({
           value={variationColumnFilter}
           onChange={(nextValue) => {
             setVariationColumnFilter(nextValue);
-            setPage(0);
           }}
           placeholder={t("admin.cards.filterVariation")}
           suggestions={columnSuggestions.variations}
@@ -463,7 +465,6 @@ export function AdminCardsSection({
                   value={playerColumnFilter}
                   onChange={(nextValue) => {
                     setPlayerColumnFilter(nextValue);
-                    setPage(0);
                   }}
                   placeholder={t("admin.cards.filterPlayerTeam")}
                   suggestions={columnSuggestions.players}
@@ -475,7 +476,6 @@ export function AdminCardsSection({
                   value={teamColumnFilter}
                   onChange={(nextValue) => {
                     setTeamColumnFilter(nextValue);
-                    setPage(0);
                   }}
                   placeholder={t("admin.cards.filterTeam")}
                   suggestions={columnSuggestions.teams}
@@ -487,7 +487,6 @@ export function AdminCardsSection({
                   value={yearColumnFilter}
                   onChange={(nextValue) => {
                     setYearColumnFilter(nextValue);
-                    setPage(0);
                   }}
                   placeholder={t("admin.cards.filterYear")}
                   suggestions={columnSuggestions.years}
@@ -499,7 +498,6 @@ export function AdminCardsSection({
                   value={brandColumnFilter}
                   onChange={(nextValue) => {
                     setBrandColumnFilter(nextValue);
-                    setPage(0);
                   }}
                   placeholder={t("admin.cards.filterBrand")}
                   suggestions={columnSuggestions.brands}
@@ -511,7 +509,6 @@ export function AdminCardsSection({
                   value={setColumnFilter}
                   onChange={(nextValue) => {
                     setSetColumnFilter(nextValue);
-                    setPage(0);
                   }}
                   placeholder={t("admin.cards.filterSet")}
                   suggestions={columnSuggestions.sets}
@@ -523,7 +520,6 @@ export function AdminCardsSection({
                   value={variationColumnFilter}
                   onChange={(nextValue) => {
                     setVariationColumnFilter(nextValue);
-                    setPage(0);
                   }}
                   placeholder={t("admin.cards.filterVariation")}
                   suggestions={columnSuggestions.variations}
@@ -535,7 +531,6 @@ export function AdminCardsSection({
                   value={tagsColumnFilter}
                   onChange={(nextValue) => {
                     setTagsColumnFilter(nextValue);
-                    setPage(0);
                   }}
                   placeholder={t("admin.cards.filterTags")}
                   suggestions={columnSuggestions.tags}
@@ -597,35 +592,18 @@ export function AdminCardsSection({
         </Table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-muted-foreground">
-            {t("admin.cards.pageInfo", {
-              page: page + 1,
-              total: totalPages,
-              count: filtered.length,
-            })}
-          </p>
-          <div className="flex gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page === 0}
-              onClick={() => setPage(page - 1)}
-            >
-              {t("common.previous")}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages - 1}
-              onClick={() => setPage(page + 1)}
-            >
-              {t("common.next")}
-            </Button>
-          </div>
-        </div>
-      )}
+      {totalPages > 1 ? (
+        <PaginationControls
+          page={page + 1}
+          pageCount={totalPages}
+          onPageChange={(nextPage) => setPage(nextPage - 1)}
+          summary={t("admin.cards.pageInfo", {
+            page: page + 1,
+            total: totalPages,
+            count: filtered.length,
+          })}
+        />
+      ) : null}
 
       <CardForm
         card={editingCard}
