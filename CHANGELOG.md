@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/mcinquin/hobbyhoops/compare/v1.15.0...v1.16.0) (2026-05-25)
+
+
+### Features
+
+* **docker-compose:** enhance docker-compose part ([8bb7aae](https://github.com/mcinquin/hobbyhoops/commit/8bb7aaeee3a542c25fbebb8ff1956b4aa0544524))
+
 # [1.15.0](https://github.com/mcinquin/hobbyhoops/compare/v1.14.0...v1.15.0) (2026-05-25)
 
 
