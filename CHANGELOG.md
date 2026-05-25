@@ -1,3 +1,10 @@
+## [1.18.1](https://github.com/mcinquin/hobbyhoops/compare/v1.18.0...v1.18.1) (2026-05-25)
+
+
+### Bug Fixes
+
+* **ui:** fix missing RC tag toogle in admin section ([4b99f70](https://github.com/mcinquin/hobbyhoops/commit/4b99f705ff7b32330f46517743f24a3c61deed11))
+
 # [1.18.0](https://github.com/mcinquin/hobbyhoops/compare/v1.17.0...v1.18.0) (2026-05-25)
 
 
