@@ -93,9 +93,6 @@ export function buildCardWritePayload(
   gradingNote: string
 ): Record<string, unknown> {
   const variation = asTrimmedString(form.variation);
-  const isRookie =
-    variation.toUpperCase().startsWith("RC ") ||
-    variation.toUpperCase() === "RC";
 
   return prepareCardWriteInput(
     normalizeCardSerialFields({
@@ -117,7 +114,7 @@ export function buildCardWritePayload(
       storage: asTrimmedString(form.storage),
       photo: asNullableString(form.photo),
       tradable: Boolean(form.tradable),
-      rookie: isRookie,
+      rookie: Boolean(form.rookie),
     })
   );
 }
