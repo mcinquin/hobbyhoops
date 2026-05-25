@@ -84,7 +84,7 @@ docker compose up -d
 
 Override via `.env` if needed. See [SECURITY.md](SECURITY.md).
 
-Production-oriented options in Compose include: non-root user, `read_only` root filesystem, dropped capabilities, resource limits, health check on `/api/health`, and log rotation. The reverse proxy stays **outside** Compose (Apache on the host).
+Production-oriented options in Compose include: non-root user, `read_only` root filesystem, dropped capabilities, health check on `/api/health`, and log rotation. **No CPU/RAM cap** by default (a low `mem_limit` / `cpus` makes Next.js feel very slow). The reverse proxy stays **outside** Compose (Apache on the host).
 
 ### Local Docker (build)
 
