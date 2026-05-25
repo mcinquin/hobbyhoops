@@ -1,3 +1,10 @@
+## [1.19.1](https://github.com/mcinquin/hobbyhoops/compare/v1.19.0...v1.19.1) (2026-05-25)
+
+
+### Bug Fixes
+
+* **ui:** fix issue with left-sidebar ([0ae6fe9](https://github.com/mcinquin/hobbyhoops/commit/0ae6fe909266e06f7b4fdddc47742b88de996a30))
+
 # [1.19.0](https://github.com/mcinquin/hobbyhoops/compare/v1.18.1...v1.19.0) (2026-05-25)
 
 
