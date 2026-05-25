@@ -1,0 +1,22 @@
+# Développement local — build depuis le Dockerfile (ne pas utiliser en prod).
+# Usage : docker compose -f docker-compose.dev.yml up --build
+
+services:
+  app:
+    build: .
+    image: hobbyhoops:local
+    pull_policy: build
+    user: "1111:1111"
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:3000:3000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      AUTH_SECRET: ${AUTH_SECRET:-dev-only-change-me-32chars-min}
+      TRUST_PROXY: ${TRUST_PROXY:-false}
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped

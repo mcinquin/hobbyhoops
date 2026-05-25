@@ -45,25 +45,58 @@ Everything is stored in **`data/hobbyhoops.db`** (SQLite via `better-sqlite3`): 
 
 On first launch, an empty database is created; create the administrator account from the login screen.
 
-## Docker Deployment
+## Docker
 
-The Docker image starts with an **empty collection**: only a writable `data/` directory is required (the SQLite database is created there automatically).
+The image starts with an **empty collection**: only a writable `data/` directory is required (the SQLite database is created there automatically). The container runs as the **`hobbyhoops`** system user (UID/GID **1111**). Mount `data/` at `/app/data` and make it writable by that user.
+
+The application listens on **`127.0.0.1:3000`** (not exposed on all interfaces). In production, place a reverse proxy (e.g. Apache) in front of the host and proxy to that address.
+
+Two Compose files:
+
+| File | Usage |
+| ------ | ------- |
+| `docker-compose.yml` | **Production** — pinned image from GHCR, hardened runtime |
+| `docker-compose.dev.yml` | **Local Docker** — build from the Dockerfile |
+
+### Production (GHCR)
+
+After each semantic-release run on `main`, images are published to GitHub Container Registry:
+
+- `ghcr.io/mcinquin/hobbyhoops:latest`
+- `ghcr.io/mcinquin/hobbyhoops:X.Y.Z` (e.g. `1.15.0`)
+
+Prefer a **version tag** in production, not `latest`.
 
 ```bash
 cp .env.example .env
-# Set AUTH_SECRET in .env
+# Required: AUTH_SECRET (openssl rand -hex 32)
 mkdir -p data && sudo chown -R 1111:1111 data
-docker compose up --build -d
+
+export HOBBYHOOPS_VERSION=1.15.0   # tag matching your GHCR release
+docker compose pull
+docker compose up -d
 ```
 
-The application listens on `127.0.0.1:3000`. Data persists in the host `data/` directory (mounted at `/app/data`).
+`docker-compose.yml` expects a `.env` file (`required: true`). `AUTH_SECRET` must be set or Compose will fail at startup. Defaults suited to an HTTPS reverse proxy that rewrites forwarding headers:
 
-The container runs as the **`hobbyhoops`** system user (UID/GID **1111**). The `data/` directory must be writable by this user (see the `chown` command above).
+- `TRUST_PROXY=true` (set `false` in `.env` if the proxy does not set `X-Forwarded-For` / `X-Forwarded-Proto` correctly)
+- `COOKIE_SECURE=true`
 
-In production behind an HTTPS reverse proxy, leave `COOKIE_SECURE` at its default value or force `COOKIE_SECURE=true`.
-If the proxy strictly rewrites `X-Forwarded-For` / `X-Real-IP`, enable `TRUST_PROXY=true` to apply rate limiting by real client IP. Otherwise, keep the default value to avoid spoofed headers.
+Override via `.env` if needed. See [SECURITY.md](SECURITY.md).
 
-Production image (after each semantic-release release): `ghcr.io/<organisation>/hobbyhoops:latest`, `ghcr.io/<organisation>/hobbyhoops:1.2.0`, etc.
+Production-oriented options in Compose include: non-root user, `read_only` root filesystem, dropped capabilities, resource limits, health check on `/api/health`, and log rotation. The reverse proxy stays **outside** Compose (Apache on the host).
+
+### Local Docker (build)
+
+To build and run the image from the repository (development or testing the Dockerfile):
+
+```bash
+cp .env.example .env
+mkdir -p data && sudo chown -R 1111:1111 data
+docker compose -f docker-compose.dev.yml up --build -d
+```
+
+`AUTH_SECRET` is optional here (a dev-only default is provided); still set a real value to match production behaviour.
 
 ## CI GitHub Actions
 

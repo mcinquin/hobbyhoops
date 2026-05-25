@@ -1,24 +1,57 @@
+# Production — image GHCR, reverse proxy Apache en amont (hors Compose).
+# Déploiement : cp .env.example .env, renseigner AUTH_SECRET, puis :
+#   export HOBBYHOOPS_VERSION=1.15.0   # tag publié sur GHCR
+#   docker compose pull && docker compose up -d
+#
+# Dev local (build) : docker compose -f docker-compose.dev.yml up --build
+
 services:
   app:
-    build: .
+    image: ghcr.io/mcinquin/hobbyhoops:${HOBBYHOOPS_VERSION:-1.15.0}
+    pull_policy: always
+    container_name: hobbyhoops
     user: "1111:1111"
+    init: true
+    read_only: true
     security_opt:
       - no-new-privileges:true
-    # Port accessible uniquement en local (pas depuis le réseau extérieur)
+    cap_drop:
+      - ALL
+    pids_limit: 128
+    mem_limit: 768m
+    cpus: "1.0"
+    stop_grace_period: 30s
+    # Écoute uniquement en local ; Apache proxy vers 127.0.0.1:3000
     ports:
       - "127.0.0.1:3000:3000"
     env_file:
       - path: .env
-        required: false
+        required: true
     environment:
-      # Clé de signature des sessions (min. 16 caractères, obligatoire en production).
-      # Générer une valeur forte : openssl rand -hex 32
-      AUTH_SECRET: ${AUTH_SECRET}
-      # Cookie de session en HTTPS (true/false). Par défaut : true en production ou si X-Forwarded-Proto=https.
-      # COOKIE_SECURE: "true"
-      # Faire confiance à X-Forwarded-For / X-Real-IP uniquement derrière un reverse proxy qui les réécrit.
-      TRUST_PROXY: ${TRUST_PROXY:-false}
+      NODE_ENV: production
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET is required — openssl rand -hex 32}
+      # true si Apache réécrit X-Forwarded-For / X-Forwarded-Proto (recommandé)
+      TRUST_PROXY: ${TRUST_PROXY:-true}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
     volumes:
-      # Persistance SQLite + JSON (fichiers vides créés au premier démarrage si absents).
       - ./data:/app/data
+    tmpfs:
+      - /tmp:size=64M,mode=1777
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     restart: unless-stopped
