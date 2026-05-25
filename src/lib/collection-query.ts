@@ -4,13 +4,20 @@ import type { References } from "@/lib/types";
 export const COLLECTION_PAGE_SIZE = 50;
 export const COLLECTION_MAX_PAGE_SIZE = 100;
 
-export type CollectionTagFilter =
-  | ""
+export type CollectionTagValue =
   | "rookie"
   | "autograph"
   | "memorabilia"
   | "numbered"
   | "tradable";
+
+export const COLLECTION_TAG_VALUES: CollectionTagValue[] = [
+  "rookie",
+  "autograph",
+  "memorabilia",
+  "numbered",
+  "tradable",
+];
 
 export type CollectionSortKey =
   | "player"
@@ -33,14 +40,28 @@ const sortKeySchema = z.enum([
   "grading",
 ]);
 
-const tagSchema = z
-  .union([
-    z.literal(""),
-    z.enum(["rookie", "autograph", "memorabilia", "numbered", "tradable"]),
-  ])
-  .catch("");
+const tagValueSchema = z.enum([
+  "rookie",
+  "autograph",
+  "memorabilia",
+  "numbered",
+  "tradable",
+]);
 
 const filterValueSchema = z.string().trim().max(128).catch("");
+
+function parseCollectionTags(params: URLSearchParams): CollectionTagValue[] {
+  const seen = new Set<CollectionTagValue>();
+  const tags: CollectionTagValue[] = [];
+  for (const raw of params.getAll("tag")) {
+    const parsed = tagValueSchema.safeParse(raw);
+    if (parsed.success && !seen.has(parsed.data)) {
+      seen.add(parsed.data);
+      tags.push(parsed.data);
+    }
+  }
+  return tags;
+}
 
 export interface CollectionListQuery {
   search: string;
@@ -50,7 +71,8 @@ export interface CollectionListQuery {
   brand: string;
   set: string;
   variation: string;
-  tag: CollectionTagFilter;
+  /** Filtres cumulés (ET) : ex. rookie + autograph = RC et Auto. */
+  tags: CollectionTagValue[];
   page: number;
   pageSize: number;
   sort: CollectionSortKey;
@@ -99,7 +121,7 @@ export function parseCollectionSearchParams(
     brand: filterValueSchema.parse(params.get("brand") ?? ""),
     set: filterValueSchema.parse(params.get("set") ?? ""),
     variation: filterValueSchema.parse(params.get("variation") ?? ""),
-    tag: tagSchema.parse(params.get("tag") ?? ""),
+    tags: parseCollectionTags(params),
     page,
     pageSize,
     sort,
@@ -153,24 +175,26 @@ export function buildCollectionWhereClause(
     params.push(`%${escapeLike(query.variation.trim().toLowerCase())}%`);
   }
 
-  switch (query.tag) {
-    case "rookie":
-      clauses.push("rookie = 1");
-      break;
-    case "autograph":
-      clauses.push("autograph = 1");
-      break;
-    case "memorabilia":
-      clauses.push("memorabilia = 1");
-      break;
-    case "numbered":
-      clauses.push("serial_number IS NOT NULL AND serial_number != ''");
-      break;
-    case "tradable":
-      clauses.push("tradable = 1");
-      break;
-    default:
-      break;
+  for (const tag of query.tags) {
+    switch (tag) {
+      case "rookie":
+        clauses.push("rookie = 1");
+        break;
+      case "autograph":
+        clauses.push("autograph = 1");
+        break;
+      case "memorabilia":
+        clauses.push("memorabilia = 1");
+        break;
+      case "numbered":
+        clauses.push("serial_number IS NOT NULL AND serial_number != ''");
+        break;
+      case "tradable":
+        clauses.push("tradable = 1");
+        break;
+      default:
+        break;
+    }
   }
 
   const whereSql = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";

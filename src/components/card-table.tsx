@@ -9,9 +9,11 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table";
 import {
+  COLLECTION_TAG_VALUES,
   setsForBrandFilter,
   variationsForFilters,
   type CollectionSortKey,
+  type CollectionTagValue,
 } from "@/lib/collection-query";
 import { Card, type References } from "@/lib/types";
 import { CardBadges } from "@/components/card-badges";
@@ -115,11 +117,10 @@ export function CardTable({
   const { filters: urlFilters, updateFilters, toggleSort, isPending } =
     useCollectionUrlFilters();
 
-  const rookieOnly = urlFilters.tag === "rookie";
-  const autoOnly = urlFilters.tag === "autograph";
-  const memoOnly = urlFilters.tag === "memorabilia";
-  const serialOnly = urlFilters.tag === "numbered";
-  const tradableOnly = urlFilters.tag === "tradable";
+  const selectedTags = useMemo(
+    () => new Set(urlFilters.tags),
+    [urlFilters.tags]
+  );
 
   function sortState(column: CollectionSortKey): false | "asc" | "desc" {
     if (urlFilters.sort !== column) return false;
@@ -265,11 +266,11 @@ export function CardTable({
     }
   }, [urlFilters.variation, variationSuggestions, updateFilters]);
 
-  function toggleTag(tag: typeof urlFilters.tag) {
-    updateFilters(
-      { tag: urlFilters.tag === tag ? "" : tag },
-      { immediate: true }
-    );
+  function toggleTag(tag: CollectionTagValue) {
+    const next = selectedTags.has(tag)
+      ? urlFilters.tags.filter((value) => value !== tag)
+      : [...urlFilters.tags, tag];
+    updateFilters({ tags: next }, { immediate: true });
   }
 
   const activeFilters = useMemo(
@@ -290,21 +291,9 @@ export function CardTable({
         urlFilters.variation
           ? t("cards.activeVariation", { value: urlFilters.variation })
           : "",
-        rookieOnly ? t("badges.rookie") : "",
-        autoOnly ? t("badges.autograph") : "",
-        memoOnly ? t("badges.memorabilia") : "",
-        serialOnly ? t("badges.numbered") : "",
-        tradableOnly ? t("badges.tradable") : "",
+        ...urlFilters.tags.map((tag) => badgeLabels[tag]),
       ].filter(Boolean),
-    [
-      autoOnly,
-      memoOnly,
-      rookieOnly,
-      serialOnly,
-      t,
-      tradableOnly,
-      urlFilters,
-    ]
+    [badgeLabels, t, urlFilters]
   );
 
   return (
@@ -381,26 +370,14 @@ export function CardTable({
           />
 
           <div className="flex flex-wrap gap-1 sm:col-span-2 lg:col-span-1">
-            <FilterChipButton
-              label={t("badges.rookie")}
-              pressed={rookieOnly}
-              onPressedChange={() => toggleTag("rookie")}
-            />
-            <FilterChipButton
-              label={t("badges.autograph")}
-              pressed={autoOnly}
-              onPressedChange={() => toggleTag("autograph")}
-            />
-            <FilterChipButton
-              label={t("badges.memorabilia")}
-              pressed={memoOnly}
-              onPressedChange={() => toggleTag("memorabilia")}
-            />
-            <FilterChipButton
-              label={t("badges.numbered")}
-              pressed={serialOnly}
-              onPressedChange={() => toggleTag("numbered")}
-            />
+            {COLLECTION_TAG_VALUES.map((tag) => (
+              <FilterChipButton
+                key={tag}
+                label={badgeLabels[tag]}
+                pressed={selectedTags.has(tag)}
+                onPressedChange={() => toggleTag(tag)}
+              />
+            ))}
           </div>
         </div>
 

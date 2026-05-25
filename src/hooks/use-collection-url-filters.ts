@@ -6,10 +6,10 @@ import {
   parseCollectionSearchParams,
   type CollectionListQuery,
   type CollectionSortKey,
-  type CollectionTagFilter,
+  type CollectionTagValue,
 } from "@/lib/collection-query";
 
-export type { CollectionTagFilter, CollectionSortKey };
+export type { CollectionTagValue, CollectionSortKey };
 
 export type CollectionFiltersState = Pick<
   CollectionListQuery,
@@ -20,7 +20,7 @@ export type CollectionFiltersState = Pick<
   | "brand"
   | "set"
   | "variation"
-  | "tag"
+  | "tags"
   | "page"
   | "sort"
   | "sortDesc"
@@ -48,7 +48,9 @@ export function useCollectionUrlFilters() {
       if (next.brand) params.set("brand", next.brand);
       if (next.set) params.set("set", next.set);
       if (next.variation) params.set("variation", next.variation);
-      if (next.tag) params.set("tag", next.tag);
+      for (const tag of next.tags) {
+        params.append("tag", tag);
+      }
       if (next.page > 1) params.set("page", String(next.page));
       if (next.sort !== "player") params.set("sort", next.sort);
       if (next.sortDesc) params.set("sortDir", "desc");

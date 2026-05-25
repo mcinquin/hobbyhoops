@@ -16,8 +16,14 @@ function toSearchParams(
 ): URLSearchParams {
   const searchParams = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
-    const raw = Array.isArray(value) ? value[0] : value;
-    if (raw) searchParams.set(key, raw);
+    if (value === undefined) continue;
+    if (Array.isArray(value)) {
+      for (const entry of value) {
+        if (entry) searchParams.append(key, entry);
+      }
+    } else if (value) {
+      searchParams.set(key, value);
+    }
   }
   return searchParams;
 }
