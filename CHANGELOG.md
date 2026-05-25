@@ -1,3 +1,10 @@
+# [1.14.0](https://github.com/mcinquin/hobbyhoops/compare/v1.13.1...v1.14.0) (2026-05-25)
+
+
+### Features
+
+* **ui:** enhance pagination ([85d63a0](https://github.com/mcinquin/hobbyhoops/commit/85d63a0cec3901490d3c9cc15394e9dc19acca42))
+
 ## [1.13.1](https://github.com/mcinquin/hobbyhoops/compare/v1.13.0...v1.13.1) (2026-05-24)
 
 
