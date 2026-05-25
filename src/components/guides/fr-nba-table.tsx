@@ -15,6 +15,7 @@ import type { FrNbaPlayer } from "@/lib/types";
 import { SortableTableHead } from "@/components/data-table/sortable-table-head";
 import { TablePagination } from "@/components/data-table/table-pagination";
 import { FilterChipButton } from "@/components/filter-chip-button";
+import { useStableTablePagination } from "@/hooks/use-stable-table-pagination";
 import { FrNbaPlayerForm } from "@/components/guides/fr-nba-player-form";
 import { SearchField } from "@/components/search-field";
 import { Badge } from "@/components/ui/badge";
@@ -166,17 +167,26 @@ export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
     });
   }
 
+  const filterResetKey = `${search}\0${rookieOnly}\0${patchOnly}\0${immaculateOnly}\0${autoOnly}`;
+
+  const tablePagination = useStableTablePagination({
+    pageSize: 20,
+    resetKey: filterResetKey,
+    rowCount: filteredPlayers.length,
+  });
+
   // eslint-disable-next-line react-hooks/incompatible-library -- useReactTable
   const table = useReactTable({
     data: filteredPlayers,
     columns,
-    state: { sorting },
+    state: { sorting, pagination: tablePagination.pagination },
     onSortingChange: setSorting,
+    onPaginationChange: tablePagination.onPaginationChange,
+    autoResetPageIndex: tablePagination.autoResetPageIndex,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 20 } },
   });
 
   return (
