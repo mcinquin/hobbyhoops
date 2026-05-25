@@ -1,6 +1,11 @@
 "use client";
 
-import { Card } from "@/lib/types";
+import {
+  buildChartCountData,
+  chartDataWithCards,
+  referenceSetNames,
+} from "@/lib/dashboard-chart-data";
+import { Card, type References } from "@/lib/types";
 import type { KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "@/i18n/client";
@@ -16,6 +21,7 @@ import {
 
 interface DashboardChartsProps {
   cards: Card[];
+  references: References;
 }
 
 /** Couleur des barres « par année » — aussi utilisée pour le libellé du tooltip au survol. */
@@ -34,7 +40,10 @@ const COLORS = [
 
 const tooltipCursor = { fill: "hsl(38, 92%, 50%, 0.12)" };
 
-function collectionHref(key: "brand" | "year" | "player", value: string): string {
+function collectionHref(
+  key: "brand" | "set" | "year" | "player",
+  value: string
+): string {
   const params = new URLSearchParams({ [key]: value });
   return `/collection?${params.toString()}`;
 }
@@ -71,18 +80,21 @@ function ChartTooltipContent({
   );
 }
 
-export function DashboardCharts({ cards }: DashboardChartsProps) {
+export function DashboardCharts({ cards, references }: DashboardChartsProps) {
   const t = useTranslations();
   const router = useRouter();
   const cardsLabel = t("common.cardsLabel");
 
-  function drillDown(key: "brand" | "year" | "player", entry: unknown): void {
+  function drillDown(
+    key: "brand" | "set" | "year" | "player",
+    entry: unknown
+  ): void {
     const name = getDatumName(entry);
     if (name) router.push(collectionHref(key, name));
   }
 
   function openCollectionFilter(
-    key: "brand" | "year" | "player",
+    key: "brand" | "set" | "year" | "player",
     value: string
   ): void {
     router.push(collectionHref(key, value));
@@ -90,7 +102,7 @@ export function DashboardCharts({ cards }: DashboardChartsProps) {
 
   function handleChartKeyDown(
     event: KeyboardEvent<SVGElement>,
-    key: "brand" | "year" | "player",
+    key: "brand" | "set" | "year" | "player",
     value: string
   ): void {
     if (event.key !== "Enter" && event.key !== " ") return;
@@ -98,29 +110,17 @@ export function DashboardCharts({ cards }: DashboardChartsProps) {
     openCollectionFilter(key, value);
   }
 
-  const brandData = Object.entries(
-    cards.reduce(
-      (acc, c) => {
-        if (c.brand) acc[c.brand] = (acc[c.brand] || 0) + 1;
-        return acc;
-      },
-      {} as Record<string, number>
-    )
-  )
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
+  const brandData = chartDataWithCards(
+    buildChartCountData(references.brands, cards, (card) => card.brand)
+  ).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
-  const yearData = Object.entries(
-    cards.reduce(
-      (acc, c) => {
-        if (c.year) acc[c.year] = (acc[c.year] || 0) + 1;
-        return acc;
-      },
-      {} as Record<string, number>
-    )
-  )
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const yearData = chartDataWithCards(
+    buildChartCountData(references.years, cards, (card) => card.year)
+  ).sort((a, b) => a.name.localeCompare(b.name));
+
+  const setData = chartDataWithCards(
+    buildChartCountData(referenceSetNames(references), cards, (card) => card.set)
+  ).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
   const playerData = Object.entries(
     cards.reduce(
@@ -247,6 +247,67 @@ export function DashboardCharts({ cards }: DashboardChartsProps) {
                   onClick={() => openCollectionFilter("year", entry.name)}
                   onKeyDown={(event) =>
                     handleChartKeyDown(event, "year", entry.name)
+                  }
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="min-w-0 rounded-lg border border-border bg-card p-4 sm:p-6 lg:col-span-2">
+        <h3 className="text-sm font-medium text-muted-foreground mb-4">
+          {t("dashboard.bySet")}
+        </h3>
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={setData} margin={{ left: -20, right: 4, bottom: 8 }}>
+            <XAxis
+              dataKey="name"
+              tick={{ fill: "hsl(0, 0%, 70%)", fontSize: 10 }}
+              axisLine={false}
+              tickLine={false}
+              angle={-35}
+              textAnchor="end"
+              height={56}
+              interval={0}
+            />
+            <YAxis
+              tick={{ fill: "hsl(0, 0%, 70%)", fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip
+              content={(props) => (
+                <ChartTooltipContent
+                  active={props.active}
+                  payload={
+                    props.payload as
+                      | ReadonlyArray<{ value?: number | string }>
+                      | undefined
+                  }
+                  label={props.label}
+                  cardsLabel={cardsLabel}
+                />
+              )}
+              cursor={tooltipCursor}
+            />
+            <Bar
+              dataKey="count"
+              name={cardsLabel}
+              radius={[4, 4, 0, 0]}
+              className="cursor-pointer"
+              onClick={(entry) => drillDown("set", entry)}
+            >
+              {setData.map((entry, i) => (
+                <Cell
+                  key={entry.name}
+                  fill={COLORS[(i + 2) % COLORS.length]}
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`${entry.name} - ${entry.count} ${cardsLabel}`}
+                  onClick={() => openCollectionFilter("set", entry.name)}
+                  onKeyDown={(event) =>
+                    handleChartKeyDown(event, "set", entry.name)
                   }
                 />
               ))}

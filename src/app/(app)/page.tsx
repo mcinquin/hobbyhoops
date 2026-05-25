@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
-import { getCollection } from "@/lib/data";
+import { getCollection, getReferences } from "@/lib/data";
 import { getTranslations } from "@/i18n/server";
 import { PageHeader } from "@/components/page-header";
 import { StatsCards } from "@/components/stats-cards";
@@ -15,6 +15,7 @@ const DashboardCharts = dynamic(
 
 export default async function DashboardPage() {
   const cards = getCollection();
+  const references = getReferences();
   const { t, locale } = await getTranslations();
   const badgeLabels = {
     rookie: t("badges.rookie"),
@@ -43,7 +44,7 @@ export default async function DashboardPage() {
         }}
       />
       <Suspense fallback={<ChartSkeleton />}>
-        <DashboardCharts cards={cards} />
+        <DashboardCharts cards={cards} references={references} />
       </Suspense>
       <RecentCards
         cards={cards}
