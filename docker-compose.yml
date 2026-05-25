@@ -17,10 +17,10 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
-    pids_limit: 128
-    mem_limit: 768m
-    cpus: "1.0"
-    stop_grace_period: 30s
+    pids_limit: 256
+    stop_grace_period: "30s"
+    # Pas de mem_limit / cpus : Next.js + SQLite ont besoin de marge ; un plafond
+    # bas (ex. 768m, 1 CPU) provoque lenteur, swap et GC agressif.
     # Écoute uniquement en local ; Apache proxy vers 127.0.0.1:3000
     ports:
       - "127.0.0.1:3000:3000"
@@ -36,7 +36,7 @@ services:
     volumes:
       - ./data:/app/data
     tmpfs:
-      - /tmp:size=64M,mode=1777
+      - /tmp:size=256M,mode=1777
     healthcheck:
       test:
         [
