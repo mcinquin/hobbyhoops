@@ -19,6 +19,13 @@ const PUBLIC_API_PREFIXES = [
   "/api/locale",
 ];
 
+/** Fichiers statiques publics accessibles sans authentification. */
+const PUBLIC_STATIC_PATHS = new Set([
+  "/manifest.webmanifest",
+  "/sw.js",
+  "/robots.txt",
+]);
+
 function nextWithCsp(request: NextRequest): NextResponse {
   const nonce = createNonce();
   const csp = buildContentSecurityPolicy(nonce);
@@ -34,6 +41,10 @@ function nextWithCsp(request: NextRequest): NextResponse {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (PUBLIC_STATIC_PATHS.has(pathname)) {
+    return NextResponse.next();
+  }
 
   if (pathname.startsWith("/api/")) {
     const isPublic = PUBLIC_API_PREFIXES.some(
@@ -71,7 +82,7 @@ export const config = {
   matcher: [
     {
       source:
-        "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:ico|png|jpg|jpeg|svg|webp|gif)$).*)",
+        "/((?!api|_next/static|_next/image|favicon.ico|manifest\\.webmanifest|sw\\.js|robots\\.txt|.*\\.(?:ico|png|jpg|jpeg|svg|webp|gif)$).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },

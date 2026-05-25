@@ -66,6 +66,7 @@ export function Sidebar({ username, onNavigate, className }: SidebarProps) {
           logoHeight={52}
           className="w-full"
           homeAriaLabel={t("brand.homeAria")}
+          priority
         />
         <p className="text-xs text-muted-foreground mt-3 leading-snug text-center">
           {t("brand.tagline")}

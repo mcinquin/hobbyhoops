@@ -21,6 +21,7 @@
     "check": "npm run ci",
     "clean": "node scripts/clean.mjs",
     "optimize:logo": "node scripts/optimize-logo.mjs",
+    "generate:icons": "node scripts/generate-pwa-icons.mjs",
     "prepare": "husky",
     "release": "semantic-release"
   },

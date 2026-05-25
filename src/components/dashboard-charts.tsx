@@ -7,6 +7,7 @@ import {
 } from "@/lib/dashboard-chart-data";
 import { Card, type References } from "@/lib/types";
 import type { KeyboardEvent } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "@/i18n/client";
 import {
@@ -80,10 +81,27 @@ function ChartTooltipContent({
   );
 }
 
+const MOBILE_SET_LIMIT = 8;
+const MOBILE_MQ = "(max-width: 767px)";
+
+function subscribeMobile(cb: () => void) {
+  const mq = window.matchMedia(MOBILE_MQ);
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+}
+const getMobileSnapshot = () => window.matchMedia(MOBILE_MQ).matches;
+const getMobileServerSnapshot = () => false;
+
 export function DashboardCharts({ cards, references }: DashboardChartsProps) {
   const t = useTranslations();
   const router = useRouter();
   const cardsLabel = t("common.cardsLabel");
+
+  const isMobile = useSyncExternalStore(
+    subscribeMobile,
+    getMobileSnapshot,
+    getMobileServerSnapshot
+  );
 
   function drillDown(
     key: "brand" | "set" | "year" | "player",
@@ -121,6 +139,12 @@ export function DashboardCharts({ cards, references }: DashboardChartsProps) {
   const setData = chartDataWithCards(
     buildChartCountData(referenceSetNames(references), cards, (card) => card.set)
   ).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+  const displaySetData = useMemo(
+    () => (isMobile ? setData.slice(0, MOBILE_SET_LIMIT) : setData),
+    [isMobile, setData]
+  );
+  const setDataTruncated = isMobile && setData.length > MOBILE_SET_LIMIT;
 
   const playerData = Object.entries(
     cards.reduce(
@@ -256,11 +280,21 @@ export function DashboardCharts({ cards, references }: DashboardChartsProps) {
       </div>
 
       <div className="min-w-0 rounded-lg border border-border bg-card p-4 sm:p-6 lg:col-span-2">
-        <h3 className="text-sm font-medium text-muted-foreground mb-4">
-          {t("dashboard.bySet")}
-        </h3>
+        <div className="mb-4 flex items-baseline justify-between gap-2">
+          <h3 className="text-sm font-medium text-muted-foreground">
+            {t("dashboard.bySet")}
+          </h3>
+          {setDataTruncated && (
+            <span className="text-xs text-muted-foreground">
+              Top {MOBILE_SET_LIMIT} / {setData.length}
+            </span>
+          )}
+        </div>
         <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={setData} margin={{ left: -20, right: 4, bottom: 8 }}>
+          <BarChart
+            data={displaySetData}
+            margin={{ left: -20, right: 4, bottom: 8 }}
+          >
             <XAxis
               dataKey="name"
               tick={{ fill: "hsl(0, 0%, 70%)", fontSize: 10 }}
@@ -298,7 +332,7 @@ export function DashboardCharts({ cards, references }: DashboardChartsProps) {
               className="cursor-pointer"
               onClick={(entry) => drillDown("set", entry)}
             >
-              {setData.map((entry, i) => (
+              {displaySetData.map((entry, i) => (
                 <Cell
                   key={entry.name}
                   fill={COLORS[(i + 2) % COLORS.length]}
