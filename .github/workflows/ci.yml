@@ -6,13 +6,16 @@ on:
   pull_request:
     branches: [main]
 
+# Aucune permission par défaut — chaque job déclare exactement ce dont il a besoin.
+permissions: {}
+
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   quality:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
@@ -29,12 +32,15 @@ jobs:
         run: npm run ci:full
 
   docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: quality
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
       packages: write
+      # Requis pour l'attestation de provenance SLSA et le SBOM.
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
@@ -62,12 +68,14 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          provenance: true
+          sbom: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   release:
     name: semantic-release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: quality
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
@@ -75,6 +83,9 @@ jobs:
       issues: write
       packages: write
       pull-requests: write
+      # Requis pour l'attestation de provenance SLSA et le SBOM.
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
@@ -103,7 +114,13 @@ jobs:
           fi
 
           echo "published=true" >> "$GITHUB_OUTPUT"
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+          # Syntaxe heredoc : évite l'injection si la valeur contenait un saut de ligne.
+          {
+            echo "tag<<_DELIM_"
+            echo "$tag"
+            echo "_DELIM_"
+          } >> "$GITHUB_OUTPUT"
 
           if [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "latest=true" >> "$GITHUB_OUTPUT"
@@ -139,5 +156,7 @@ jobs:
           push: true
           tags: ${{ steps.release-meta.outputs.tags }}
           labels: ${{ steps.release-meta.outputs.labels }}
+          provenance: true
+          sbom: true
           cache-from: type=gha
           cache-to: type=gha,mode=max

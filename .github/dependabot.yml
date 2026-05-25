@@ -4,6 +4,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # Les versions pre-release (alpha, beta, rc) sont ignorées automatiquement
+    # par Dependabot quand le package courant est une version stable.
     groups:
       next:
         patterns:
@@ -18,8 +20,15 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # Les releases pre-release d'actions sont ignorées automatiquement.
 
   - package-ecosystem: docker
     directory: /
     schedule:
       interval: weekly
+    # Node.js LTS uniquement : versions majeures paires (20, 22, 24, 26, 28…).
+    # Les versions majeures impaires (25, 27, 29…) sont des releases courtes
+    # non-LTS sans support long terme — on les ignore.
+    ignore:
+      - dependency-name: "node"
+        versions: ["25.*", "27.*", "29.*", "31.*", "33.*"]
