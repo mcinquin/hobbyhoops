@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/mcinquin/hobbyhoops/compare/v1.14.0...v1.15.0) (2026-05-25)
+
+
+### Features
+
+* **ui:** add multiselector for tags ([7b419c4](https://github.com/mcinquin/hobbyhoops/commit/7b419c4de530eed1532b1a5447e287abf2884c7e))
+
 # [1.14.0](https://github.com/mcinquin/hobbyhoops/compare/v1.13.1...v1.14.0) (2026-05-25)
 
 
