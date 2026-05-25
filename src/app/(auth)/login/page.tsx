@@ -103,7 +103,7 @@ function LoginForm() {
   return (
     <>
       <div className="text-center space-y-1 mb-6">
-        <BrandMark logoHeight={64} nameClassName="text-2xl" />
+        <BrandMark logoHeight={64} nameClassName="text-2xl" priority />
         <p className="text-xs text-muted-foreground mt-2 leading-snug">
           {t("brand.tagline")}
         </p>
