@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/mcinquin/hobbyhoops/compare/v1.16.0...v1.17.0) (2026-05-25)
+
+
+### Features
+
+* **dashboard:** add new dashboar ([daae24d](https://github.com/mcinquin/hobbyhoops/commit/daae24d9f9ec27618dfd6dda66b84d09b28b3878))
+
 # [1.16.0](https://github.com/mcinquin/hobbyhoops/compare/v1.15.0...v1.16.0) (2026-05-25)
 
 
