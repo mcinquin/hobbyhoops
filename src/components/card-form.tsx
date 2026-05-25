@@ -641,6 +641,13 @@ function CardFormFields({
           <div className="flex flex-wrap gap-6 pt-2">
             <div className="flex items-center gap-2">
               <Switch
+                checked={form.rookie || false}
+                onCheckedChange={(v) => update("rookie", v)}
+              />
+              <Label>{t("badges.rookie")}</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
                 checked={form.autograph || false}
                 onCheckedChange={(v) => update("autograph", v)}
               />
