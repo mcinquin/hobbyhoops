@@ -1,3 +1,16 @@
+# [1.18.0](https://github.com/mcinquin/hobbyhoops/compare/v1.17.0...v1.18.0) (2026-05-25)
+
+
+### Bug Fixes
+
+* **pwa:** fix issue with proxy ([c0a5921](https://github.com/mcinquin/hobbyhoops/commit/c0a59219d8e8aa3633c270bb75d8e3a0a7a50e2f))
+* **ui:** fix issue with horizontal overflow ([9699164](https://github.com/mcinquin/hobbyhoops/commit/9699164472b4c20b896f2f800222d1df883df421))
+
+
+### Features
+
+* **pwa:** add PWA compatibility ([78f8885](https://github.com/mcinquin/hobbyhoops/commit/78f88856ec90f82289c5f40869c1290070c7fb24))
+
 # [1.17.0](https://github.com/mcinquin/hobbyhoops/compare/v1.16.0...v1.17.0) (2026-05-25)
 
 
