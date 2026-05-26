@@ -12,6 +12,7 @@ const steps = [
   { name: "ESLint", command: "npm", args: ["run", "lint"] },
   { name: "Markdownlint", command: "npm", args: ["run", "lint:md"] },
   { name: "TypeScript", command: "npm", args: ["run", "typecheck"] },
+  { name: "Vitest", command: "npm", args: ["run", "test"] },
 ];
 
 if (includeAudit) {

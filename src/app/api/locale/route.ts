@@ -6,7 +6,9 @@ import { parseJsonBody } from "@/lib/parse-json-body";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
 
 export async function POST(request: NextRequest) {
-  const crossSite = rejectCrossSiteMutation(request);
+  const crossSite = rejectCrossSiteMutation(request, {
+    requireFetchMetadata: true,
+  });
   if (crossSite) return crossSite;
 
   const t = getRequestTranslator(request);

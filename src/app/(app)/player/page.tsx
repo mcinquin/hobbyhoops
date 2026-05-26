@@ -1,48 +1,11 @@
-import { getCollection } from "@/lib/data";
+import { getPlayerSummaries } from "@/lib/data";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { getTranslations } from "@/i18n/server";
 
 export default async function PlayersPage() {
-  const cards = getCollection();
+  const players = getPlayerSummaries();
   const { t } = await getTranslations();
-
-  const playerStats = cards.reduce(
-    (acc, card) => {
-      if (!card.player) return acc;
-      if (!acc[card.player]) {
-        acc[card.player] = {
-          name: card.player,
-          team: card.team,
-          count: 0,
-          autos: 0,
-          memos: 0,
-          serials: 0,
-          rookies: 0,
-        };
-      }
-      acc[card.player].count++;
-      if (card.autograph) acc[card.player].autos++;
-      if (card.memorabilia) acc[card.player].memos++;
-      if (card.serialNumber) acc[card.player].serials++;
-      if (card.rookie) acc[card.player].rookies++;
-      return acc;
-    },
-    {} as Record<
-      string,
-      {
-        name: string;
-        team: string;
-        count: number;
-        autos: number;
-        memos: number;
-        serials: number;
-        rookies: number;
-      }
-    >
-  );
-
-  const players = Object.values(playerStats).sort((a, b) => b.count - a.count);
 
   return (
     <div className="space-y-6">

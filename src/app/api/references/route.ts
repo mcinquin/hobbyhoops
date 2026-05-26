@@ -27,6 +27,7 @@ import { getRequestTranslator } from "@/i18n/request";
 import type { Translator } from "@/i18n/translator";
 import { parseJsonBody } from "@/lib/parse-json-body";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
+import { rejectWriteRateLimit } from "@/lib/api-write-rate-limit";
 
 export async function GET(request: NextRequest) {
   const gate = requireAuth(request);
@@ -167,9 +168,18 @@ function emptyBatchError(
 export async function PATCH(request: NextRequest) {
   const gate = requireAuth(request);
   if (gate instanceof NextResponse) return gate;
-  const crossSite = rejectCrossSiteMutation(request);
+  const crossSite = rejectCrossSiteMutation(request, {
+    requireFetchMetadata: true,
+  });
   if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
+
+  const rateLimited = rejectWriteRateLimit(
+    request,
+    `references:write:${gate.userId}`,
+    { limit: 30, windowMs: 15 * 60 * 1000 }
+  );
+  if (rateLimited) return rateLimited;
 
   const parsedBody = await parseJsonBody(request);
   if (!parsedBody.ok) return parsedBody.response;

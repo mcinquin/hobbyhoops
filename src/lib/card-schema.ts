@@ -92,6 +92,8 @@ const cardFields = {
   rookie: z.boolean(),
 };
 
+export const cardIdSchema = z.string().trim().min(1).max(64);
+
 export const cardCreateSchema = z
   .object(cardFields)
   .strict();

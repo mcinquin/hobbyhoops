@@ -1,9 +1,9 @@
-import { Card } from "@/lib/types";
+import type { CollectionStats } from "@/lib/types";
 import Link from "next/link";
 import { Library, PenTool, Puzzle, Hash, ArrowLeftRight } from "lucide-react";
 
 interface StatsCardsProps {
-  cards: Card[];
+  stats: CollectionStats;
   labels: {
     total: string;
     autographs: string;
@@ -14,36 +14,12 @@ interface StatsCardsProps {
   };
 }
 
-function countCardStats(cards: Card[]) {
-  return cards.reduce(
-    (acc, card) => {
-      acc.total += 1;
-      if (card.autograph) acc.autographs += 1;
-      if (card.memorabilia) acc.memorabilia += 1;
-      if (card.serialNumber) acc.numbered += 1;
-      if (card.rookie) acc.rookies += 1;
-      if (card.tradable) acc.tradable += 1;
-      return acc;
-    },
-    {
-      total: 0,
-      autographs: 0,
-      memorabilia: 0,
-      numbered: 0,
-      rookies: 0,
-      tradable: 0,
-    }
-  );
-}
-
-export function StatsCards({ cards, labels }: StatsCardsProps) {
-  const counts = countCardStats(cards);
-
-  const stats = [
+export function StatsCards({ stats, labels }: StatsCardsProps) {
+  const items = [
     {
       id: "total",
       label: labels.total,
-      value: counts.total,
+      value: stats.total,
       icon: Library,
       color: "text-foreground",
       href: "/collection",
@@ -51,7 +27,7 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
     {
       id: "autographs",
       label: labels.autographs,
-      value: counts.autographs,
+      value: stats.autographs,
       icon: PenTool,
       color: "text-amber-500",
       href: "/collection?tag=autograph",
@@ -59,7 +35,7 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
     {
       id: "memorabilia",
       label: labels.memorabilia,
-      value: counts.memorabilia,
+      value: stats.memorabilia,
       icon: Puzzle,
       color: "text-blue-500",
       href: "/collection?tag=memorabilia",
@@ -67,7 +43,7 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
     {
       id: "numbered",
       label: labels.numbered,
-      value: counts.numbered,
+      value: stats.numbered,
       icon: Hash,
       color: "text-red-500",
       href: "/collection?tag=numbered",
@@ -75,7 +51,7 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
     {
       id: "rookies",
       label: labels.rookies,
-      value: counts.rookies,
+      value: stats.rookies,
       icon: Library,
       color: "text-emerald-500",
       href: "/collection?tag=rookie",
@@ -83,7 +59,7 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
     {
       id: "tradable",
       label: labels.tradable,
-      value: counts.tradable,
+      value: stats.tradable,
       icon: ArrowLeftRight,
       color: "text-purple-500",
       href: "/collection?tag=tradable",
@@ -92,7 +68,7 @@ export function StatsCards({ cards, labels }: StatsCardsProps) {
 
   return (
     <div className="grid min-w-0 grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6 lg:gap-4">
-      {stats.map((stat) => (
+      {items.map((stat) => (
         <Link
           key={stat.id}
           href={stat.href}

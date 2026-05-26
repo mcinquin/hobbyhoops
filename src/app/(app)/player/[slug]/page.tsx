@@ -1,4 +1,4 @@
-import { getCollection } from "@/lib/data";
+import { getCardsByPlayer } from "@/lib/data";
 import { CardBadges } from "@/components/card-badges";
 import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
@@ -12,8 +12,7 @@ interface PlayerPageProps {
 export default async function PlayerPage({ params }: PlayerPageProps) {
   const { slug } = await params;
   const playerName = decodeURIComponent(slug);
-  const allCards = getCollection();
-  const cards = allCards.filter((c) => c.player === playerName);
+  const cards = getCardsByPlayer(playerName);
   const { t } = await getTranslations();
   const badgeLabels = {
     rookie: t("badges.rookie"),

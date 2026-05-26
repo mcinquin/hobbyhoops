@@ -1,8 +1,13 @@
+import "server-only";
+
 import fs from "fs";
 import path from "path";
 import type {
   Card,
+  ChartCountRow,
+  CollectionStats,
   FrNbaPlayer,
+  PlayerSummaryRow,
   References,
   WantedBlock,
   WantedEntry,
@@ -14,7 +19,9 @@ import { createDatabase, runInTransaction, type AppDatabase } from "./sqlite";
 
 type SqlInputValue = string | number | bigint | Buffer | null;
 
-const SCHEMA_VERSION = 6;
+const SCHEMA_VERSION = 7;
+
+export type { ChartCountRow, CollectionStats, PlayerSummaryRow };
 
 const globalForDb = globalThis as typeof globalThis & {
   hobbyhoopsDb?: AppDatabase;
@@ -609,6 +616,18 @@ function runSchemaMigrations(db: AppDatabase): void {
     db.exec("DROP TABLE IF EXISTS guides_state");
   }
 
+  if (version < 7) {
+    db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_cards_player ON cards(player);
+      CREATE INDEX IF NOT EXISTS idx_cards_year ON cards(year);
+      CREATE INDEX IF NOT EXISTS idx_cards_brand ON cards(brand);
+      CREATE INDEX IF NOT EXISTS idx_cards_set_name ON cards(set_name);
+      CREATE INDEX IF NOT EXISTS idx_cards_opening_date ON cards(opening_date);
+      CREATE INDEX IF NOT EXISTS idx_cards_rookie ON cards(rookie);
+      CREATE INDEX IF NOT EXISTS idx_cards_autograph ON cards(autograph);
+    `);
+  }
+
   setSchemaVersion(db, SCHEMA_VERSION);
 }
 
@@ -669,6 +688,206 @@ export function replaceAllCards(cards: Card[]): void {
   importCards(getDb(), cards);
 }
 
+const CARD_INSERT_SQL = `
+  INSERT INTO cards (
+    id, player, team, year, brand, set_name, variation,
+    autograph, memorabilia, serial_number, serial_current, serial_total,
+    card_number, grading, opening_date, protection, storage, photo,
+    tradable, rookie
+  ) VALUES (
+    @id, @player, @team, @year, @brand, @set_name, @variation,
+    @autograph, @memorabilia, @serial_number, @serial_current, @serial_total,
+    @card_number, @grading, @opening_date, @protection, @storage, @photo,
+    @tradable, @rookie
+  )
+`;
+
+const CARD_UPDATE_SQL = `
+  UPDATE cards SET
+    player = @player,
+    team = @team,
+    year = @year,
+    brand = @brand,
+    set_name = @set_name,
+    variation = @variation,
+    autograph = @autograph,
+    memorabilia = @memorabilia,
+    serial_number = @serial_number,
+    serial_current = @serial_current,
+    serial_total = @serial_total,
+    card_number = @card_number,
+    grading = @grading,
+    opening_date = @opening_date,
+    protection = @protection,
+    storage = @storage,
+    photo = @photo,
+    tradable = @tradable,
+    rookie = @rookie
+  WHERE id = @id
+`;
+
+export function readCardById(id: string): Card | null {
+  const row = getDb()
+    .prepare("SELECT * FROM cards WHERE id = ?")
+    .get(id) as Record<string, unknown> | undefined;
+  return row ? rowToCard(row) : null;
+}
+
+export function readCardsByPlayer(player: string): Card[] {
+  const rows = getDb()
+    .prepare(
+      "SELECT * FROM cards WHERE player = ? ORDER BY year DESC, brand, set_name, variation"
+    )
+    .all(player) as Record<string, unknown>[];
+  return rows.map(rowToCard);
+}
+
+export function getNextCardId(): string {
+  const row = getDb()
+    .prepare(
+      `SELECT id FROM cards
+       WHERE id GLOB 'card-[0-9]*'
+       ORDER BY CAST(SUBSTR(id, 6) AS INTEGER) DESC
+       LIMIT 1`
+    )
+    .get() as { id: string } | undefined;
+  const maxId = row ? Number.parseInt(row.id.replace("card-", ""), 10) : 0;
+  return `card-${String(maxId + 1).padStart(4, "0")}`;
+}
+
+export function insertCard(card: Card): Card {
+  const normalized = normalizeCardSerialFields(card);
+  getDb().prepare(CARD_INSERT_SQL).run(cardToRow(normalized));
+  return normalized;
+}
+
+export function updateCard(card: Card): Card | null {
+  const normalized = normalizeCardSerialFields(card);
+  const result = getDb().prepare(CARD_UPDATE_SQL).run(cardToRow(normalized));
+  if (result.changes === 0) return null;
+  return normalized;
+}
+
+export function deleteCard(id: string): boolean {
+  const result = getDb().prepare("DELETE FROM cards WHERE id = ?").run(id);
+  return result.changes > 0;
+}
+
+export function readCollectionStats(): CollectionStats {
+  const row = getDb()
+    .prepare(
+      `SELECT
+        COUNT(*) as total,
+        COALESCE(SUM(autograph), 0) as autographs,
+        COALESCE(SUM(memorabilia), 0) as memorabilia,
+        COALESCE(SUM(CASE WHEN serial_number IS NOT NULL AND serial_number != '' THEN 1 ELSE 0 END), 0) as numbered,
+        COALESCE(SUM(rookie), 0) as rookies,
+        COALESCE(SUM(tradable), 0) as tradable
+      FROM cards`
+    )
+    .get() as Record<string, number>;
+  return {
+    total: Number(row.total),
+    autographs: Number(row.autographs),
+    memorabilia: Number(row.memorabilia),
+    numbered: Number(row.numbered),
+    rookies: Number(row.rookies),
+    tradable: Number(row.tradable),
+  };
+}
+
+function readCardCountsByColumn(
+  column: "brand" | "year" | "set_name"
+): ChartCountRow[] {
+  const rows = getDb()
+    .prepare(
+      `SELECT ${column} as name, COUNT(*) as count
+       FROM cards
+       WHERE ${column} IS NOT NULL AND ${column} != ''
+       GROUP BY ${column}`
+    )
+    .all() as { name: string; count: number }[];
+  return rows.map((row) => ({
+    name: String(row.name),
+    count: Number(row.count),
+  }));
+}
+
+export function readCardCountsByBrand(): ChartCountRow[] {
+  return readCardCountsByColumn("brand");
+}
+
+export function readCardCountsByYear(): ChartCountRow[] {
+  return readCardCountsByColumn("year");
+}
+
+export function readCardCountsBySet(): ChartCountRow[] {
+  return readCardCountsByColumn("set_name");
+}
+
+export function readTopPlayerCounts(limit = 10): ChartCountRow[] {
+  const rows = getDb()
+    .prepare(
+      `SELECT player as name, COUNT(*) as count
+       FROM cards
+       WHERE player != ''
+       GROUP BY player
+       ORDER BY count DESC, player COLLATE NOCASE ASC
+       LIMIT ?`
+    )
+    .all(limit) as { name: string; count: number }[];
+  return rows.map((row) => ({
+    name: String(row.name),
+    count: Number(row.count),
+  }));
+}
+
+export function readRecentCards(limit = 8): Card[] {
+  const rows = getDb()
+    .prepare(
+      `SELECT * FROM cards
+       WHERE opening_date IS NOT NULL AND opening_date != ''
+       ORDER BY
+         SUBSTR(opening_date, 7, 4) || SUBSTR(opening_date, 4, 2) || SUBSTR(opening_date, 1, 2) DESC,
+         id ASC
+       LIMIT ?`
+    )
+    .all(limit) as Record<string, unknown>[];
+  return rows.map(rowToCard);
+}
+
+export function readPlayerSummaries(): PlayerSummaryRow[] {
+  const rows = getDb()
+    .prepare(
+      `SELECT
+        player as name,
+        MIN(team) as team,
+        COUNT(*) as count,
+        COALESCE(SUM(autograph), 0) as autos,
+        COALESCE(SUM(memorabilia), 0) as memos,
+        COALESCE(SUM(CASE WHEN serial_number IS NOT NULL AND serial_number != '' THEN 1 ELSE 0 END), 0) as serials,
+        COALESCE(SUM(rookie), 0) as rookies
+      FROM cards
+      WHERE player != ''
+      GROUP BY player
+      ORDER BY count DESC, player COLLATE NOCASE ASC`
+    )
+    .all() as Record<string, number | string>[];
+  return rows.map((row) => ({
+    name: String(row.name),
+    team: String(row.team),
+    count: Number(row.count),
+    autos: Number(row.autos),
+    memos: Number(row.memos),
+    serials: Number(row.serials),
+    rookies: Number(row.rookies),
+  }));
+}
+
+export function getDbFilePath(): string {
+  return getDbPath();
+}
+
 export function readReferencesState(): References {
   const row = getDb()
     .prepare("SELECT payload FROM references_state WHERE id = 1")
@@ -688,9 +907,28 @@ export function writeReferencesState(refs: References): void {
 export function getDatabaseHealth(): {
   ok: boolean;
   data: Record<string, boolean>;
+  dataDirWritable: boolean;
+  dbSizeBytes: number | null;
 } {
   try {
     const db = getDb();
+    const dbPath = getDbPath();
+    const dataDir = path.dirname(dbPath);
+    let dataDirWritable = false;
+    let dbSizeBytes: number | null = null;
+    try {
+      fs.accessSync(dataDir, fs.constants.W_OK);
+      dataDirWritable = true;
+    } catch {
+      dataDirWritable = false;
+    }
+    try {
+      const stat = fs.statSync(dbPath);
+      dbSizeBytes = stat.size;
+    } catch {
+      dbSizeBytes = null;
+    }
+
     const cards = (
       db.prepare("SELECT COUNT(*) as count FROM cards").get() as { count: number }
     ).count;
@@ -728,6 +966,8 @@ export function getDatabaseHealth(): {
         wanted: wanted > 0,
         frNba: frNba > 0,
       },
+      dataDirWritable,
+      dbSizeBytes,
     };
   } catch {
     return {
@@ -740,6 +980,8 @@ export function getDatabaseHealth(): {
         wanted: false,
         frNba: false,
       },
+      dataDirWritable: false,
+      dbSizeBytes: null,
     };
   }
 }

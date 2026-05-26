@@ -1,6 +1,10 @@
 import dynamic from "next/dynamic";
-import { Suspense } from "react";
-import { getCollection, getReferences } from "@/lib/data";
+import {
+  getCollectionStats,
+  getDashboardChartData,
+  getRecentCards,
+  getReferences,
+} from "@/lib/data";
 import { getTranslations } from "@/i18n/server";
 import { PageHeader } from "@/components/page-header";
 import { StatsCards } from "@/components/stats-cards";
@@ -14,8 +18,10 @@ const DashboardCharts = dynamic(
 );
 
 export default async function DashboardPage() {
-  const cards = getCollection();
   const references = getReferences();
+  const stats = getCollectionStats();
+  const recentCards = getRecentCards(8);
+  const chartData = getDashboardChartData(references);
   const { t, locale } = await getTranslations();
   const badgeLabels = {
     rookie: t("badges.rookie"),
@@ -33,7 +39,7 @@ export default async function DashboardPage() {
       />
 
       <StatsCards
-        cards={cards}
+        stats={stats}
         labels={{
           total: t("dashboard.stats.total"),
           autographs: t("dashboard.stats.autographs"),
@@ -43,11 +49,9 @@ export default async function DashboardPage() {
           tradable: t("dashboard.stats.tradable"),
         }}
       />
-      <Suspense fallback={<ChartSkeleton />}>
-        <DashboardCharts cards={cards} references={references} />
-      </Suspense>
+      <DashboardCharts chartData={chartData} />
       <RecentCards
-        cards={cards}
+        cards={recentCards}
         title={t("dashboard.recentAdditions")}
         badgeLabels={badgeLabels}
         locale={locale}

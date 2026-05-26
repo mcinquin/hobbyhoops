@@ -13,6 +13,7 @@ import {
 import { getRequestTranslator } from "@/i18n/request";
 import { parseJsonBody } from "@/lib/parse-json-body";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
+import { rejectWriteRateLimit } from "@/lib/api-write-rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -25,9 +26,17 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const gate = requireAuth(request);
   if (gate instanceof NextResponse) return gate;
-  const crossSite = rejectCrossSiteMutation(request);
+  const crossSite = rejectCrossSiteMutation(request, {
+    requireFetchMetadata: true,
+  });
   if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
+
+  const rateLimited = rejectWriteRateLimit(request, `fr-nba:write:${gate.userId}`, {
+    limit: 60,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (rateLimited) return rateLimited;
 
   const parsedBody = await parseJsonBody(request);
   if (!parsedBody.ok) return parsedBody.response;
@@ -47,9 +56,17 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   const gate = requireAuth(request);
   if (gate instanceof NextResponse) return gate;
-  const crossSite = rejectCrossSiteMutation(request);
+  const crossSite = rejectCrossSiteMutation(request, {
+    requireFetchMetadata: true,
+  });
   if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
+
+  const rateLimited = rejectWriteRateLimit(request, `fr-nba:write:${gate.userId}`, {
+    limit: 60,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (rateLimited) return rateLimited;
 
   const parsedBody = await parseJsonBody(request);
   if (!parsedBody.ok) return parsedBody.response;

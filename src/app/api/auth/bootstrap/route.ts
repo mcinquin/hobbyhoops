@@ -14,7 +14,7 @@ import {
 } from "@/lib/bootstrap-token";
 import { hashPassword } from "@/lib/password";
 import { parseJsonBody } from "@/lib/parse-json-body";
-import { bootstrapFirstUser, type UserRecord } from "@/lib/users-store";
+import { bootstrapFirstUser, countUsers, type UserRecord } from "@/lib/users-store";
 import { authMisconfiguredResponse } from "@/lib/auth-config";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
@@ -29,6 +29,14 @@ export async function POST(request: NextRequest) {
   if (crossSite) return crossSite;
 
   const t = getRequestTranslator(request);
+
+  if (countUsers() > 0) {
+    return NextResponse.json(
+      { error: t("errors.bootstrapUnavailable") },
+      { status: 403 }
+    );
+  }
+
   const ip = getClientIp(request);
   const limit = checkRateLimit(`bootstrap:${ip}`, {
     limit: 5,
