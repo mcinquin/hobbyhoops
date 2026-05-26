@@ -33,3 +33,6 @@ coverage/
 # Misc
 *.pem
 *.key
+
+# Scripts locaux (credentials dev, non versionnés)
+scripts/reset-user-dev.mjs
