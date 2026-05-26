@@ -60,3 +60,39 @@ export interface References {
   protections: string[];
   storages: string[];
 }
+
+export type ChartCountRow = { name: string; count: number };
+
+export interface CollectionStats {
+  total: number;
+  autographs: number;
+  memorabilia: number;
+  numbered: number;
+  rookies: number;
+  tradable: number;
+}
+
+export interface PlayerSummaryRow {
+  name: string;
+  team: string;
+  count: number;
+  autos: number;
+  memos: number;
+  serials: number;
+  rookies: number;
+}
+
+export interface CardsPageResult {
+  cards: Card[];
+  totalCount: number;
+  pageCount: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface DashboardChartData {
+  brandData: ChartCountRow[];
+  yearData: ChartCountRow[];
+  setData: ChartCountRow[];
+  playerData: ChartCountRow[];
+}

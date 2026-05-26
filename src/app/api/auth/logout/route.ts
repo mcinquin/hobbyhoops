@@ -5,7 +5,9 @@ import { deleteStoredSession } from "@/lib/session-store";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
 
 export async function POST(request: NextRequest) {
-  const crossSite = rejectCrossSiteMutation(request);
+  const crossSite = rejectCrossSiteMutation(request, {
+    requireFetchMetadata: true,
+  });
   if (crossSite) return crossSite;
 
   const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;

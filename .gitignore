@@ -34,5 +34,6 @@ coverage/
 *.pem
 *.key
 
-# Scripts locaux (credentials dev, non versionnés)
+# Scripts locaux (credentials dev, backup, non versionnés)
 scripts/reset-user-dev.mjs
+scripts/backup-db.sh

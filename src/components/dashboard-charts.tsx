@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  buildChartCountData,
-  chartDataWithCards,
-  referenceSetNames,
-} from "@/lib/dashboard-chart-data";
-import { Card, type References } from "@/lib/types";
+import type { DashboardChartData } from "@/lib/types";
 import type { KeyboardEvent } from "react";
 import { useMemo, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
@@ -21,8 +16,7 @@ import {
 } from "recharts";
 
 interface DashboardChartsProps {
-  cards: Card[];
-  references: References;
+  chartData: DashboardChartData;
 }
 
 /** Couleur des barres « par année » — aussi utilisée pour le libellé du tooltip au survol. */
@@ -92,7 +86,7 @@ function subscribeMobile(cb: () => void) {
 const getMobileSnapshot = () => window.matchMedia(MOBILE_MQ).matches;
 const getMobileServerSnapshot = () => false;
 
-export function DashboardCharts({ cards, references }: DashboardChartsProps) {
+export function DashboardCharts({ chartData }: DashboardChartsProps) {
   const t = useTranslations();
   const router = useRouter();
   const cardsLabel = t("common.cardsLabel");
@@ -128,36 +122,13 @@ export function DashboardCharts({ cards, references }: DashboardChartsProps) {
     openCollectionFilter(key, value);
   }
 
-  const brandData = chartDataWithCards(
-    buildChartCountData(references.brands, cards, (card) => card.brand)
-  ).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
-
-  const yearData = chartDataWithCards(
-    buildChartCountData(references.years, cards, (card) => card.year)
-  ).sort((a, b) => a.name.localeCompare(b.name));
-
-  const setData = chartDataWithCards(
-    buildChartCountData(referenceSetNames(references), cards, (card) => card.set)
-  ).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  const { brandData, yearData, setData, playerData } = chartData;
 
   const displaySetData = useMemo(
     () => (isMobile ? setData.slice(0, MOBILE_SET_LIMIT) : setData),
     [isMobile, setData]
   );
   const setDataTruncated = isMobile && setData.length > MOBILE_SET_LIMIT;
-
-  const playerData = Object.entries(
-    cards.reduce(
-      (acc, c) => {
-        if (c.player) acc[c.player] = (acc[c.player] || 0) + 1;
-        return acc;
-      },
-      {} as Record<string, number>
-    )
-  )
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10)
-    .map(([name, count]) => ({ name, count }));
 
   return (
     <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">

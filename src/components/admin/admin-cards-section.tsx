@@ -25,6 +25,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { AdminFeedback } from "@/components/admin/admin-feedback";
+import { fetchAllCardsFromApi } from "@/lib/cards-client";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { useTranslations } from "@/i18n/client";
 import { useClampedPage } from "@/hooks/use-clamped-page";
@@ -34,6 +35,7 @@ interface AdminCardsSectionProps {
   references: References;
   onCardsChange: (cards: Card[]) => void;
   onReferencesChange: (references: References) => void;
+  onTotalCountChange?: (count: number) => void;
 }
 
 export function AdminCardsSection({
@@ -41,6 +43,7 @@ export function AdminCardsSection({
   references,
   onCardsChange,
   onReferencesChange,
+  onTotalCountChange,
 }: AdminCardsSectionProps) {
   const t = useTranslations();
   const [search, setSearch] = useState("");
@@ -176,16 +179,14 @@ export function AdminCardsSection({
   const paged = filtered.slice(page * pageSize, (page + 1) * pageSize);
 
   async function refreshCards(): Promise<Card[]> {
-    const res = await fetch("/api/cards", {
-      credentials: "include",
-      cache: "no-store",
-    });
-    if (!res.ok) {
+    try {
+      const data = await fetchAllCardsFromApi();
+      onCardsChange(data);
+      onTotalCountChange?.(data.length);
+      return data;
+    } catch {
       return cards;
     }
-    const data = (await res.json()) as Card[];
-    onCardsChange(data);
-    return data;
   }
 
   async function handleSave(cardData: Partial<Card>): Promise<boolean> {
@@ -263,7 +264,9 @@ export function AdminCardsSection({
       credentials: "include",
     });
     if (res.ok) {
-      onCardsChange(cards.filter((c) => c.id !== deleteTarget.id));
+      const nextCards = cards.filter((c) => c.id !== deleteTarget.id);
+      onCardsChange(nextCards);
+      onTotalCountChange?.(nextCards.length);
       setSuccess(t("admin.cards.deleted"));
     }
     setDeleteTarget(null);

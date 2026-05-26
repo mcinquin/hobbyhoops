@@ -35,6 +35,13 @@ export async function saveUsers(users: UserRecord[]): Promise<void> {
   });
 }
 
+export function countUsers(): number {
+  const row = getDb()
+    .prepare("SELECT COUNT(*) as count FROM users")
+    .get() as { count: number };
+  return row.count;
+}
+
 export async function bootstrapFirstUser(
   user: UserRecord
 ): Promise<"created" | "exists"> {

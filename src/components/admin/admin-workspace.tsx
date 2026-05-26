@@ -1,29 +1,72 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState, useMemo, useCallback } from "react";
 import { Card, References } from "@/lib/types";
-import { AdminCardsSection } from "@/components/admin/admin-cards-section";
-import { AdminPlayersSection } from "@/components/admin/admin-players-section";
-import { AdminCatalogSection } from "@/components/admin/admin-catalog-section";
-import { AdminClubsSection } from "@/components/admin/admin-clubs-section";
-import { AdminYearsSection } from "@/components/admin/admin-years-section";
+import { fetchAllCardsFromApi } from "@/lib/cards-client";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RefreshCw } from "lucide-react";
 import { useTranslations } from "@/i18n/client";
+import { AdminTabLoading } from "@/components/admin/admin-tab-loading";
+
+const adminTabLoading = () => <AdminTabLoading />;
+
+const AdminCardsSection = dynamic(
+  () =>
+    import("@/components/admin/admin-cards-section").then(
+      (mod) => mod.AdminCardsSection
+    ),
+  { loading: adminTabLoading }
+);
+
+const AdminPlayersSection = dynamic(
+  () =>
+    import("@/components/admin/admin-players-section").then(
+      (mod) => mod.AdminPlayersSection
+    ),
+  { loading: adminTabLoading }
+);
+
+const AdminCatalogSection = dynamic(
+  () =>
+    import("@/components/admin/admin-catalog-section").then(
+      (mod) => mod.AdminCatalogSection
+    ),
+  { loading: adminTabLoading }
+);
+
+const AdminClubsSection = dynamic(
+  () =>
+    import("@/components/admin/admin-clubs-section").then(
+      (mod) => mod.AdminClubsSection
+    ),
+  { loading: adminTabLoading }
+);
+
+const AdminYearsSection = dynamic(
+  () =>
+    import("@/components/admin/admin-years-section").then(
+      (mod) => mod.AdminYearsSection
+    ),
+  { loading: adminTabLoading }
+);
 
 interface AdminWorkspaceProps {
   initialCards: Card[];
+  totalCardCount: number;
   initialReferences: References;
 }
 
 export function AdminWorkspace({
   initialCards,
+  totalCardCount,
   initialReferences,
 }: AdminWorkspaceProps) {
   const t = useTranslations();
   const [cards, setCards] = useState(initialCards);
+  const [totalCount, setTotalCount] = useState(totalCardCount);
   const [references, setReferences] = useState(initialReferences);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,19 +85,20 @@ export function AdminWorkspace({
 
   const fetchAdminData = useCallback(async () => {
     const fetchOpts = { credentials: "include" as const, cache: "no-store" as const };
-    const [cardsRes, refsRes] = await Promise.all([
-      fetch("/api/cards", fetchOpts),
+    const [cardsList, refsRes] = await Promise.all([
+      fetchAllCardsFromApi(),
       fetch("/api/references", fetchOpts),
     ]);
-    if (cardsRes.status === 401 || refsRes.status === 401) {
+    if (refsRes.status === 401) {
       window.location.href = "/login";
       return null;
     }
-    if (!cardsRes.ok || !refsRes.ok) {
+    if (!refsRes.ok) {
       throw new Error(t("admin.loadFailed"));
     }
     return {
-      cards: (await cardsRes.json()) as Card[],
+      cards: cardsList,
+      totalCount: cardsList.length,
       references: (await refsRes.json()) as References,
     };
   }, [t]);
@@ -66,6 +110,7 @@ export function AdminWorkspace({
       const data = await fetchAdminData();
       if (!data) return;
       setCards(data.cards);
+      setTotalCount(data.totalCount);
       setReferences(data.references);
     } catch {
       setError(t("admin.loadError"));
@@ -89,7 +134,7 @@ export function AdminWorkspace({
     <div className="min-w-0 space-y-6">
       <PageHeader
         title={t("admin.title")}
-        subtitle={t("admin.subtitle", { count: cards.length })}
+        subtitle={t("admin.subtitle", { count: totalCount })}
         actions={
           <Button
             variant="outline"
@@ -133,40 +178,51 @@ export function AdminWorkspace({
         </TabsList>
 
         <TabsContent value="cards" className="pt-6">
-          <AdminCardsSection
-            cards={cards}
-            references={references}
-            onCardsChange={setCards}
-            onReferencesChange={setReferences}
-          />
+          {activeTab === "cards" ? (
+            <AdminCardsSection
+              cards={cards}
+              references={references}
+              onCardsChange={setCards}
+              onReferencesChange={setReferences}
+              onTotalCountChange={setTotalCount}
+            />
+          ) : null}
         </TabsContent>
 
         <TabsContent value="players" className="pt-6">
-          <AdminPlayersSection
-            references={references}
-            onReferencesChange={setReferences}
-          />
+          {activeTab === "players" ? (
+            <AdminPlayersSection
+              references={references}
+              onReferencesChange={setReferences}
+            />
+          ) : null}
         </TabsContent>
 
         <TabsContent value="catalog" className="pt-6">
-          <AdminCatalogSection
-            references={references}
-            onReferencesChange={setReferences}
-          />
+          {activeTab === "catalog" ? (
+            <AdminCatalogSection
+              references={references}
+              onReferencesChange={setReferences}
+            />
+          ) : null}
         </TabsContent>
 
         <TabsContent value="clubs" className="pt-6">
-          <AdminClubsSection
-            references={references}
-            onReferencesChange={setReferences}
-          />
+          {activeTab === "clubs" ? (
+            <AdminClubsSection
+              references={references}
+              onReferencesChange={setReferences}
+            />
+          ) : null}
         </TabsContent>
 
         <TabsContent value="years" className="pt-6">
-          <AdminYearsSection
-            references={references}
-            onReferencesChange={setReferences}
-          />
+          {activeTab === "years" ? (
+            <AdminYearsSection
+              references={references}
+              onReferencesChange={setReferences}
+            />
+          ) : null}
         </TabsContent>
       </Tabs>
     </div>

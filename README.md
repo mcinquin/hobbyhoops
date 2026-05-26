@@ -4,7 +4,7 @@ Next.js application for managing an NBA card collection: collection browsing, pl
 
 ## Requirements
 
-- Node.js 24 (voir `.nvmrc`)
+- Node.js 24 (see `.nvmrc`)
 - npm
 
 ## Local Setup
@@ -44,6 +44,34 @@ npm run clean      # removes .next, TypeScript caches, etc.
 Everything is stored in **`data/hobbyhoops.db`** (SQLite via `better-sqlite3`): collection, references, accounts, sessions, and rate limiting. This file and its WAL journals are **local** and must **never** be committed.
 
 On first launch, an empty database is created; create the administrator account from the login screen.
+
+### Backup (production host)
+
+The SQLite file is the single source of truth. Back it up **on the host** (the production container has no `sqlite3` CLI). Keep a local script or cron on the server — it is **not** versioned in this repository.
+
+```bash
+# Prerequisite: sqlite3 (apt install sqlite3)
+mkdir -p data/backups
+sqlite3 data/hobbyhoops.db ".backup 'data/backups/hobbyhoops-$(date +%Y-%m-%dT%H-%M-%S).db'"
+# Optional: delete backups older than 14 days
+find data/backups -maxdepth 1 -name 'hobbyhoops-*.db' -mtime +14 -delete
+```
+
+Daily cron example:
+
+```bash
+0 3 * * * cd /path/to/hobbyhoops && mkdir -p data/backups && sqlite3 data/hobbyhoops.db ".backup 'data/backups/hobbyhoops-$(date +\%Y-\%m-\%dT\%H-\%M-\%S).db'" && find data/backups -maxdepth 1 -name 'hobbyhoops-*.db' -mtime +14 -delete >> /var/log/hobbyhoops-backup.log 2>&1
+```
+
+Restore:
+
+```bash
+docker compose stop app
+cp data/backups/hobbyhoops-YYYY-MM-DDTHH-MM-SS.db data/hobbyhoops.db
+docker compose start app
+```
+
+Backups are stored in `data/backups/` (gitignored). See [SECURITY.md](SECURITY.md).
 
 ## Docker
 
@@ -139,7 +167,8 @@ Never push `.env`, `.env.local`, local accounts, or the development SQLite datab
 
 ## Code Quality
 
-- **`npm run ci`**: local checks without network dependency (Node, lint, typecheck)
+- **`npm run ci`**: local checks without network dependency (Node, lint, typecheck, tests)
+- **`npm run test`**: Vitest unit tests (auth, CSRF, collection query, card CRUD)
 - **`npm run ci:full`**: GitHub Actions checks with npm audit high+
 - **Husky**: `pre-commit` (ESLint on staged files), `pre-push` (`npm run ci`), `commit-msg` (commitlint conventional)
 - **Dependabot**: weekly npm and GitHub Actions updates
