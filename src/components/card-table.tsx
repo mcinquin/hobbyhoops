@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useId, useRef } from "react";
+import { useState, useMemo, useEffect, useId } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -25,7 +25,7 @@ import { SortableTableHead } from "@/components/data-table/sortable-table-head";
 import { PaginationControls } from "@/components/data-table/pagination-controls";
 import { ColumnFilterCombobox } from "@/components/column-filter-combobox";
 import { FilterChipButton } from "@/components/filter-chip-button";
-import { SearchField } from "@/components/search-field";
+import { CollectionSearchInput } from "@/components/collection-search-input";
 import { useCardBadgeLabels } from "@/hooks/use-card-badge-labels";
 import { useCollectionUrlFilters } from "@/hooks/use-collection-url-filters";
 import {
@@ -36,61 +36,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useTranslations } from "@/i18n/client";
-
-/**
- * Isolated search input — its own useState + debounce so that
- * every keystroke only re-renders THIS tiny component, not the
- * entire CardTable (heavy: TanStack table, comboboxes, etc.).
- *
- * External URL changes (e.g. "reset filters" link) are detected via
- * the getDerivedStateFromProps pattern (calling setState during render),
- * which is React's official approach for syncing state from props without
- * using effects. The `sentValue` state prevents re-syncing our own URL updates.
- */
-function SearchInput({
-  urlValue,
-  onSearch,
-  label,
-  placeholder,
-}: {
-  urlValue: string;
-  onSearch: (value: string) => void;
-  label: string;
-  placeholder: string;
-}) {
-  const [inputValue, setInputValue] = useState(urlValue);
-  const [prevUrlValue, setPrevUrlValue] = useState(urlValue);
-  // Tracks the value we last sent via onSearch — distinguishes our own
-  // URL updates from external navigation/resets.
-  const [sentValue, setSentValue] = useState(urlValue);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // getDerivedStateFromProps: sync input when URL changes externally.
-  if (prevUrlValue !== urlValue) {
-    setPrevUrlValue(urlValue);
-    if (sentValue !== urlValue) {
-      setInputValue(urlValue);
-    }
-  }
-
-  function handleChange(newValue: string) {
-    setInputValue(newValue);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setSentValue(newValue);
-      onSearch(newValue);
-    }, 300);
-  }
-
-  return (
-    <SearchField
-      value={inputValue}
-      onChange={handleChange}
-      label={label}
-      placeholder={placeholder}
-    />
-  );
-}
 
 const SORT_COLUMN_KEYS = [
   "player",
@@ -308,7 +253,7 @@ export function CardTable({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-4">
-        <SearchInput
+        <CollectionSearchInput
           urlValue={urlFilters.search}
           onSearch={(value) =>
             updateFilters({ search: value }, { immediate: true })

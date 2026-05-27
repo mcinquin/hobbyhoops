@@ -22,7 +22,6 @@ import { CardBadges } from "@/components/card-badges";
 import { ColumnFilterCombobox } from "@/components/column-filter-combobox";
 import { PaginationControls } from "@/components/data-table/pagination-controls";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -39,7 +38,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { AdminFeedback } from "@/components/admin/admin-feedback";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
+import { CollectionSearchInput } from "@/components/collection-search-input";
 import { useTranslations } from "@/i18n/client";
 import { useCollectionUrlFilters } from "@/hooks/use-collection-url-filters";
 import { useCardBadgeLabels } from "@/hooks/use-card-badge-labels";
@@ -242,18 +242,14 @@ export function AdminCardsSection({
         onSuccessDismiss={() => setSuccess(null)}
       />
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder={t("admin.cards.search")}
-          value={filters.search}
-          onChange={(e) =>
-            updateFilters({ search: e.target.value, page: 1 })
-          }
-          className="pl-9"
-          aria-label={t("admin.cards.search")}
-        />
-      </div>
+      <CollectionSearchInput
+        urlValue={filters.search}
+        onSearch={(value) =>
+          applyAdminFilters({ search: value }, { immediate: true })
+        }
+        label={t("admin.cards.search")}
+        placeholder={t("admin.cards.search")}
+      />
 
       <div className="grid gap-2 md:hidden">
         <ColumnFilterCombobox
