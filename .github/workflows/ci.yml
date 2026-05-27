@@ -92,6 +92,9 @@ jobs:
       - name: semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Évite pre-push → npm run ci pendant le push @semantic-release/git
+          # (quality a déjà validé la branche ; AUTH_SECRET absent ici sinon).
+          HUSKY: "0"
         run: npm run release
 
       - name: Détecter la release publiée

@@ -1,1 +1,6 @@
+# En CI, le workflow a déjà exécuté npm run ci:full (job quality).
+if [ "$CI" = "true" ]; then
+  exit 0
+fi
+
 npm run ci
