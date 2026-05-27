@@ -1,6 +1,6 @@
 "use client";
 
-import { Card } from "@/lib/types";
+import type { CardListItem } from "@/lib/types";
 import { CardBadges } from "@/components/card-badges";
 import { formatOpeningDateLabel } from "@/lib/opening-date";
 import {
@@ -18,7 +18,7 @@ import { useCardBadgeLabels } from "@/hooks/use-card-badge-labels";
 import { useI18n, useTranslations } from "@/i18n/client";
 
 interface CardDetailProps {
-  card: Card;
+  card: CardListItem;
   open: boolean;
   onClose: () => void;
 }

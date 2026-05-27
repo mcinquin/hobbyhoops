@@ -144,17 +144,8 @@ export function buildCollectionWhereClause(
 
   if (query.search.trim()) {
     const pattern = `%${escapeLike(query.search.trim().toLowerCase())}%`;
-    clauses.push(
-      `(LOWER(player) LIKE ? ESCAPE '\\'
-        OR LOWER(team) LIKE ? ESCAPE '\\'
-        OR LOWER(COALESCE(year, '')) LIKE ? ESCAPE '\\'
-        OR LOWER(brand) LIKE ? ESCAPE '\\'
-        OR LOWER(set_name) LIKE ? ESCAPE '\\'
-        OR LOWER(variation) LIKE ? ESCAPE '\\'
-        OR LOWER(COALESCE(card_number, '')) LIKE ? ESCAPE '\\'
-        OR LOWER(COALESCE(serial_number, '')) LIKE ? ESCAPE '\\')`
-    );
-    for (let i = 0; i < 8; i += 1) params.push(pattern);
+    clauses.push("search_text LIKE ? ESCAPE '\\'");
+    params.push(pattern);
   }
 
   if (query.player.trim()) {

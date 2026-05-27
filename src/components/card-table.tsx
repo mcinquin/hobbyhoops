@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useId, useRef } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import {
   useReactTable,
   getCoreRowModel,
@@ -9,12 +10,14 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table";
 import {
+  COLLECTION_PAGE_SIZE,
   COLLECTION_TAG_VALUES,
   setsForBrandFilter,
   variationsForFilters,
   type CollectionSortKey,
 } from "@/lib/collection-query";
-import { Card, type References } from "@/lib/types";
+import { collectionQueryToSearchParams } from "@/lib/cards-client";
+import type { CardListItem, ReferencesFilterIndex } from "@/lib/types";
 import { CardBadges } from "@/components/card-badges";
 import { CardDetail } from "@/components/card-detail";
 import { ClickableTableRow } from "@/components/data-table/clickable-table-row";
@@ -99,21 +102,23 @@ const SORT_COLUMN_KEYS = [
 ] as const satisfies readonly CollectionSortKey[];
 
 interface CardTableProps {
-  cards: Card[];
+  cards: CardListItem[];
   totalCount: number;
   pageCount: number;
-  references: References;
+  referenceFilters: ReferencesFilterIndex;
 }
 
 export function CardTable({
   cards,
   totalCount,
   pageCount,
-  references,
+  referenceFilters,
 }: CardTableProps) {
   const t = useTranslations();
   const yearSelectId = useId();
-  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const [selectedCard, setSelectedCard] = useState<CardListItem | null>(null);
   const {
     filters: urlFilters,
     updateFilters,
@@ -146,7 +151,7 @@ export function CardTable({
 
   const badgeLabels = useCardBadgeLabels();
 
-  const columns: ColumnDef<Card>[] = useMemo(
+  const columns: ColumnDef<CardListItem>[] = useMemo(
     () => [
       {
         accessorKey: "player",
@@ -222,18 +227,18 @@ export function CardTable({
   });
 
   const setSuggestions = useMemo(
-    () => setsForBrandFilter(references, urlFilters.brand),
-    [references, urlFilters.brand]
+    () => setsForBrandFilter(referenceFilters, urlFilters.brand),
+    [referenceFilters, urlFilters.brand]
   );
 
   const variationSuggestions = useMemo(
     () =>
       variationsForFilters(
-        references,
+        referenceFilters,
         urlFilters.brand,
         urlFilters.set
       ),
-    [references, urlFilters.brand, urlFilters.set]
+    [referenceFilters, urlFilters.brand, urlFilters.set]
   );
 
   useEffect(() => {
@@ -262,6 +267,21 @@ export function CardTable({
     }
   }, [urlFilters.variation, variationSuggestions, updateFilters]);
 
+  useEffect(() => {
+    const targets: number[] = [];
+    if (urlFilters.page > 1) targets.push(urlFilters.page - 1);
+    if (urlFilters.page < pageCount) targets.push(urlFilters.page + 1);
+
+    for (const page of targets) {
+      const params = collectionQueryToSearchParams(
+        { ...urlFilters, page },
+        { persistPageSize: urlFilters.pageSize !== COLLECTION_PAGE_SIZE }
+      );
+      const qs = params.toString();
+      router.prefetch(qs ? `${pathname}?${qs}` : pathname);
+    }
+  }, [urlFilters, pageCount, pathname, router]);
+
   const activeFilters = useMemo(
     () =>
       [
@@ -287,7 +307,6 @@ export function CardTable({
 
   return (
     <div className="space-y-4">
-      {/* Search and filters */}
       <div className="flex flex-col gap-4">
         <SearchInput
           urlValue={urlFilters.search}
@@ -303,14 +322,14 @@ export function CardTable({
             value={urlFilters.player}
             onChange={(value) => updateFilters({ player: value })}
             placeholder={t("cards.filterPlayer")}
-            suggestions={references.players}
+            suggestions={referenceFilters.players}
             className="h-9 text-xs lg:h-8 lg:w-40"
           />
           <ColumnFilterCombobox
             value={urlFilters.team}
             onChange={(value) => updateFilters({ team: value })}
             placeholder={t("cards.filterTeam")}
-            suggestions={references.teams}
+            suggestions={referenceFilters.teams}
             className="h-9 text-xs lg:h-8 lg:w-36"
           />
           <div className="flex flex-col gap-1">
@@ -326,7 +345,7 @@ export function CardTable({
               className="h-9 rounded-md border border-input bg-background px-2 text-xs lg:h-8"
             >
               <option value="">{t("cards.allYears")}</option>
-              {[...references.years].reverse().map((y) => (
+              {[...referenceFilters.years].reverse().map((y) => (
                 <option key={y} value={y}>
                   {y}
                 </option>
@@ -337,7 +356,7 @@ export function CardTable({
             value={urlFilters.brand}
             onChange={(value) => updateFilters({ brand: value })}
             placeholder={t("cards.allBrands")}
-            suggestions={references.brands}
+            suggestions={referenceFilters.brands}
             className="h-9 text-xs lg:h-8 lg:max-w-[200px]"
           />
           <ColumnFilterCombobox
@@ -357,7 +376,6 @@ export function CardTable({
             suggestions={variationSuggestions}
             className="h-9 text-xs sm:col-span-2 lg:h-8 lg:min-w-[160px] lg:max-w-[240px]"
           />
-
           <div className="flex flex-wrap gap-1 sm:col-span-2 lg:col-span-1">
             {COLLECTION_TAG_VALUES.map((tag) => (
               <FilterChipButton

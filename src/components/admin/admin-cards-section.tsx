@@ -1,12 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Card, References, type CardsPageResult } from "@/lib/types";
+import {
+  Card,
+  References,
+  type CardListItem,
+  type CardsPageResult,
+} from "@/lib/types";
 import {
   ADMIN_CARDS_PAGE_SIZE,
   COLLECTION_TAG_VALUES,
   setsForBrandFilter,
   variationsForFilters,
+  type CollectionListQuery,
 } from "@/lib/collection-query";
 import { createCard, deleteCard, fetchCardsPage, updateCard } from "@/lib/cards-client";
 import { fetchReferences } from "@/lib/references-client";
@@ -38,6 +44,10 @@ import { useTranslations } from "@/i18n/client";
 import { useCollectionUrlFilters } from "@/hooks/use-collection-url-filters";
 import { useCardBadgeLabels } from "@/hooks/use-card-badge-labels";
 
+function listItemToEditableCard(card: CardListItem): Card {
+  return { ...card, photo: null };
+}
+
 interface AdminCardsSectionProps {
   references: References;
   onReferencesChange: (references: References) => void;
@@ -60,25 +70,55 @@ export function AdminCardsSection({
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<Card | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Card | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CardListItem | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const columnSuggestions = useMemo(
-    () => ({
-      players: references.players,
-      teams: references.teams,
-      years: references.years,
-      brands: references.brands,
-      sets: setsForBrandFilter(references, filters.brand),
-      variations: variationsForFilters(
-        references,
-        filters.brand,
-        filters.set
-      ),
-    }),
-    [filters.brand, filters.set, references]
+  const applyAdminFilters = useCallback(
+    (
+      patch: Partial<CollectionListQuery>,
+      opts?: { immediate?: boolean; resetPage?: boolean }
+    ) => {
+      updateFilters({ ...patch, page: 1 }, opts);
+    },
+    [updateFilters]
   );
+
+  const setSuggestions = useMemo(
+    () => setsForBrandFilter(references, filters.brand),
+    [references, filters.brand]
+  );
+
+  const variationSuggestions = useMemo(
+    () => variationsForFilters(references, filters.brand, filters.set),
+    [references, filters.brand, filters.set]
+  );
+
+  useEffect(() => {
+    if (!filters.brand) {
+      if (filters.set) applyAdminFilters({ set: "" }, { immediate: true });
+      return;
+    }
+    if (
+      filters.set &&
+      !setSuggestions.some((setName) =>
+        setName.toLowerCase().includes(filters.set.toLowerCase())
+      )
+    ) {
+      applyAdminFilters({ set: "" }, { immediate: true });
+    }
+  }, [applyAdminFilters, filters.brand, filters.set, setSuggestions]);
+
+  useEffect(() => {
+    if (
+      filters.variation &&
+      !variationSuggestions.some((variation) =>
+        variation.toLowerCase().includes(filters.variation.toLowerCase())
+      )
+    ) {
+      applyAdminFilters({ variation: "" }, { immediate: true });
+    }
+  }, [applyAdminFilters, filters.variation, variationSuggestions]);
 
   const displayedCards = pageData?.cards ?? [];
   const selectedTags = useMemo(
@@ -218,23 +258,23 @@ export function AdminCardsSection({
       <div className="grid gap-2 md:hidden">
         <ColumnFilterCombobox
           value={filters.player}
-          onChange={(value) => updateFilters({ player: value, page: 1 })}
+          onChange={(value) => applyAdminFilters({ player: value })}
           placeholder={t("admin.cards.filterPlayerTeam")}
-          suggestions={columnSuggestions.players}
+          suggestions={references.players}
           className="h-9 text-xs"
         />
         <ColumnFilterCombobox
           value={filters.team}
-          onChange={(value) => updateFilters({ team: value, page: 1 })}
+          onChange={(value) => applyAdminFilters({ team: value })}
           placeholder={t("admin.cards.filterTeam")}
-          suggestions={columnSuggestions.teams}
+          suggestions={references.teams}
           className="h-9 text-xs"
         />
         <ColumnFilterCombobox
           value={filters.year}
-          onChange={(value) => updateFilters({ year: value, page: 1 })}
+          onChange={(value) => applyAdminFilters({ year: value })}
           placeholder={t("admin.cards.filterYear")}
-          suggestions={columnSuggestions.years}
+          suggestions={references.years}
           className="h-9 text-xs"
         />
         <div className="flex flex-wrap gap-1">
@@ -249,25 +289,23 @@ export function AdminCardsSection({
         </div>
         <ColumnFilterCombobox
           value={filters.brand}
-          onChange={(value) =>
-            updateFilters({ brand: value, set: "", page: 1 })
-          }
+          onChange={(value) => applyAdminFilters({ brand: value, set: "" })}
           placeholder={t("admin.cards.filterBrand")}
-          suggestions={columnSuggestions.brands}
+          suggestions={references.brands}
           className="h-9 text-xs"
         />
         <ColumnFilterCombobox
           value={filters.set}
-          onChange={(value) => updateFilters({ set: value, page: 1 })}
+          onChange={(value) => applyAdminFilters({ set: value })}
           placeholder={t("admin.cards.filterSet")}
-          suggestions={columnSuggestions.sets}
+          suggestions={setSuggestions}
           className="h-9 text-xs"
         />
         <ColumnFilterCombobox
           value={filters.variation}
-          onChange={(value) => updateFilters({ variation: value, page: 1 })}
+          onChange={(value) => applyAdminFilters({ variation: value })}
           placeholder={t("admin.cards.filterVariation")}
-          suggestions={columnSuggestions.variations}
+          suggestions={variationSuggestions}
           className="h-9 text-xs"
         />
       </div>
@@ -306,7 +344,7 @@ export function AdminCardsSection({
                       player: card.player,
                     })}
                     onClick={() => {
-                      setEditingCard(card);
+                      setEditingCard(listItemToEditableCard(card));
                       setSaveError(null);
                       setFormOpen(true);
                     }}
@@ -358,7 +396,7 @@ export function AdminCardsSection({
                     updateFilters({ player: value, page: 1 }, { immediate: true })
                   }
                   placeholder={t("admin.cards.filterPlayerTeam")}
-                  suggestions={columnSuggestions.players}
+                  suggestions={references.players}
                   className="h-8 min-w-44 text-xs font-normal"
                 />
               </TableHead>
@@ -369,7 +407,7 @@ export function AdminCardsSection({
                     updateFilters({ team: value, page: 1 }, { immediate: true })
                   }
                   placeholder={t("admin.cards.filterTeam")}
-                  suggestions={columnSuggestions.teams}
+                  suggestions={references.teams}
                   className="h-8 min-w-36 text-xs font-normal"
                 />
               </TableHead>
@@ -380,7 +418,7 @@ export function AdminCardsSection({
                     updateFilters({ year: value, page: 1 }, { immediate: true })
                   }
                   placeholder={t("admin.cards.filterYear")}
-                  suggestions={columnSuggestions.years}
+                  suggestions={references.years}
                   className="h-8 min-w-24 text-xs font-normal"
                 />
               </TableHead>
@@ -394,7 +432,7 @@ export function AdminCardsSection({
                     )
                   }
                   placeholder={t("admin.cards.filterBrand")}
-                  suggestions={columnSuggestions.brands}
+                  suggestions={references.brands}
                   className="h-8 min-w-36 text-xs font-normal"
                 />
               </TableHead>
@@ -405,7 +443,7 @@ export function AdminCardsSection({
                     updateFilters({ set: value, page: 1 }, { immediate: true })
                   }
                   placeholder={t("admin.cards.filterSet")}
-                  suggestions={columnSuggestions.sets}
+                  suggestions={setSuggestions}
                   className="h-8 min-w-44 text-xs font-normal"
                 />
               </TableHead>
@@ -418,7 +456,7 @@ export function AdminCardsSection({
                     })
                   }
                   placeholder={t("admin.cards.filterVariation")}
-                  suggestions={columnSuggestions.variations}
+                  suggestions={variationSuggestions}
                   className="h-8 min-w-40 text-xs font-normal"
                 />
               </TableHead>
@@ -463,7 +501,7 @@ export function AdminCardsSection({
                         player: card.player,
                       })}
                       onClick={() => {
-                        setEditingCard(card);
+                        setEditingCard(listItemToEditableCard(card));
                         setSaveError(null);
                         setFormOpen(true);
                       }}

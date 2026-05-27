@@ -1,7 +1,7 @@
-import type { Card } from "@/lib/types";
+import type { CardListItem } from "@/lib/types";
 
 /** Mots-clés pour retrouver des ventes comparables sur eBay. */
-export function cardComparableSalesQuery(card: Card): string {
+export function cardComparableSalesQuery(card: CardListItem): string {
   return [
     card.player,
     card.year,

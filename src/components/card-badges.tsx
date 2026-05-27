@@ -1,4 +1,4 @@
-import { Card } from "@/lib/types";
+import type { CardListItem } from "@/lib/types";
 
 export interface CardBadgeLabels {
   rookie: string;
@@ -9,7 +9,7 @@ export interface CardBadgeLabels {
 }
 
 interface CardBadgesProps {
-  card: Card;
+  card: CardListItem;
   labels: CardBadgeLabels;
 }
 

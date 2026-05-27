@@ -1,4 +1,4 @@
-import dynamic from "next/dynamic";
+import { Suspense } from "react";
 import {
   getCollectionStats,
   getDashboardChartData,
@@ -11,18 +11,24 @@ import { PageHeader } from "@/components/page-header";
 import { StatsCards } from "@/components/stats-cards";
 import { RecentCards } from "@/components/recent-cards";
 import { ChartSkeleton } from "@/components/skeletons/page-skeletons";
+import { DashboardCharts } from "@/components/dashboard-charts";
+import type { References } from "@/lib/types";
 
-const DashboardCharts = dynamic(
-  () =>
-    import("@/components/dashboard-charts").then((mod) => mod.DashboardCharts),
-  { loading: () => <ChartSkeleton /> }
-);
+async function DashboardChartsBlock({
+  references,
+}: {
+  references: References;
+}) {
+  const chartData = getDashboardChartData(references);
+  return <DashboardCharts chartData={chartData} />;
+}
 
 export default async function DashboardPage() {
   const references = getReferences();
-  const stats = getCollectionStats();
-  const recentCards = getRecentCards(8);
-  const chartData = getDashboardChartData(references);
+  const [stats, recentCards] = await Promise.all([
+    Promise.resolve(getCollectionStats()),
+    Promise.resolve(getRecentCards(8)),
+  ]);
   const { t, locale } = await getTranslations();
   const badgeLabels = buildCardBadgeLabels(t);
 
@@ -44,7 +50,9 @@ export default async function DashboardPage() {
           tradable: t("dashboard.stats.tradable"),
         }}
       />
-      <DashboardCharts chartData={chartData} />
+      <Suspense fallback={<ChartSkeleton />}>
+        <DashboardChartsBlock references={references} />
+      </Suspense>
       <RecentCards
         cards={recentCards}
         title={t("dashboard.recentAdditions")}

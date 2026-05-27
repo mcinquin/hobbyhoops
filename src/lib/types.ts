@@ -21,6 +21,23 @@ export interface Card {
   rookie: boolean;
 }
 
+/** Carte sans photo — listes, pagination et fiches joueur. */
+export type CardListItem = Omit<Card, "photo">;
+
+export interface ReferencesFilterIndex {
+  players: string[];
+  teams: string[];
+  years: string[];
+  brands: string[];
+  brandSets: Record<string, string[]>;
+  setVariations: Record<string, string[]>;
+}
+
+export interface PlayerCardGroup {
+  groupKey: string;
+  cards: CardListItem[];
+}
+
 export interface WantedEntry {
   id: number;
   variation: string;
@@ -82,8 +99,10 @@ export interface PlayerSummaryRow {
   rookies: number;
 }
 
+export type PlayerPageSummary = Omit<PlayerSummaryRow, "name">;
+
 export interface CardsPageResult {
-  cards: Card[];
+  cards: CardListItem[];
   totalCount: number;
   pageCount: number;
   page: number;

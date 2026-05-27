@@ -1,9 +1,11 @@
-import type { References } from "@/lib/types";
+import type { References, ReferencesFilterIndex } from "@/lib/types";
+
+type ReferenceFilterSource = References | ReferencesFilterIndex;
 import { uniqueSorted } from "@/lib/string-list";
 
 /** Suggestions de sets pour filtres collection/admin (recherche partielle sur la marque). */
 export function setsForBrandFilter(
-  references: References,
+  references: ReferenceFilterSource,
   brandQuery: string
 ): string[] {
   const q = brandQuery.trim().toLowerCase();
@@ -19,7 +21,7 @@ export function setsForBrandFilter(
 
 /** Suggestions de variations pour filtres collection/admin. */
 export function variationsForFilters(
-  references: References,
+  references: ReferenceFilterSource,
   brandQuery: string,
   setQuery: string
 ): string[] {

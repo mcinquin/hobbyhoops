@@ -33,7 +33,11 @@ export async function GET(request: NextRequest) {
   const gate = requireAuth(request);
   if (gate instanceof NextResponse) return gate;
   const refs = getReferences();
-  return NextResponse.json(refs);
+  return NextResponse.json(refs, {
+    headers: {
+      "Cache-Control": "private, max-age=60",
+    },
+  });
 }
 
 async function applyReferencePatch(body: ReferencePatchBody) {
