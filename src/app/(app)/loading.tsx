@@ -1,5 +1,5 @@
-import { TablePageSkeleton } from "@/components/skeletons/page-skeletons";
+import { DashboardPageSkeleton } from "@/components/skeletons/page-skeletons";
 
-export default function AppLoading() {
-  return <TablePageSkeleton />;
+export default function AppRootLoading() {
+  return <DashboardPageSkeleton />;
 }

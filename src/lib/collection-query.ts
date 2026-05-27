@@ -3,6 +3,7 @@ import type { References } from "@/lib/types";
 
 export const COLLECTION_PAGE_SIZE = 50;
 export const COLLECTION_MAX_PAGE_SIZE = 100;
+export const ADMIN_CARDS_PAGE_SIZE = 30;
 
 export type CollectionTagValue =
   | "rookie"

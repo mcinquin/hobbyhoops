@@ -2,8 +2,8 @@
 
 import dynamic from "next/dynamic";
 import { useState, useMemo, useCallback } from "react";
-import { Card, References } from "@/lib/types";
-import { fetchAllCardsFromApi } from "@/lib/cards-client";
+import { References } from "@/lib/types";
+import { fetchAdminSnapshot } from "@/lib/cards-client";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -54,23 +54,21 @@ const AdminYearsSection = dynamic(
 );
 
 interface AdminWorkspaceProps {
-  initialCards: Card[];
-  totalCardCount: number;
   initialReferences: References;
+  totalCardCount: number;
 }
 
 export function AdminWorkspace({
-  initialCards,
-  totalCardCount,
   initialReferences,
+  totalCardCount,
 }: AdminWorkspaceProps) {
   const t = useTranslations();
-  const [cards, setCards] = useState(initialCards);
-  const [totalCount, setTotalCount] = useState(totalCardCount);
   const [references, setReferences] = useState(initialReferences);
+  const [totalCount, setTotalCount] = useState(totalCardCount);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("cards");
+  const [cardsReloadToken, setCardsReloadToken] = useState(0);
 
   const tabs = useMemo(
     () => [
@@ -83,41 +81,20 @@ export function AdminWorkspace({
     [t]
   );
 
-  const fetchAdminData = useCallback(async () => {
-    const fetchOpts = { credentials: "include" as const, cache: "no-store" as const };
-    const [cardsList, refsRes] = await Promise.all([
-      fetchAllCardsFromApi(),
-      fetch("/api/references", fetchOpts),
-    ]);
-    if (refsRes.status === 401) {
-      window.location.href = "/login";
-      return null;
-    }
-    if (!refsRes.ok) {
-      throw new Error(t("admin.loadFailed"));
-    }
-    return {
-      cards: cardsList,
-      totalCount: cardsList.length,
-      references: (await refsRes.json()) as References,
-    };
-  }, [t]);
-
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchAdminData();
-      if (!data) return;
-      setCards(data.cards);
-      setTotalCount(data.totalCount);
+      const data = await fetchAdminSnapshot();
       setReferences(data.references);
+      setTotalCount(data.totalCount);
+      setCardsReloadToken((token) => token + 1);
     } catch {
       setError(t("admin.loadError"));
     } finally {
       setLoading(false);
     }
-  }, [fetchAdminData, t]);
+  }, [t]);
 
   if (error) {
     return (
@@ -180,11 +157,10 @@ export function AdminWorkspace({
         <TabsContent value="cards" className="pt-6">
           {activeTab === "cards" ? (
             <AdminCardsSection
-              cards={cards}
               references={references}
-              onCardsChange={setCards}
               onReferencesChange={setReferences}
               onTotalCountChange={setTotalCount}
+              reloadToken={cardsReloadToken}
             />
           ) : null}
         </TabsContent>

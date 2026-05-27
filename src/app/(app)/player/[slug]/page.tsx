@@ -3,6 +3,7 @@ import { CardBadges } from "@/components/card-badges";
 import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { buildCardBadgeLabels } from "@/lib/card-badge-labels";
 import { getTranslations } from "@/i18n/server";
 
 interface PlayerPageProps {
@@ -14,13 +15,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   const playerName = decodeURIComponent(slug);
   const cards = getCardsByPlayer(playerName);
   const { t } = await getTranslations();
-  const badgeLabels = {
-    rookie: t("badges.rookie"),
-    autograph: t("badges.autograph"),
-    memorabilia: t("badges.memorabilia"),
-    numbered: t("badges.numbered"),
-    tradable: t("badges.tradable"),
-  };
+  const badgeLabels = buildCardBadgeLabels(t);
 
   if (cards.length === 0) {
     return (

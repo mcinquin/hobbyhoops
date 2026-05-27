@@ -9,6 +9,7 @@ import {
 } from "@/lib/auth-session";
 import { bootstrapSchema, validateNewPassword } from "@/lib/auth-validation";
 import {
+  isBootstrapConfigured,
   isBootstrapTokenRequired,
   isBootstrapTokenValid,
 } from "@/lib/bootstrap-token";
@@ -49,6 +50,13 @@ export async function POST(request: NextRequest) {
         status: 429,
         headers: { "Retry-After": String(limit.retryAfterSec) },
       }
+    );
+  }
+
+  if (isBootstrapTokenRequired() && !isBootstrapConfigured()) {
+    return NextResponse.json(
+      { error: t("errors.authMisconfigured") },
+      { status: 503 }
     );
   }
 

@@ -5,6 +5,7 @@ import {
   getRecentCards,
   getReferences,
 } from "@/lib/data";
+import { buildCardBadgeLabels } from "@/lib/card-badge-labels";
 import { getTranslations } from "@/i18n/server";
 import { PageHeader } from "@/components/page-header";
 import { StatsCards } from "@/components/stats-cards";
@@ -23,13 +24,7 @@ export default async function DashboardPage() {
   const recentCards = getRecentCards(8);
   const chartData = getDashboardChartData(references);
   const { t, locale } = await getTranslations();
-  const badgeLabels = {
-    rookie: t("badges.rookie"),
-    autograph: t("badges.autograph"),
-    memorabilia: t("badges.memorabilia"),
-    numbered: t("badges.numbered"),
-    tradable: t("badges.tradable"),
-  };
+  const badgeLabels = buildCardBadgeLabels(t);
 
   return (
     <div className="min-w-0 space-y-6 sm:space-y-8">

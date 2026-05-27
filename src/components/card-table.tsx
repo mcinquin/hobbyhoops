@@ -24,6 +24,7 @@ import { ServerTablePagination } from "@/components/data-table/server-table-pagi
 import { ColumnFilterCombobox } from "@/components/column-filter-combobox";
 import { FilterChipButton } from "@/components/filter-chip-button";
 import { SearchField } from "@/components/search-field";
+import { useCardBadgeLabels } from "@/hooks/use-card-badge-labels";
 import { useCollectionUrlFilters } from "@/hooks/use-collection-url-filters";
 import {
   Table,
@@ -139,16 +140,7 @@ export function CardTable({
       [t]
     );
 
-  const badgeLabels = useMemo(
-    () => ({
-      rookie: t("badges.rookie"),
-      autograph: t("badges.autograph"),
-      memorabilia: t("badges.memorabilia"),
-      numbered: t("badges.numbered"),
-      tradable: t("badges.tradable"),
-    }),
-    [t]
-  );
+  const badgeLabels = useCardBadgeLabels();
 
   const columns: ColumnDef<Card>[] = useMemo(
     () => [

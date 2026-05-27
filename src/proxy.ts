@@ -1,6 +1,8 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getRequestTranslator } from "@/i18n/request";
+import { authMisconfiguredResponse } from "@/lib/auth-config";
+import { authMisconfiguredPageResponse } from "@/lib/auth-pages";
 import { SESSION_COOKIE_NAME } from "@/lib/auth-secret";
 import { verifySessionToken } from "@/lib/auth-session";
 import {
@@ -52,6 +54,9 @@ export function proxy(request: NextRequest) {
     );
     if (isPublic) return NextResponse.next();
 
+    const misconfigured = authMisconfiguredResponse(request);
+    if (misconfigured) return misconfigured;
+
     const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
     if (!verifySessionToken(token)) {
       const t = getRequestTranslator(request);
@@ -59,6 +64,9 @@ export function proxy(request: NextRequest) {
     }
     return NextResponse.next();
   }
+
+  const pageMisconfigured = authMisconfiguredPageResponse(request);
+  if (pageMisconfigured) return pageMisconfigured;
 
   if (pathname === "/login") {
     const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;

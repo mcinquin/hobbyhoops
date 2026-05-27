@@ -14,8 +14,11 @@ import type {
 } from "./types";
 import { normalizeCardSerialFields } from "./card-serial";
 import { normalizeOpeningDate } from "./opening-date";
+import { COLLECTION_SORT_SQL } from "./collection-query";
 import { EMPTY_REFERENCES } from "./references-defaults";
 import { createDatabase, runInTransaction, type AppDatabase } from "./sqlite";
+
+const ALLOWED_SORT_COLUMNS = new Set(Object.values(COLLECTION_SORT_SQL));
 
 type SqlInputValue = string | number | bigint | Buffer | null;
 
@@ -669,7 +672,9 @@ export function queryCardsPage(
     offset: number;
   }
 ): Card[] {
-  const orderColumn = options.sortColumn;
+  const orderColumn = ALLOWED_SORT_COLUMNS.has(options.sortColumn)
+    ? options.sortColumn
+    : "player";
   const direction = options.sortDesc ? "DESC" : "ASC";
   const sql = `SELECT * FROM cards ${whereSql} ORDER BY ${orderColumn} ${direction}, id ASC LIMIT ? OFFSET ?`;
   const rows = getDb()

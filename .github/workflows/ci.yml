@@ -26,6 +26,8 @@ jobs:
       - run: npm ci
 
       - name: Contrôles qualité (lint, typecheck, audit)
+        env:
+          AUTH_SECRET: ci-test-auth-secret-32chars-minimum-ok
         run: npm run ci:full
 
   docker:

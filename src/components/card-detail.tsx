@@ -14,6 +14,7 @@ import {
   cardComparableSalesQuery,
   ebaySoldListingsUrl,
 } from "@/lib/card-sales-links";
+import { useCardBadgeLabels } from "@/hooks/use-card-badge-labels";
 import { useI18n, useTranslations } from "@/i18n/client";
 
 interface CardDetailProps {
@@ -26,13 +27,7 @@ export function CardDetail({ card, open, onClose }: CardDetailProps) {
   const { locale } = useI18n();
   const t = useTranslations();
   const salesQuery = cardComparableSalesQuery(card);
-  const badgeLabels = {
-    rookie: t("badges.rookie"),
-    autograph: t("badges.autograph"),
-    memorabilia: t("badges.memorabilia"),
-    numbered: t("badges.numbered"),
-    tradable: t("badges.tradable"),
-  };
+  const badgeLabels = useCardBadgeLabels();
   const details = [
     { label: t("cards.teamLabel"), value: card.team },
     { label: t("cards.yearLabel"), value: card.year },
