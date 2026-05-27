@@ -11,6 +11,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
+import { createWantedEntry, deleteWantedEntry } from "@/lib/guides-client";
 import type { WantedBlock, WantedEntry } from "@/lib/types";
 import { ColumnFilterCombobox } from "@/components/column-filter-combobox";
 import { SortableTableHead } from "@/components/data-table/sortable-table-head";
@@ -113,25 +114,13 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
     setSuccess(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/wanted", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          set: trimmedSet,
-          variation: trimmedVariation,
-          player: trimmedPlayer,
-          slot: slotValue,
-        }),
+      const blocks = await createWantedEntry({
+        set: trimmedSet,
+        variation: trimmedVariation,
+        player: trimmedPlayer,
+        slot: slotValue,
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setFormError(
-          typeof data.error === "string" ? data.error : t("errors.updateFailed")
-        );
-        return;
-      }
-      setBlocks(data.blocks as WantedBlock[]);
+      setBlocks(blocks);
       setVariation("");
       setSlot("");
       setPlayer("");
@@ -148,20 +137,8 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
       setSuccess(null);
       setLoading(true);
       try {
-        const res = await fetch(`/api/wanted?id=${id}`, {
-          method: "DELETE",
-          credentials: "include",
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          setFormError(
-            typeof data.error === "string"
-              ? data.error
-              : t("errors.updateFailed")
-          );
-          return;
-        }
-        setBlocks(data.blocks as WantedBlock[]);
+        const blocks = await deleteWantedEntry(id);
+        setBlocks(blocks);
         setSuccess(t("guides.wanted.deleted"));
       } catch {
         setFormError(t("errors.updateFailed"));

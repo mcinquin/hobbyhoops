@@ -1,17 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { References } from "@/lib/types";
-import { parseSingleColumnValues } from "@/lib/csv-parse";
-import { patchReferences } from "@/lib/references-client";
-import { BatchTextImport } from "@/components/admin/batch-text-import";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { AdminDeletableList } from "@/components/admin/admin-deletable-list";
-import { AdminFeedback } from "@/components/admin/admin-feedback";
-import { Search } from "lucide-react";
-import { useTranslations } from "@/i18n/client";
+import { AdminReferenceListSection } from "@/components/admin/admin-reference-list-section";
 
 interface AdminClubsSectionProps {
   references: References;
@@ -22,117 +12,26 @@ export function AdminClubsSection({
   references,
   onReferencesChange,
 }: AdminClubsSectionProps) {
-  const t = useTranslations();
-  const [team, setTeam] = useState("");
-  const [search, setSearch] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const filtered = useMemo(() => {
-    if (!search) return references.teams;
-    const q = search.toLowerCase();
-    return references.teams.filter((name) => name.toLowerCase().includes(q));
-  }, [references.teams, search]);
-
-  async function handleAddTeam() {
-    const name = team.trim();
-    if (!name) {
-      setError(t("admin.clubs.nameRequired"));
-      setSuccess(null);
-      return;
-    }
-    setError(null);
-    setSuccess(null);
-    setLoading(true);
-    try {
-      onReferencesChange(await patchReferences({ action: "addTeam", team: name }));
-      setTeam("");
-      setSuccess(t("admin.clubs.added"));
-    } catch (err) {
-      setError(
-        err instanceof Error && err.message ? err.message : t("errors.updateFailed")
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
-    <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">{t("admin.clubs.intro")}</p>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-3 rounded-lg border border-border p-4">
-          <Label htmlFor="admin-club-name">{t("admin.players.unitAdd")}</Label>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Input
-              id="admin-club-name"
-              value={team}
-              onChange={(e) => setTeam(e.target.value)}
-              placeholder={t("admin.clubs.placeholder")}
-              disabled={loading}
-            />
-            <Button
-              type="button"
-              className="w-full sm:w-auto"
-              disabled={loading}
-              onClick={() => void handleAddTeam()}
-            >
-              {t("common.add")}
-            </Button>
-          </div>
-          <AdminFeedback
-            success={success}
-            error={error}
-            onSuccessDismiss={() => setSuccess(null)}
-          />
-        </div>
-
-        <BatchTextImport
-          label={t("admin.players.batchImport")}
-          description={t("admin.clubs.batchDescSpreadsheet")}
-          placeholder={t("admin.clubs.batchPlaceholder")}
-          disabled={loading}
-          onSubmit={async (text) => {
-            const teams = parseSingleColumnValues(text);
-            onReferencesChange(
-              await patchReferences({ action: "addTeams", teams })
-            );
-          }}
-        />
-      </div>
-
-      <div className="space-y-3">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t("admin.clubs.filter")}
-            className="pl-9"
-          />
-        </div>
-        <p className="text-sm text-muted-foreground">
-          {t("admin.clubs.referenced", { count: references.teams.length })}
-          {search ? ` ${t("admin.clubs.shown", { count: filtered.length })}` : ""}
-        </p>
-        <div className="max-h-72 overflow-auto rounded-lg border border-border p-3 text-sm">
-          <AdminDeletableList
-            items={filtered}
-            getKey={(name) => name}
-            renderLabel={(name) => name}
-            emptyLabel={t("admin.clubs.noneFound")}
-            disabled={loading}
-            onDelete={async (name) => {
-              onReferencesChange(
-                await patchReferences({ action: "removeTeam", team: name })
-              );
-              setSuccess(t("admin.clubs.deleted"));
-            }}
-          />
-        </div>
-      </div>
-    </div>
+    <AdminReferenceListSection
+      onReferencesChange={onReferencesChange}
+      introKey="admin.clubs.intro"
+      unitInputId="admin-club-name"
+      unitPlaceholderKey="admin.clubs.placeholder"
+      filterPlaceholderKey="admin.clubs.filter"
+      referencedKey="admin.clubs.referenced"
+      shownKey="admin.clubs.shown"
+      emptyKey="admin.clubs.noneFound"
+      batchDescKey="admin.clubs.batchDescSpreadsheet"
+      batchPlaceholderKey="admin.clubs.batchPlaceholder"
+      unitRequiredKey="admin.clubs.nameRequired"
+      addedKey="admin.clubs.added"
+      deletedKey="admin.clubs.deleted"
+      items={references.teams}
+      deletable
+      buildAddPatch={(team) => ({ action: "addTeam", team })}
+      buildBatchPatch={(teams) => ({ action: "addTeams", teams })}
+      buildRemovePatch={(team) => ({ action: "removeTeam", team })}
+    />
   );
 }

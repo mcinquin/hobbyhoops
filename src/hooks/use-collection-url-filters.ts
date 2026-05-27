@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useRef, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { collectionQueryToSearchParams } from "@/lib/cards-client";
 import {
   parseCollectionSearchParams,
   type CollectionListQuery,
@@ -26,52 +27,54 @@ export type CollectionFiltersState = Pick<
   | "sortDesc"
 >;
 
-export function useCollectionUrlFilters() {
+export type UseCollectionUrlFiltersOptions = {
+  /** Taille de page fixe (ex. admin) — écrit `pageSize` dans l’URL. */
+  fixedPageSize?: number;
+};
+
+export function useCollectionUrlFilters(
+  options?: UseCollectionUrlFiltersOptions
+) {
+  const fixedPageSize = options?.fixedPageSize;
+  const persistPageSize = fixedPageSize !== undefined;
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const filters = useMemo(
-    () => parseCollectionSearchParams(searchParams),
-    [searchParams]
-  );
+  const filters = useMemo(() => {
+    const parsed = parseCollectionSearchParams(searchParams);
+    if (fixedPageSize !== undefined) {
+      return { ...parsed, pageSize: fixedPageSize };
+    }
+    return parsed;
+  }, [fixedPageSize, searchParams]);
 
   const syncToUrl = useCallback(
     (next: CollectionListQuery) => {
-      const params = new URLSearchParams();
-      if (next.search) params.set("q", next.search);
-      if (next.player) params.set("player", next.player);
-      if (next.team) params.set("team", next.team);
-      if (next.year) params.set("year", next.year);
-      if (next.brand) params.set("brand", next.brand);
-      if (next.set) params.set("set", next.set);
-      if (next.variation) params.set("variation", next.variation);
-      for (const tag of next.tags) {
-        params.append("tag", tag);
-      }
-      if (next.page > 1) params.set("page", String(next.page));
-      if (next.sort !== "player") params.set("sort", next.sort);
-      if (next.sortDesc) params.set("sortDir", "desc");
-
-      const query = params.toString();
+      const query =
+        fixedPageSize !== undefined
+          ? { ...next, pageSize: fixedPageSize }
+          : next;
+      const params = collectionQueryToSearchParams(query, { persistPageSize });
+      const qs = params.toString();
       startTransition(() => {
-        router.replace(query ? `${pathname}?${query}` : pathname, {
+        router.replace(qs ? `${pathname}?${qs}` : pathname, {
           scroll: false,
         });
       });
     },
-    [pathname, router, startTransition]
+    [fixedPageSize, pathname, persistPageSize, router, startTransition]
   );
 
   const updateFilters = useCallback(
     (
       patch: Partial<CollectionListQuery>,
-      options?: { immediate?: boolean; resetPage?: boolean }
+      opts?: { immediate?: boolean; resetPage?: boolean }
     ) => {
       const shouldResetPage =
-        options?.resetPage ??
+        opts?.resetPage ??
         (!("page" in patch) &&
           Object.keys(patch).some(
             (key) => key !== "page" && key !== "sort" && key !== "sortDesc"
@@ -81,16 +84,17 @@ export function useCollectionUrlFilters() {
         ...filters,
         ...patch,
         page: shouldResetPage ? 1 : (patch.page ?? filters.page),
+        ...(fixedPageSize !== undefined ? { pageSize: fixedPageSize } : {}),
       };
 
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      if (options?.immediate) {
+      if (opts?.immediate) {
         syncToUrl(next);
       } else {
         debounceRef.current = setTimeout(() => syncToUrl(next), 300);
       }
     },
-    [filters, syncToUrl]
+    [filters, fixedPageSize, syncToUrl]
   );
 
   const toggleSort = useCallback(
@@ -104,5 +108,15 @@ export function useCollectionUrlFilters() {
     [filters.sort, filters.sortDesc, updateFilters]
   );
 
-  return { filters, updateFilters, toggleSort, isPending };
+  const toggleTag = useCallback(
+    (tag: CollectionTagValue) => {
+      const next = filters.tags.includes(tag)
+        ? filters.tags.filter((value) => value !== tag)
+        : [...filters.tags, tag];
+      updateFilters({ tags: next, page: 1 }, { immediate: true });
+    },
+    [filters.tags, updateFilters]
+  );
+
+  return { filters, updateFilters, toggleSort, toggleTag, isPending };
 }

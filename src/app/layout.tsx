@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { LocaleProvider } from "@/i18n/client";
 import { getTranslations } from "@/i18n/server";
 import { PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
@@ -38,7 +37,7 @@ export default async function RootLayout({
     <html lang={locale} className="dark h-full antialiased">
       <body className="min-h-screen w-full" suppressHydrationWarning>
         <PwaRegister />
-        <LocaleProvider locale={locale}>{children}</LocaleProvider>
+        {children}
       </body>
     </html>
   );

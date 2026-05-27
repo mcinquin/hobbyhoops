@@ -1,13 +1,18 @@
+import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import {
   getCollectionPage,
-  getReferences,
+  getReferencesFilterIndex,
   parseCollectionSearchParams,
 } from "@/lib/data";
-import { CardTable } from "@/components/card-table";
 import { PageHeader } from "@/components/page-header";
 import { TablePageSkeleton } from "@/components/skeletons/page-skeletons";
 import { getTranslations } from "@/i18n/server";
+
+const CardTable = dynamic(
+  () => import("@/components/card-table").then((mod) => mod.CardTable),
+  { loading: () => <TablePageSkeleton /> }
+);
 
 type CollectionSearchParams = Record<string, string | string[] | undefined>;
 
@@ -35,14 +40,14 @@ async function CollectionTable({
 }) {
   const query = parseCollectionSearchParams(toSearchParams(searchParams));
   const { cards, totalCount, pageCount } = getCollectionPage(query);
-  const references = getReferences();
+  const referenceFilters = getReferencesFilterIndex();
 
   return (
     <CardTable
       cards={cards}
       totalCount={totalCount}
       pageCount={pageCount}
-      references={references}
+      referenceFilters={referenceFilters}
     />
   );
 }

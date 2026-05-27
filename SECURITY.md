@@ -10,7 +10,9 @@ Do not open a public issue for a security problem. Contact the repository mainta
 - Never commit `.env` or `data/hobbyhoops.db` (or its associated WAL files).
 - Expose the application behind an HTTPS reverse proxy; leave `COOKIE_SECURE` at its default or force `true`.
 - Enable `TRUST_PROXY=true` **only** if the reverse proxy rewrites `X-Forwarded-For` / `X-Forwarded-Proto` (otherwise rate limits share a single key).
-- Set `BOOTSTRAP_TOKEN` and send the `X-Bootstrap-Token` header to create the first account, then remove or rotate the token after bootstrap.
+- Set `BOOTSTRAP_TOKEN` (required in production) and send the `X-Bootstrap-Token` header to create the first account, then remove or rotate the token after bootstrap.
+- `GET /api/health` returns only `{ ok }` (no version or DB metadata).
+- Misconfigured `AUTH_SECRET` returns HTTP 503 (not 401) on protected routes.
 - Restrict network access to the container (port bound to `127.0.0.1` in `docker-compose.yml`).
 - HTTP hardening headers (`HSTS`, `X-Content-Type-Options`, etc.) are handled by the reverse proxy.
 - Back up `data/hobbyhoops.db` regularly on the host with `sqlite3 … ".backup '…'"` (consistent snapshot, WAL-safe). Keep at least 14 days in `data/backups/` (gitignored) and ideally an off-site copy. See [README.md](README.md) — backup scripts stay local, outside the repository.
@@ -25,7 +27,7 @@ Every authenticated user can access `/admin` and write APIs. This model fits a p
 - A new login revokes other sessions for the same user.
 - `POST /api/auth/login` and `POST /api/auth/bootstrap`: CSRF protection (`Origin` / `Sec-Fetch-Site`).
 - All API mutations require `Origin` or `Sec-Fetch-Site` (`requireFetchMetadata`).
-- Rate limiting on login, bootstrap, bootstrap discovery, current-password verification (profile), and card / reference / guide writes.
+- Rate limiting on login, bootstrap, bootstrap discovery, current-password verification (profile), card / reference / guide writes, and `GET /api/admin/data`.
 - `POST /api/auth/bootstrap` is rejected once an account exists.
 
 ## Known limitations

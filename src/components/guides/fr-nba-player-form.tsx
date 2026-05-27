@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { saveFrNbaPlayer } from "@/lib/guides-client";
 import type { FrNbaPlayer } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -68,21 +69,10 @@ function FrNbaPlayerFormFields({
     setError(null);
     setSaving(true);
     try {
-      const isEdit = Boolean(player);
-      const res = await fetch("/api/fr-nba", {
-        method: isEdit ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(isEdit ? { id: player!.id, ...form } : form),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(
-          typeof data.error === "string" ? data.error : t("errors.updateFailed")
-        );
-        return;
-      }
-      onSaved(data as FrNbaPlayer);
+      const saved = await saveFrNbaPlayer(
+        player ? { id: player.id, ...form } : form
+      );
+      onSaved(saved);
       onClose();
     } catch {
       setError(t("errors.updateFailed"));

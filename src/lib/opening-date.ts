@@ -54,6 +54,20 @@ export function normalizeOpeningDate(
   return null;
 }
 
+/** Entier YYYYMMDD pour tri SQL (colonne opening_date_sort). */
+export function openingDateSortValue(
+  value: string | null | undefined
+): number | null {
+  const normalized = normalizeOpeningDate(value);
+  if (!normalized) return null;
+  const match = normalized.match(OPENING_DATE_REGEX);
+  if (!match) return null;
+  const day = Number.parseInt(match[1], 10);
+  const month = Number.parseInt(match[2], 10);
+  const year = Number.parseInt(match[3], 10);
+  return year * 10000 + month * 100 + day;
+}
+
 export function openingDateTimestamp(value: string | null | undefined): number | null {
   const normalized = normalizeOpeningDate(value);
   if (!normalized) return null;

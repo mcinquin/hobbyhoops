@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRequestTranslator } from "@/i18n/request";
+import { authMisconfiguredResponse } from "@/lib/auth-config";
 import { SESSION_COOKIE_NAME } from "@/lib/auth-secret";
 import { verifySessionToken, type SessionPayload } from "@/lib/auth-session";
 
@@ -18,6 +19,8 @@ export function unauthorized(request: NextRequest): NextResponse {
 export function requireAuth(
   request: NextRequest
 ): SessionPayload | NextResponse {
+  const misconfigured = authMisconfiguredResponse(request);
+  if (misconfigured) return misconfigured;
   const session = getSessionFromRequest(request);
   if (!session) return unauthorized(request);
   return session;

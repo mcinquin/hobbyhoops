@@ -1,8 +1,22 @@
 "use client";
 
-import { useDeferredValue, useMemo, useState } from "react";
-import { Card, References } from "@/lib/types";
-import { uniqueSorted } from "@/lib/string-list";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Card,
+  References,
+  type CardListItem,
+  type CardsPageResult,
+} from "@/lib/types";
+import {
+  ADMIN_CARDS_PAGE_SIZE,
+  COLLECTION_TAG_VALUES,
+  setsForBrandFilter,
+  variationsForFilters,
+  type CollectionListQuery,
+} from "@/lib/collection-query";
+import { createCard, deleteCard, fetchCardsPage, updateCard } from "@/lib/cards-client";
+import { fetchReferences } from "@/lib/references-client";
+import { FilterChipButton } from "@/components/filter-chip-button";
 import { CardForm } from "@/components/card-form";
 import { CardBadges } from "@/components/card-badges";
 import { ColumnFilterCombobox } from "@/components/column-filter-combobox";
@@ -25,167 +39,134 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { AdminFeedback } from "@/components/admin/admin-feedback";
-import { fetchAllCardsFromApi } from "@/lib/cards-client";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { useTranslations } from "@/i18n/client";
-import { useClampedPage } from "@/hooks/use-clamped-page";
+import { useCollectionUrlFilters } from "@/hooks/use-collection-url-filters";
+import { useCardBadgeLabels } from "@/hooks/use-card-badge-labels";
+
+function listItemToEditableCard(card: CardListItem): Card {
+  return { ...card, photo: null };
+}
 
 interface AdminCardsSectionProps {
-  cards: Card[];
   references: References;
-  onCardsChange: (cards: Card[]) => void;
   onReferencesChange: (references: References) => void;
   onTotalCountChange?: (count: number) => void;
+  reloadToken?: number;
 }
 
 export function AdminCardsSection({
-  cards,
   references,
-  onCardsChange,
   onReferencesChange,
   onTotalCountChange,
+  reloadToken = 0,
 }: AdminCardsSectionProps) {
   const t = useTranslations();
-  const [search, setSearch] = useState("");
+  const badgeLabels = useCardBadgeLabels();
+  const { filters, updateFilters, toggleTag, isPending } = useCollectionUrlFilters({
+    fixedPageSize: ADMIN_CARDS_PAGE_SIZE,
+  });
+  const [pageData, setPageData] = useState<CardsPageResult | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<Card | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Card | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CardListItem | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [playerColumnFilter, setPlayerColumnFilter] = useState("");
-  const [teamColumnFilter, setTeamColumnFilter] = useState("");
-  const [yearColumnFilter, setYearColumnFilter] = useState("");
-  const [brandColumnFilter, setBrandColumnFilter] = useState("");
-  const [setColumnFilter, setSetColumnFilter] = useState("");
-  const [variationColumnFilter, setVariationColumnFilter] = useState("");
-  const [tagsColumnFilter, setTagsColumnFilter] = useState("");
-  const deferredSearch = useDeferredValue(search);
-  const deferredPlayerColumnFilter = useDeferredValue(playerColumnFilter);
-  const deferredTeamColumnFilter = useDeferredValue(teamColumnFilter);
-  const deferredYearColumnFilter = useDeferredValue(yearColumnFilter);
-  const deferredBrandColumnFilter = useDeferredValue(brandColumnFilter);
-  const deferredSetColumnFilter = useDeferredValue(setColumnFilter);
-  const deferredVariationColumnFilter = useDeferredValue(variationColumnFilter);
-  const deferredTagsColumnFilter = useDeferredValue(tagsColumnFilter);
-  const pageSize = 30;
-  const badgeLabels = useMemo(
-    () => ({
-      rookie: t("badges.rookie"),
-      autograph: t("badges.autograph"),
-      memorabilia: t("badges.memorabilia"),
-      numbered: t("badges.numbered"),
-      tradable: t("badges.tradable"),
-    }),
-    [t]
-  );
-  const columnSuggestions = useMemo(
-    () => ({
-      players: uniqueSorted(cards.map((card) => card.player)),
-      teams: uniqueSorted(cards.map((card) => card.team)),
-      years: uniqueSorted(cards.map((card) => card.year ?? "")),
-      brands: uniqueSorted(cards.map((card) => card.brand)),
-      sets: uniqueSorted(
-        cards
-          .filter(
-            (card) =>
-              !brandColumnFilter ||
-              card.brand.toLowerCase().includes(brandColumnFilter.toLowerCase())
-          )
-          .map((card) => card.set)
-      ),
-      variations: uniqueSorted(cards.map((card) => card.variation)),
-      tags: uniqueSorted([
-        badgeLabels.rookie,
-        badgeLabels.autograph,
-        badgeLabels.memorabilia,
-        badgeLabels.numbered,
-        badgeLabels.tradable,
-      ]),
-    }),
-    [badgeLabels, brandColumnFilter, cards]
+
+  const applyAdminFilters = useCallback(
+    (
+      patch: Partial<CollectionListQuery>,
+      opts?: { immediate?: boolean; resetPage?: boolean }
+    ) => {
+      updateFilters({ ...patch, page: 1 }, opts);
+    },
+    [updateFilters]
   );
 
-  const filtered = useMemo(() => {
-    const q = deferredSearch.toLowerCase();
-    const playerQuery = deferredPlayerColumnFilter.toLowerCase();
-    const teamQuery = deferredTeamColumnFilter.toLowerCase();
-    const yearQuery = deferredYearColumnFilter.toLowerCase();
-    const brandQuery = deferredBrandColumnFilter.toLowerCase();
-    const setQuery = deferredSetColumnFilter.toLowerCase();
-    const variationQuery = deferredVariationColumnFilter.toLowerCase();
-    const tagsQuery = deferredTagsColumnFilter.toLowerCase();
+  const setSuggestions = useMemo(
+    () => setsForBrandFilter(references, filters.brand),
+    [references, filters.brand]
+  );
 
-    return cards.filter(
-      (card) => {
-        const playerValue = card.player.toLowerCase();
-        const teamValue = card.team.toLowerCase();
-        const brandValue = card.brand.toLowerCase();
-        const setValue = card.set.toLowerCase();
-        const brandSetValue = `${card.brand} / ${card.set}`.toLowerCase();
-        const tagsValue = [
-          card.rookie ? badgeLabels.rookie : "",
-          card.autograph ? badgeLabels.autograph : "",
-          card.memorabilia ? badgeLabels.memorabilia : "",
-          card.serialNumber ? badgeLabels.numbered : "",
-          card.tradable ? badgeLabels.tradable : "",
-        ]
-          .join(" ")
-          .toLowerCase();
+  const variationSuggestions = useMemo(
+    () => variationsForFilters(references, filters.brand, filters.set),
+    [references, filters.brand, filters.set]
+  );
 
-        return (
-          (!q ||
-            playerValue.includes(q) ||
-            teamValue.includes(q) ||
-            (card.year ?? "").toLowerCase().includes(q) ||
-            brandSetValue.includes(q) ||
-            card.variation.toLowerCase().includes(q)) &&
-          (!playerQuery || playerValue.includes(playerQuery)) &&
-          (!teamQuery || teamValue.includes(teamQuery)) &&
-          (!yearQuery ||
-            (card.year ?? "").toLowerCase().includes(yearQuery)) &&
-          (!brandQuery || brandValue.includes(brandQuery)) &&
-          (!setQuery || setValue.includes(setQuery)) &&
-          (!variationQuery ||
-            card.variation.toLowerCase().includes(variationQuery)) &&
-          (!tagsQuery || tagsValue.includes(tagsQuery))
-        );
-      }
-    );
-  }, [
-    badgeLabels,
-    cards,
-    deferredBrandColumnFilter,
-    deferredPlayerColumnFilter,
-    deferredSearch,
-    deferredSetColumnFilter,
-    deferredTagsColumnFilter,
-    deferredTeamColumnFilter,
-    deferredVariationColumnFilter,
-    deferredYearColumnFilter,
-  ]);
+  useEffect(() => {
+    if (!filters.brand) {
+      if (filters.set) applyAdminFilters({ set: "" }, { immediate: true });
+      return;
+    }
+    if (
+      filters.set &&
+      !setSuggestions.some((setName) =>
+        setName.toLowerCase().includes(filters.set.toLowerCase())
+      )
+    ) {
+      applyAdminFilters({ set: "" }, { immediate: true });
+    }
+  }, [applyAdminFilters, filters.brand, filters.set, setSuggestions]);
 
-  const totalPages = Math.ceil(filtered.length / pageSize);
-  const filterResetKey = [
-    deferredSearch,
-    deferredPlayerColumnFilter,
-    deferredTeamColumnFilter,
-    deferredYearColumnFilter,
-    deferredBrandColumnFilter,
-    deferredSetColumnFilter,
-    deferredVariationColumnFilter,
-    deferredTagsColumnFilter,
-  ].join("\0");
-  const [page, setPage] = useClampedPage(Math.max(1, totalPages), filterResetKey);
-  const paged = filtered.slice(page * pageSize, (page + 1) * pageSize);
+  useEffect(() => {
+    if (
+      filters.variation &&
+      !variationSuggestions.some((variation) =>
+        variation.toLowerCase().includes(filters.variation.toLowerCase())
+      )
+    ) {
+      applyAdminFilters({ variation: "" }, { immediate: true });
+    }
+  }, [applyAdminFilters, filters.variation, variationSuggestions]);
 
-  async function refreshCards(): Promise<Card[]> {
+  const displayedCards = pageData?.cards ?? [];
+  const selectedTags = useMemo(
+    () => new Set(filters.tags),
+    [filters.tags]
+  );
+
+  const applyPageData = useCallback(
+    (data: CardsPageResult) => {
+      setPageData(data);
+      onTotalCountChange?.(data.totalCount);
+    },
+    [onTotalCountChange]
+  );
+
+  const loadPage = useCallback(async () => {
+    setFetchError(null);
     try {
-      const data = await fetchAllCardsFromApi();
-      onCardsChange(data);
-      onTotalCountChange?.(data.length);
-      return data;
+      applyPageData(await fetchCardsPage(filters));
     } catch {
-      return cards;
+      setFetchError(t("admin.loadError"));
+    }
+  }, [applyPageData, filters, t]);
+
+  useEffect(() => {
+    let active = true;
+    fetchCardsPage(filters)
+      .then((data) => {
+        if (!active) return;
+        applyPageData(data);
+      })
+      .catch(() => {
+        if (!active) return;
+        setFetchError(t("admin.loadError"));
+      });
+    return () => {
+      active = false;
+    };
+  }, [applyPageData, filters, reloadToken, t]);
+
+  const pageCount = pageData?.pageCount ?? 1;
+  const totalCount = pageData?.totalCount ?? 0;
+
+  async function refreshReferences() {
+    try {
+      onReferencesChange(await fetchReferences());
+    } catch {
+      /* ignore */
     }
   }
 
@@ -194,64 +175,25 @@ export function AdminCardsSection({
     setSuccess(null);
     try {
       if (editingCard) {
-        const res = await fetch("/api/cards", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ ...editingCard, ...cardData }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          setSaveError(
-            typeof data.error === "string" ? data.error : t("admin.cards.saveFailed")
-          );
-          return false;
-        }
-        const updated = data as Card;
-        onCardsChange(cards.map((c) => (c.id === updated.id ? updated : c)));
+        await updateCard({ ...editingCard, ...cardData });
         setEditingCard(null);
         setFormOpen(false);
         setSuccess(t("admin.cards.updated"));
-        void refreshCards().catch(() => undefined);
-        void refreshReferences().catch(() => undefined);
-        return true;
+      } else {
+        await createCard(cardData);
+        setEditingCard(null);
+        setFormOpen(false);
+        setSuccess(t("admin.cards.created"));
       }
-
-      const res = await fetch("/api/cards", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(cardData),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setSaveError(
-          typeof data.error === "string" ? data.error : t("admin.cards.saveFailed")
-        );
-        return false;
-      }
-      const created = data as Card;
-      const nextCards = cards.some((c) => c.id === created.id)
-        ? cards
-        : [...cards, created];
-      onCardsChange(nextCards);
-      setSearch("");
-      setPlayerColumnFilter("");
-      setTeamColumnFilter("");
-      setYearColumnFilter("");
-      setBrandColumnFilter("");
-      setSetColumnFilter("");
-      setVariationColumnFilter("");
-      setTagsColumnFilter("");
-      setPage(Math.max(0, Math.ceil(nextCards.length / pageSize) - 1));
-      setEditingCard(null);
-      setFormOpen(false);
-      setSuccess(t("admin.cards.created"));
-      void refreshCards().catch(() => undefined);
-      void refreshReferences().catch(() => undefined);
+      void loadPage();
+      void refreshReferences();
       return true;
-    } catch {
-      setSaveError(t("admin.cards.saveFailed"));
+    } catch (err) {
+      setSaveError(
+        err instanceof Error && err.message
+          ? err.message
+          : t("admin.cards.saveFailed")
+      );
       return false;
     }
   }
@@ -259,28 +201,22 @@ export function AdminCardsSection({
   async function handleDelete() {
     if (!deleteTarget) return;
     setSuccess(null);
-    const res = await fetch(`/api/cards?id=${deleteTarget.id}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
-    if (res.ok) {
-      const nextCards = cards.filter((c) => c.id !== deleteTarget.id);
-      onCardsChange(nextCards);
-      onTotalCountChange?.(nextCards.length);
+    try {
+      await deleteCard(deleteTarget.id);
       setSuccess(t("admin.cards.deleted"));
+      void loadPage();
+      void refreshReferences();
+    } catch {
+      /* ignore */
     }
     setDeleteTarget(null);
   }
 
-  async function refreshReferences() {
-    const res = await fetch("/api/references", { credentials: "include" });
-    if (res.ok) {
-      onReferencesChange(await res.json());
-    }
-  }
-
   return (
-    <div className="min-w-0 space-y-6">
+    <div
+      className="min-w-0 space-y-6"
+      aria-busy={isPending || pageData === null}
+    >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <p className="text-sm text-muted-foreground">
           {t("admin.cards.intro")}
@@ -302,7 +238,7 @@ export function AdminCardsSection({
 
       <AdminFeedback
         success={success}
-        error={saveError}
+        error={saveError ?? fetchError}
         onSuccessDismiss={() => setSuccess(null)}
       />
 
@@ -310,83 +246,73 @@ export function AdminCardsSection({
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder={t("admin.cards.search")}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={filters.search}
+          onChange={(e) =>
+            updateFilters({ search: e.target.value, page: 1 })
+          }
           className="pl-9"
+          aria-label={t("admin.cards.search")}
         />
       </div>
 
       <div className="grid gap-2 md:hidden">
         <ColumnFilterCombobox
-          value={playerColumnFilter}
-          onChange={(nextValue) => {
-            setPlayerColumnFilter(nextValue);
-          }}
+          value={filters.player}
+          onChange={(value) => applyAdminFilters({ player: value })}
           placeholder={t("admin.cards.filterPlayerTeam")}
-          suggestions={columnSuggestions.players}
+          suggestions={references.players}
           className="h-9 text-xs"
         />
         <ColumnFilterCombobox
-          value={teamColumnFilter}
-          onChange={(nextValue) => {
-            setTeamColumnFilter(nextValue);
-          }}
+          value={filters.team}
+          onChange={(value) => applyAdminFilters({ team: value })}
           placeholder={t("admin.cards.filterTeam")}
-          suggestions={columnSuggestions.teams}
+          suggestions={references.teams}
           className="h-9 text-xs"
         />
-        <div className="grid grid-cols-2 gap-2">
-          <ColumnFilterCombobox
-            value={yearColumnFilter}
-            onChange={(nextValue) => {
-              setYearColumnFilter(nextValue);
-            }}
-            placeholder={t("admin.cards.filterYear")}
-            suggestions={columnSuggestions.years}
-            className="h-9 text-xs"
-          />
-          <ColumnFilterCombobox
-            value={tagsColumnFilter}
-            onChange={(nextValue) => {
-              setTagsColumnFilter(nextValue);
-            }}
-            placeholder={t("admin.cards.filterTags")}
-            suggestions={columnSuggestions.tags}
-            className="h-9 text-xs"
-          />
+        <ColumnFilterCombobox
+          value={filters.year}
+          onChange={(value) => applyAdminFilters({ year: value })}
+          placeholder={t("admin.cards.filterYear")}
+          suggestions={references.years}
+          className="h-9 text-xs"
+        />
+        <div className="flex flex-wrap gap-1">
+          {COLLECTION_TAG_VALUES.map((tag) => (
+            <FilterChipButton
+              key={tag}
+              label={badgeLabels[tag]}
+              pressed={selectedTags.has(tag)}
+              onPressedChange={() => toggleTag(tag)}
+            />
+          ))}
         </div>
         <ColumnFilterCombobox
-          value={brandColumnFilter}
-          onChange={(nextValue) => {
-            setBrandColumnFilter(nextValue);
-          }}
+          value={filters.brand}
+          onChange={(value) => applyAdminFilters({ brand: value, set: "" })}
           placeholder={t("admin.cards.filterBrand")}
-          suggestions={columnSuggestions.brands}
+          suggestions={references.brands}
           className="h-9 text-xs"
         />
         <ColumnFilterCombobox
-          value={setColumnFilter}
-          onChange={(nextValue) => {
-            setSetColumnFilter(nextValue);
-          }}
+          value={filters.set}
+          onChange={(value) => applyAdminFilters({ set: value })}
           placeholder={t("admin.cards.filterSet")}
-          suggestions={columnSuggestions.sets}
+          suggestions={setSuggestions}
           className="h-9 text-xs"
         />
         <ColumnFilterCombobox
-          value={variationColumnFilter}
-          onChange={(nextValue) => {
-            setVariationColumnFilter(nextValue);
-          }}
+          value={filters.variation}
+          onChange={(value) => applyAdminFilters({ variation: value })}
           placeholder={t("admin.cards.filterVariation")}
-          suggestions={columnSuggestions.variations}
+          suggestions={variationSuggestions}
           className="h-9 text-xs"
         />
       </div>
 
       <div className="space-y-2 md:hidden">
-        {paged.length ? (
-          paged.map((card) => {
+        {displayedCards.length ? (
+          displayedCards.map((card) => {
             const meta = [card.team, card.year].filter(Boolean).join(" · ");
             const catalog = [card.brand, card.set].filter(Boolean).join(" · ");
 
@@ -418,7 +344,7 @@ export function AdminCardsSection({
                       player: card.player,
                     })}
                     onClick={() => {
-                      setEditingCard(card);
+                      setEditingCard(listItemToEditableCard(card));
                       setSaveError(null);
                       setFormOpen(true);
                     }}
@@ -444,7 +370,7 @@ export function AdminCardsSection({
           })
         ) : (
           <div className="rounded-lg border border-border p-6 text-center text-sm text-muted-foreground">
-            {t("cards.noneFound")}
+            {pageData === null ? t("common.loading") : t("cards.noneFound")}
           </div>
         )}
       </div>
@@ -465,86 +391,92 @@ export function AdminCardsSection({
             <TableRow>
               <TableHead>
                 <ColumnFilterCombobox
-                  value={playerColumnFilter}
-                  onChange={(nextValue) => {
-                    setPlayerColumnFilter(nextValue);
-                  }}
+                  value={filters.player}
+                  onChange={(value) =>
+                    updateFilters({ player: value, page: 1 }, { immediate: true })
+                  }
                   placeholder={t("admin.cards.filterPlayerTeam")}
-                  suggestions={columnSuggestions.players}
+                  suggestions={references.players}
                   className="h-8 min-w-44 text-xs font-normal"
                 />
               </TableHead>
               <TableHead>
                 <ColumnFilterCombobox
-                  value={teamColumnFilter}
-                  onChange={(nextValue) => {
-                    setTeamColumnFilter(nextValue);
-                  }}
+                  value={filters.team}
+                  onChange={(value) =>
+                    updateFilters({ team: value, page: 1 }, { immediate: true })
+                  }
                   placeholder={t("admin.cards.filterTeam")}
-                  suggestions={columnSuggestions.teams}
+                  suggestions={references.teams}
                   className="h-8 min-w-36 text-xs font-normal"
                 />
               </TableHead>
               <TableHead>
                 <ColumnFilterCombobox
-                  value={yearColumnFilter}
-                  onChange={(nextValue) => {
-                    setYearColumnFilter(nextValue);
-                  }}
+                  value={filters.year}
+                  onChange={(value) =>
+                    updateFilters({ year: value, page: 1 }, { immediate: true })
+                  }
                   placeholder={t("admin.cards.filterYear")}
-                  suggestions={columnSuggestions.years}
+                  suggestions={references.years}
                   className="h-8 min-w-24 text-xs font-normal"
                 />
               </TableHead>
               <TableHead>
                 <ColumnFilterCombobox
-                  value={brandColumnFilter}
-                  onChange={(nextValue) => {
-                    setBrandColumnFilter(nextValue);
-                  }}
+                  value={filters.brand}
+                  onChange={(value) =>
+                    updateFilters(
+                      { brand: value, set: "", page: 1 },
+                      { immediate: true }
+                    )
+                  }
                   placeholder={t("admin.cards.filterBrand")}
-                  suggestions={columnSuggestions.brands}
+                  suggestions={references.brands}
                   className="h-8 min-w-36 text-xs font-normal"
                 />
               </TableHead>
               <TableHead>
                 <ColumnFilterCombobox
-                  value={setColumnFilter}
-                  onChange={(nextValue) => {
-                    setSetColumnFilter(nextValue);
-                  }}
+                  value={filters.set}
+                  onChange={(value) =>
+                    updateFilters({ set: value, page: 1 }, { immediate: true })
+                  }
                   placeholder={t("admin.cards.filterSet")}
-                  suggestions={columnSuggestions.sets}
+                  suggestions={setSuggestions}
                   className="h-8 min-w-44 text-xs font-normal"
                 />
               </TableHead>
               <TableHead>
                 <ColumnFilterCombobox
-                  value={variationColumnFilter}
-                  onChange={(nextValue) => {
-                    setVariationColumnFilter(nextValue);
-                  }}
+                  value={filters.variation}
+                  onChange={(value) =>
+                    updateFilters({ variation: value, page: 1 }, {
+                      immediate: true,
+                    })
+                  }
                   placeholder={t("admin.cards.filterVariation")}
-                  suggestions={columnSuggestions.variations}
+                  suggestions={variationSuggestions}
                   className="h-8 min-w-40 text-xs font-normal"
                 />
               </TableHead>
               <TableHead>
-                <ColumnFilterCombobox
-                  value={tagsColumnFilter}
-                  onChange={(nextValue) => {
-                    setTagsColumnFilter(nextValue);
-                  }}
-                  placeholder={t("admin.cards.filterTags")}
-                  suggestions={columnSuggestions.tags}
-                  className="h-8 min-w-36 text-xs font-normal"
-                />
+                <div className="flex flex-wrap gap-1">
+                  {COLLECTION_TAG_VALUES.map((tag) => (
+                    <FilterChipButton
+                      key={tag}
+                      label={badgeLabels[tag]}
+                      pressed={selectedTags.has(tag)}
+                      onPressedChange={() => toggleTag(tag)}
+                    />
+                  ))}
+                </div>
               </TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paged.map((card) => (
+            {displayedCards.map((card) => (
               <TableRow key={card.id}>
                 <TableCell>
                   <p className="font-medium text-sm">{card.player}</p>
@@ -569,7 +501,7 @@ export function AdminCardsSection({
                         player: card.player,
                       })}
                       onClick={() => {
-                        setEditingCard(card);
+                        setEditingCard(listItemToEditableCard(card));
                         setSaveError(null);
                         setFormOpen(true);
                       }}
@@ -595,15 +527,17 @@ export function AdminCardsSection({
         </Table>
       </div>
 
-      {totalPages > 1 ? (
+      {pageCount > 1 ? (
         <PaginationControls
-          page={page + 1}
-          pageCount={totalPages}
-          onPageChange={(nextPage) => setPage(nextPage - 1)}
+          page={filters.page}
+          pageCount={pageCount}
+          onPageChange={(nextPage) =>
+            updateFilters({ page: nextPage }, { immediate: true })
+          }
           summary={t("admin.cards.pageInfo", {
-            page: page + 1,
-            total: totalPages,
-            count: filtered.length,
+            page: filters.page,
+            total: pageCount,
+            count: totalCount,
           })}
         />
       ) : null}
@@ -643,7 +577,7 @@ export function AdminCardsSection({
             <Button variant="outline" onClick={() => setDeleteTarget(null)}>
               {t("common.cancel")}
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
+            <Button variant="destructive" onClick={() => void handleDelete()}>
               {t("common.delete")}
             </Button>
           </DialogFooter>

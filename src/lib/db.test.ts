@@ -5,13 +5,23 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { Card } from "@/lib/types";
 import {
   deleteCard,
+  getDb,
   getNextCardId,
   insertCard,
+  queryCardsPage,
   readCardById,
   readCollectionStats,
+  readRecentCards,
   updateCard,
 } from "@/lib/db";
+import { buildCollectionWhereClause } from "@/lib/collection-query";
 import { resetDatabaseCacheForTests } from "@/lib/test/db-test-helper";
+
+function getDerivedColumns(id: string): Record<string, unknown> {
+  return getDb()
+    .prepare("SELECT search_text, opening_date_sort FROM cards WHERE id = ?")
+    .get(id) as Record<string, unknown>;
+}
 
 const sampleCard = (overrides: Partial<Card> = {}): Card => ({
   id: "card-0001",
@@ -69,6 +79,39 @@ describe("card CRUD", () => {
   it("allocates sequential ids", () => {
     insertCard(sampleCard({ id: "card-0001" }));
     expect(getNextCardId()).toBe("card-0002");
+  });
+
+  it("stores derived search and sort columns", () => {
+    insertCard(sampleCard({ openingDate: "15/03/2024" }));
+    const row = getDerivedColumns("card-0001");
+    expect(row.search_text).toContain("lebron");
+    expect(row.opening_date_sort).toBe(20240315);
+
+    const recent = readRecentCards(1);
+    expect(recent[0]?.id).toBe("card-0001");
+
+    const { whereSql, params } = buildCollectionWhereClause({
+      search: "prizm",
+      player: "",
+      team: "",
+      year: "",
+      brand: "",
+      set: "",
+      variation: "",
+      tags: [],
+      page: 1,
+      pageSize: 50,
+      sort: "player",
+      sortDesc: false,
+    });
+    const page = queryCardsPage(whereSql, params, {
+      sortColumn: "player",
+      sortDesc: false,
+      limit: 10,
+      offset: 0,
+    });
+    expect(page).toHaveLength(1);
+    expect(page[0]).not.toHaveProperty("photo");
   });
 
   it("aggregates collection stats", () => {

@@ -1,15 +1,27 @@
+import { API_FETCH_OPTS, parseApiErrorMessage } from "@/lib/api-fetch";
 import { References } from "@/lib/types";
 
-export async function patchReferences(body: Record<string, unknown>): Promise<References> {
+export async function fetchReferences(): Promise<References> {
+  const res = await fetch("/api/references", API_FETCH_OPTS);
+  if (!res.ok) {
+    throw new Error(
+      await parseApiErrorMessage(res, "Failed to load references")
+    );
+  }
+  return (await res.json()) as References;
+}
+
+export async function patchReferences(
+  body: Record<string, unknown>
+): Promise<References> {
   const res = await fetch("/api/references", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    credentials: "include",
+    ...API_FETCH_OPTS,
     body: JSON.stringify(body),
   });
-  const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(typeof data.error === "string" ? data.error : "");
+    throw new Error(await parseApiErrorMessage(res, ""));
   }
-  return data as References;
+  return (await res.json()) as References;
 }

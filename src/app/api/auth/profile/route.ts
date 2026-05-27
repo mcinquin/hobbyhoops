@@ -22,7 +22,12 @@ import {
 } from "@/lib/users-store";
 import { deleteAllStoredSessionsForUser } from "@/lib/session-store";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
-import { checkRateLimit, getClientIp, peekRateLimit } from "@/lib/rate-limit";
+import {
+  checkRateLimit,
+  getClientIp,
+  peekRateLimit,
+  resetRateLimit,
+} from "@/lib/rate-limit";
 
 export async function PUT(request: NextRequest) {
   const session = getSessionFromRequest(request);
@@ -101,6 +106,8 @@ export async function PUT(request: NextRequest) {
       { status: 401 }
     );
   }
+
+  resetRateLimit(passwordFailureKey);
 
   const newUsernameRaw =
     typeof parsed.data.newUsername === "string"

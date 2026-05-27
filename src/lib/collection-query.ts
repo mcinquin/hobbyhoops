@@ -1,8 +1,15 @@
 import { z } from "zod";
-import type { References } from "@/lib/types";
+
+export {
+  setsForBrandFilter,
+  variationsForFilters,
+  setsLinkedToBrand,
+  variationsLinkedToSet,
+} from "@/lib/reference-suggestions";
 
 export const COLLECTION_PAGE_SIZE = 50;
 export const COLLECTION_MAX_PAGE_SIZE = 100;
+export const ADMIN_CARDS_PAGE_SIZE = 30;
 
 export type CollectionTagValue =
   | "rookie"
@@ -137,17 +144,8 @@ export function buildCollectionWhereClause(
 
   if (query.search.trim()) {
     const pattern = `%${escapeLike(query.search.trim().toLowerCase())}%`;
-    clauses.push(
-      `(LOWER(player) LIKE ? ESCAPE '\\'
-        OR LOWER(team) LIKE ? ESCAPE '\\'
-        OR LOWER(COALESCE(year, '')) LIKE ? ESCAPE '\\'
-        OR LOWER(brand) LIKE ? ESCAPE '\\'
-        OR LOWER(set_name) LIKE ? ESCAPE '\\'
-        OR LOWER(variation) LIKE ? ESCAPE '\\'
-        OR LOWER(COALESCE(card_number, '')) LIKE ? ESCAPE '\\'
-        OR LOWER(COALESCE(serial_number, '')) LIKE ? ESCAPE '\\')`
-    );
-    for (let i = 0; i < 8; i += 1) params.push(pattern);
+    clauses.push("search_text LIKE ? ESCAPE '\\'");
+    params.push(pattern);
   }
 
   if (query.player.trim()) {
@@ -201,47 +199,3 @@ export function buildCollectionWhereClause(
   return { whereSql, params };
 }
 
-export function setsForBrandFilter(
-  references: References,
-  brandQuery: string
-): string[] {
-  const q = brandQuery.trim().toLowerCase();
-  if (!q) return [];
-  const sets = new Set<string>();
-  for (const [brand, brandSets] of Object.entries(references.brandSets)) {
-    if (brand.toLowerCase().includes(q)) {
-      for (const setName of brandSets) sets.add(setName);
-    }
-  }
-  return [...sets].sort((a, b) => a.localeCompare(b));
-}
-
-export function variationsForFilters(
-  references: References,
-  brandQuery: string,
-  setQuery: string
-): string[] {
-  const brandQ = brandQuery.trim().toLowerCase();
-  const setQ = setQuery.trim().toLowerCase();
-  const variations = new Set<string>();
-
-  for (const [setName, setVars] of Object.entries(references.setVariations)) {
-    const setMatch = !setQ || setName.toLowerCase().includes(setQ);
-    if (!setMatch) continue;
-
-    if (!brandQ) {
-      for (const variation of setVars) variations.add(variation);
-      continue;
-    }
-
-    const brandMatches = Object.entries(references.brandSets).some(
-      ([brand, sets]) =>
-        brand.toLowerCase().includes(brandQ) && sets.includes(setName)
-    );
-    if (brandMatches) {
-      for (const variation of setVars) variations.add(variation);
-    }
-  }
-
-  return [...variations].sort((a, b) => a.localeCompare(b));
-}

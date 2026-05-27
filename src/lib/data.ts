@@ -6,11 +6,14 @@ import {
   References,
   WantedBlock,
   type CardsPageResult,
-  type ChartCountRow,
   type CollectionStats,
   type DashboardChartData,
+  type PlayerCardGroup,
+  type PlayerPageSummary,
   type PlayerSummaryRow,
+  type ReferencesFilterIndex,
 } from "./types";
+import { getCachedReferences } from "./references-cache";
 import {
   buildCollectionWhereClause,
   COLLECTION_SORT_SQL,
@@ -23,11 +26,11 @@ import {
   getNextCardId,
   insertCard,
   queryCardsPage,
-  readAllCards,
   readCardCountsByBrand,
   readCardCountsBySet,
   readCardCountsByYear,
-  readCardsByPlayer,
+  readPlayerCardGroups,
+  readPlayerPageSummary,
   readCollectionStats,
   readFrNbaPlayers,
   readPlayerSummaries,
@@ -38,10 +41,6 @@ import {
   deleteWantedEntry,
   insertFrNbaPlayer,
   insertWantedEntry,
-  readCardById,
-  replaceAllCards,
-  replaceAllFrNbaPlayers,
-  replaceAllWantedBlocks,
   updateCard,
   updateFrNbaPlayer,
   writeReferencesState,
@@ -52,16 +51,15 @@ import {
   referenceSetNames,
 } from "./dashboard-chart-data";
 
-export type {
-  CardsPageResult,
-  ChartCountRow,
-  CollectionStats,
-  DashboardChartData,
-  PlayerSummaryRow,
-};
-
-export function getCollection(): Card[] {
-  return readAllCards();
+function toReferencesFilterIndex(refs: References): ReferencesFilterIndex {
+  return {
+    players: refs.players,
+    teams: refs.teams,
+    years: refs.years,
+    brands: refs.brands,
+    brandSets: refs.brandSets,
+    setVariations: refs.setVariations,
+  };
 }
 
 export function getCollectionPage(query: CollectionListQuery): CardsPageResult {
@@ -85,7 +83,7 @@ export function getCollectionStats(): CollectionStats {
   return readCollectionStats();
 }
 
-export function getRecentCards(limit = 8): Card[] {
+export function getRecentCards(limit = 8) {
   return readRecentCards(limit);
 }
 
@@ -93,8 +91,18 @@ export function getPlayerSummaries(): PlayerSummaryRow[] {
   return readPlayerSummaries();
 }
 
-export function getCardsByPlayer(player: string): Card[] {
-  return readCardsByPlayer(player);
+export function getPlayerPageData(player: string): {
+  summary: PlayerPageSummary | null;
+  groups: PlayerCardGroup[];
+} {
+  return {
+    summary: readPlayerPageSummary(player),
+    groups: readPlayerCardGroups(player),
+  };
+}
+
+export function getReferencesFilterIndex(): ReferencesFilterIndex {
+  return toReferencesFilterIndex(getReferences());
 }
 
 export function getDashboardChartData(references: References): DashboardChartData {
@@ -136,10 +144,6 @@ export function removeCardRecord(id: string): boolean {
   return deleteCard(id);
 }
 
-export function getCardById(id: string): Card | null {
-  return readCardById(id);
-}
-
 export { parseCollectionSearchParams, COLLECTION_MAX_PAGE_SIZE } from "./collection-query";
 export type { CollectionListQuery };
 
@@ -151,37 +155,17 @@ export function getFrNbaPlayers(): FrNbaPlayer[] {
   return readFrNbaPlayers();
 }
 
-export function loadReferences(): References {
-  return readReferencesState();
-}
-
-export async function saveReferences(refs: References): Promise<void> {
-  writeReferencesState(refs);
-}
-
 export async function mutateReferences(
   mutator: (refs: References) => void
 ): Promise<References> {
   const refs = readReferencesState();
   mutator(refs);
   writeReferencesState(refs);
-  return getReferences();
+  return refs;
 }
 
 export function getReferences(): References {
-  return loadReferences();
-}
-
-export async function saveCollection(cards: Card[]): Promise<void> {
-  replaceAllCards(cards);
-}
-
-export async function saveWantedBlocks(blocks: WantedBlock[]): Promise<void> {
-  replaceAllWantedBlocks(blocks);
-}
-
-export async function saveFrNbaPlayers(players: FrNbaPlayer[]): Promise<void> {
-  replaceAllFrNbaPlayers(players);
+  return getCachedReferences();
 }
 
 export function createWantedEntry(input: {
@@ -208,11 +192,6 @@ export function editFrNbaPlayer(
   return updateFrNbaPlayer(id, player);
 }
 
-export function getDataHealth(): {
-  ok: boolean;
-  data: Record<string, boolean>;
-  dataDirWritable: boolean;
-  dbSizeBytes: number | null;
-} {
+export function getDataHealth(): { ok: boolean } {
   return getDatabaseHealth();
 }
