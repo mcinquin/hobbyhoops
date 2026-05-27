@@ -23,7 +23,6 @@ import {
   getNextCardId,
   insertCard,
   queryCardsPage,
-  readAllCards,
   readCardCountsByBrand,
   readCardCountsBySet,
   readCardCountsByYear,
@@ -59,10 +58,6 @@ export type {
   DashboardChartData,
   PlayerSummaryRow,
 };
-
-export function getCollection(): Card[] {
-  return readAllCards();
-}
 
 export function getCollectionPage(query: CollectionListQuery): CardsPageResult {
   const { whereSql, params } = buildCollectionWhereClause(query);
@@ -208,11 +203,6 @@ export function editFrNbaPlayer(
   return updateFrNbaPlayer(id, player);
 }
 
-export function getDataHealth(): {
-  ok: boolean;
-  data: Record<string, boolean>;
-  dataDirWritable: boolean;
-  dbSizeBytes: number | null;
-} {
+export function getDataHealth(): { ok: boolean } {
   return getDatabaseHealth();
 }

@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminDeletableList } from "@/components/admin/admin-deletable-list";
 import { AdminFeedback } from "@/components/admin/admin-feedback";
-import { CatalogCombobox } from "@/components/catalog-combobox";
+import { AutocompleteCombobox } from "@/components/autocomplete-combobox";
 import { FilterableListBrowser } from "@/components/filterable-list-browser";
 import {
   setsLinkedToBrand,
@@ -212,14 +212,14 @@ export function AdminCatalogSection({
             <div className="space-y-3 rounded-lg border border-border p-4">
               <Label>{t("admin.players.unitAdd")}</Label>
               <div className="space-y-2">
-                <CatalogCombobox
+                <AutocompleteCombobox
                   value={brandForSet}
                   onChange={setBrandForSet}
                   placeholder={t("admin.catalog.setBrandPlaceholder")}
                   suggestions={references.brands}
                   disabled={loading}
                 />
-                <CatalogCombobox
+                <AutocompleteCombobox
                   value={setName}
                   onChange={setSetName}
                   placeholder={t("admin.catalog.setNamePlaceholder")}
@@ -293,21 +293,21 @@ export function AdminCatalogSection({
             <div className="space-y-3 rounded-lg border border-border p-4">
               <Label>{t("admin.players.unitAdd")}</Label>
               <div className="space-y-2">
-                <CatalogCombobox
+                <AutocompleteCombobox
                   value={brandForVariation}
                   onChange={setBrandForVariation}
                   placeholder={t("admin.catalog.variationBrandPlaceholder")}
                   suggestions={references.brands}
                   disabled={loading}
                 />
-                <CatalogCombobox
+                <AutocompleteCombobox
                   value={setForVariation}
                   onChange={setSetForVariation}
                   placeholder={t("admin.catalog.variationSetPlaceholder")}
                   suggestions={setsForVariationBrand}
                   disabled={loading}
                 />
-                <CatalogCombobox
+                <AutocompleteCombobox
                   value={variation}
                   onChange={setVariation}
                   placeholder={t("admin.catalog.variationPlaceholder")}

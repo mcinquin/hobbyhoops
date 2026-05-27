@@ -8,13 +8,8 @@ import {
   setsForBrandFilter,
   variationsForFilters,
 } from "@/lib/collection-query";
-import {
-  createCard,
-  deleteCard,
-  fetchCardsPage,
-  fetchReferences,
-  updateCard,
-} from "@/lib/cards-client";
+import { createCard, deleteCard, fetchCardsPage, updateCard } from "@/lib/cards-client";
+import { fetchReferences } from "@/lib/references-client";
 import { FilterChipButton } from "@/components/filter-chip-button";
 import { CardForm } from "@/components/card-form";
 import { CardBadges } from "@/components/card-badges";
@@ -91,24 +86,29 @@ export function AdminCardsSection({
     [filters.tags]
   );
 
+  const applyPageData = useCallback(
+    (data: CardsPageResult) => {
+      setPageData(data);
+      onTotalCountChange?.(data.totalCount);
+    },
+    [onTotalCountChange]
+  );
+
   const loadPage = useCallback(async () => {
     setFetchError(null);
     try {
-      const data = await fetchCardsPage(filters);
-      setPageData(data);
-      onTotalCountChange?.(data.totalCount);
+      applyPageData(await fetchCardsPage(filters));
     } catch {
       setFetchError(t("admin.loadError"));
     }
-  }, [filters, onTotalCountChange, t]);
+  }, [applyPageData, filters, t]);
 
   useEffect(() => {
     let active = true;
     fetchCardsPage(filters)
       .then((data) => {
         if (!active) return;
-        setPageData(data);
-        onTotalCountChange?.(data.totalCount);
+        applyPageData(data);
       })
       .catch(() => {
         if (!active) return;
@@ -117,7 +117,7 @@ export function AdminCardsSection({
     return () => {
       active = false;
     };
-  }, [filters, onTotalCountChange, reloadToken, t]);
+  }, [applyPageData, filters, reloadToken, t]);
 
   const pageCount = pageData?.pageCount ?? 1;
   const totalCount = pageData?.totalCount ?? 0;

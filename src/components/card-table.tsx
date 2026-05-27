@@ -19,7 +19,7 @@ import { CardBadges } from "@/components/card-badges";
 import { CardDetail } from "@/components/card-detail";
 import { ClickableTableRow } from "@/components/data-table/clickable-table-row";
 import { SortableTableHead } from "@/components/data-table/sortable-table-head";
-import { ServerTablePagination } from "@/components/data-table/server-table-pagination";
+import { PaginationControls } from "@/components/data-table/pagination-controls";
 import { ColumnFilterCombobox } from "@/components/column-filter-combobox";
 import { FilterChipButton } from "@/components/filter-chip-button";
 import { SearchField } from "@/components/search-field";
@@ -519,7 +519,7 @@ export function CardTable({
         </Table>
       </div>
 
-      <ServerTablePagination
+      <PaginationControls
         page={urlFilters.page}
         pageCount={pageCount}
         onPageChange={(page) => updateFilters({ page }, { immediate: true })}

@@ -1,13 +1,9 @@
+import { API_FETCH_OPTS, parseApiErrorMessage } from "@/lib/api-fetch";
 import {
   COLLECTION_PAGE_SIZE,
   type CollectionListQuery,
 } from "@/lib/collection-query";
 import type { Card, CardsPageResult, References } from "@/lib/types";
-
-const FETCH_OPTS = {
-  credentials: "include" as const,
-  cache: "no-store" as const,
-};
 
 export function collectionQueryToSearchParams(
   query: CollectionListQuery,
@@ -40,7 +36,7 @@ export async function fetchCardsPage(
   query: CollectionListQuery
 ): Promise<CardsPageResult> {
   const params = collectionQueryToSearchParams(query);
-  const res = await fetch(`/api/cards?${params.toString()}`, FETCH_OPTS);
+  const res = await fetch(`/api/cards?${params.toString()}`, API_FETCH_OPTS);
   if (!res.ok) {
     throw new Error("Failed to load cards");
   }
@@ -52,41 +48,30 @@ export interface AdminSnapshot {
   totalCount: number;
 }
 
-async function parseApiError(res: Response, fallback: string): Promise<string> {
-  const data = await res.json().catch(() => ({}));
-  return typeof data.error === "string" ? data.error : fallback;
-}
-
-export async function fetchReferences(): Promise<References> {
-  const res = await fetch("/api/references", FETCH_OPTS);
-  if (!res.ok) {
-    throw new Error(await parseApiError(res, "Failed to load references"));
-  }
-  return (await res.json()) as References;
-}
-
 export async function createCard(card: Partial<Card>): Promise<Card> {
   const res = await fetch("/api/cards", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    ...FETCH_OPTS,
+    ...API_FETCH_OPTS,
     body: JSON.stringify(card),
   });
   if (!res.ok) {
-    throw new Error(await parseApiError(res, "Failed to create card"));
+    throw new Error(await parseApiErrorMessage(res, "Failed to create card"));
   }
   return (await res.json()) as Card;
 }
 
-export async function updateCard(card: Partial<Card> & { id: string }): Promise<Card> {
+export async function updateCard(
+  card: Partial<Card> & { id: string }
+): Promise<Card> {
   const res = await fetch("/api/cards", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    ...FETCH_OPTS,
+    ...API_FETCH_OPTS,
     body: JSON.stringify(card),
   });
   if (!res.ok) {
-    throw new Error(await parseApiError(res, "Failed to update card"));
+    throw new Error(await parseApiErrorMessage(res, "Failed to update card"));
   }
   return (await res.json()) as Card;
 }
@@ -94,15 +79,15 @@ export async function updateCard(card: Partial<Card> & { id: string }): Promise<
 export async function deleteCard(id: string): Promise<void> {
   const res = await fetch(`/api/cards?id=${encodeURIComponent(id)}`, {
     method: "DELETE",
-    ...FETCH_OPTS,
+    ...API_FETCH_OPTS,
   });
   if (!res.ok) {
-    throw new Error(await parseApiError(res, "Failed to delete card"));
+    throw new Error(await parseApiErrorMessage(res, "Failed to delete card"));
   }
 }
 
 export async function fetchAdminSnapshot(): Promise<AdminSnapshot> {
-  const res = await fetch("/api/admin/data", FETCH_OPTS);
+  const res = await fetch("/api/admin/data", API_FETCH_OPTS);
   if (res.status === 401) {
     window.location.href = "/login";
     throw new Error("Unauthorized");

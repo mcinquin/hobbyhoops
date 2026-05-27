@@ -909,84 +909,13 @@ export function writeReferencesState(refs: References): void {
   importReferences(getDb(), refs);
 }
 
-export function getDatabaseHealth(): {
-  ok: boolean;
-  data: Record<string, boolean>;
-  dataDirWritable: boolean;
-  dbSizeBytes: number | null;
-} {
+export function getDatabaseHealth(): { ok: boolean } {
   try {
-    const db = getDb();
-    const dbPath = getDbPath();
-    const dataDir = path.dirname(dbPath);
-    let dataDirWritable = false;
-    let dbSizeBytes: number | null = null;
-    try {
-      fs.accessSync(dataDir, fs.constants.W_OK);
-      dataDirWritable = true;
-    } catch {
-      dataDirWritable = false;
-    }
-    try {
-      const stat = fs.statSync(dbPath);
-      dbSizeBytes = stat.size;
-    } catch {
-      dbSizeBytes = null;
-    }
-
-    const cards = (
-      db.prepare("SELECT COUNT(*) as count FROM cards").get() as { count: number }
-    ).count;
-    const references = (
-      db.prepare("SELECT COUNT(*) as count FROM references_state").get() as {
-        count: number;
-      }
-    ).count;
-    const users = (
-      db.prepare("SELECT COUNT(*) as count FROM users").get() as { count: number }
-    ).count;
-    const sessions = (
-      db.prepare("SELECT COUNT(*) as count FROM sessions").get() as {
-        count: number;
-      }
-    ).count;
-    const wanted = (
-      db.prepare("SELECT COUNT(*) as count FROM wanted_entries").get() as {
-        count: number;
-      }
-    ).count;
-    const frNba = (
-      db.prepare("SELECT COUNT(*) as count FROM fr_nba_players").get() as {
-        count: number;
-      }
-    ).count;
-
-    return {
-      ok: true,
-      data: {
-        cards: cards > 0,
-        references: references > 0,
-        users: users > 0,
-        sessions: sessions > 0,
-        wanted: wanted > 0,
-        frNba: frNba > 0,
-      },
-      dataDirWritable,
-      dbSizeBytes,
-    };
+    const dataDir = path.dirname(getDbPath());
+    fs.accessSync(dataDir, fs.constants.W_OK);
+    getDb();
+    return { ok: true };
   } catch {
-    return {
-      ok: false,
-      data: {
-        cards: false,
-        references: false,
-        users: false,
-        sessions: false,
-        wanted: false,
-        frNba: false,
-      },
-      dataDirWritable: false,
-      dbSizeBytes: null,
-    };
+    return { ok: false };
   }
 }
