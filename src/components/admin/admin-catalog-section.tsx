@@ -17,51 +17,15 @@ import { AdminDeletableList } from "@/components/admin/admin-deletable-list";
 import { AdminFeedback } from "@/components/admin/admin-feedback";
 import { CatalogCombobox } from "@/components/catalog-combobox";
 import { FilterableListBrowser } from "@/components/filterable-list-browser";
+import {
+  setsLinkedToBrand,
+  variationsLinkedToSet,
+} from "@/lib/reference-suggestions";
 import { useTranslations } from "@/i18n/client";
 
 interface AdminCatalogSectionProps {
   references: References;
   onReferencesChange: (references: References) => void;
-}
-
-function uniqueSorted(values: string[]): string[] {
-  return Array.from(
-    new Set(values.map((value) => value.trim()).filter(Boolean))
-  ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-}
-
-function setsLinkedToBrand(references: References, brand: string): string[] {
-  const query = brand.trim().toLowerCase();
-  if (!query) return references.sets;
-
-  const exactBrand = references.brands.find(
-    (item) => item.toLowerCase() === query
-  );
-  if (exactBrand) {
-    return references.brandSets[exactBrand] ?? [];
-  }
-
-  return uniqueSorted(
-    references.brands
-      .filter((item) => item.toLowerCase().includes(query))
-      .flatMap((item) => references.brandSets[item] ?? [])
-  );
-}
-
-function variationsLinkedToSet(references: References, setName: string): string[] {
-  const query = setName.trim().toLowerCase();
-  if (!query) return references.variations;
-
-  const exactSet = references.sets.find((item) => item.toLowerCase() === query);
-  if (exactSet) {
-    return references.setVariations[exactSet] ?? [];
-  }
-
-  return uniqueSorted(
-    references.sets
-      .filter((item) => item.toLowerCase().includes(query))
-      .flatMap((item) => references.setVariations[item] ?? [])
-  );
 }
 
 export function AdminCatalogSection({

@@ -1,3 +1,4 @@
+import { PlayerStatChips } from "@/components/player-stat-chips";
 import { getPlayerSummaries } from "@/lib/data";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
@@ -30,27 +31,14 @@ export default async function PlayersPage() {
                 {player.count}
               </span>
             </div>
-            <div className="mt-3 flex gap-3 text-xs text-muted-foreground">
-              {player.rookies > 0 && (
-                <span className="text-emerald-500">
-                  {player.rookies} {t("badges.rookie")}
-                </span>
-              )}
-              {player.autos > 0 && (
-                <span className="text-amber-500">
-                  {player.autos} {t("badges.autograph")}
-                </span>
-              )}
-              {player.memos > 0 && (
-                <span className="text-blue-500">
-                  {player.memos} {t("badges.memorabilia")}
-                </span>
-              )}
-              {player.serials > 0 && (
-                <span className="text-red-500">
-                  {t("players.serialsShort", { count: player.serials })}
-                </span>
-              )}
+            <div className="mt-3">
+              <PlayerStatChips
+                rookies={player.rookies}
+                autos={player.autos}
+                memos={player.memos}
+                serials={player.serials}
+                variant="short"
+              />
             </div>
           </Link>
         ))}

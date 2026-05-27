@@ -1,5 +1,6 @@
 import { getCardsByPlayer } from "@/lib/data";
 import { CardBadges } from "@/components/card-badges";
+import { PlayerStatChips } from "@/components/player-stat-chips";
 import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -65,28 +66,12 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
         }
       />
 
-      <div className="flex gap-4 text-sm">
-        {rookies > 0 && (
-          <span className="text-emerald-500">
-            {t("players.rookies", { count: rookies })}
-          </span>
-        )}
-        {autos > 0 && (
-          <span className="text-amber-500">
-            {t("players.autographs", { count: autos })}
-          </span>
-        )}
-        {memos > 0 && (
-          <span className="text-blue-500">
-            {t("players.memorabilia", { count: memos })}
-          </span>
-        )}
-        {serials > 0 && (
-          <span className="text-red-500">
-            {t("players.numbered", { count: serials })}
-          </span>
-        )}
-      </div>
+      <PlayerStatChips
+        rookies={rookies}
+        autos={autos}
+        memos={memos}
+        serials={serials}
+      />
 
       <div className="space-y-6">
         {Object.entries(bySet)

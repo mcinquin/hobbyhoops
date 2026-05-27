@@ -13,7 +13,6 @@ import {
   setsForBrandFilter,
   variationsForFilters,
   type CollectionSortKey,
-  type CollectionTagValue,
 } from "@/lib/collection-query";
 import { Card, type References } from "@/lib/types";
 import { CardBadges } from "@/components/card-badges";
@@ -115,8 +114,13 @@ export function CardTable({
   const t = useTranslations();
   const yearSelectId = useId();
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
-  const { filters: urlFilters, updateFilters, toggleSort, isPending } =
-    useCollectionUrlFilters();
+  const {
+    filters: urlFilters,
+    updateFilters,
+    toggleSort,
+    toggleTag,
+    isPending,
+  } = useCollectionUrlFilters();
 
   const selectedTags = useMemo(
     () => new Set(urlFilters.tags),
@@ -257,13 +261,6 @@ export function CardTable({
       updateFilters({ variation: "" }, { immediate: true });
     }
   }, [urlFilters.variation, variationSuggestions, updateFilters]);
-
-  function toggleTag(tag: CollectionTagValue) {
-    const next = selectedTags.has(tag)
-      ? urlFilters.tags.filter((value) => value !== tag)
-      : [...urlFilters.tags, tag];
-    updateFilters({ tags: next }, { immediate: true });
-  }
 
   const activeFilters = useMemo(
     () =>

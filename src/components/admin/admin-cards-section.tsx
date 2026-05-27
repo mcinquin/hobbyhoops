@@ -3,10 +3,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, References, type CardsPageResult } from "@/lib/types";
 import {
+  ADMIN_CARDS_PAGE_SIZE,
+  COLLECTION_TAG_VALUES,
   setsForBrandFilter,
   variationsForFilters,
 } from "@/lib/collection-query";
-import { fetchCardsPage } from "@/lib/cards-client";
+import {
+  createCard,
+  deleteCard,
+  fetchCardsPage,
+  fetchReferences,
+  updateCard,
+} from "@/lib/cards-client";
+import { FilterChipButton } from "@/components/filter-chip-button";
 import { CardForm } from "@/components/card-form";
 import { CardBadges } from "@/components/card-badges";
 import { ColumnFilterCombobox } from "@/components/column-filter-combobox";
@@ -31,7 +40,7 @@ import {
 import { AdminFeedback } from "@/components/admin/admin-feedback";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { useTranslations } from "@/i18n/client";
-import { useAdminCollectionUrlFilters } from "@/hooks/use-admin-collection-url-filters";
+import { useCollectionUrlFilters } from "@/hooks/use-collection-url-filters";
 import { useCardBadgeLabels } from "@/hooks/use-card-badge-labels";
 
 interface AdminCardsSectionProps {
@@ -49,10 +58,11 @@ export function AdminCardsSection({
 }: AdminCardsSectionProps) {
   const t = useTranslations();
   const badgeLabels = useCardBadgeLabels();
-  const { filters, updateFilters, isPending } = useAdminCollectionUrlFilters();
+  const { filters, updateFilters, toggleTag, isPending } = useCollectionUrlFilters({
+    fixedPageSize: ADMIN_CARDS_PAGE_SIZE,
+  });
   const [pageData, setPageData] = useState<CardsPageResult | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [tagsColumnFilter, setTagsColumnFilter] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Card | null>(null);
@@ -71,15 +81,14 @@ export function AdminCardsSection({
         filters.brand,
         filters.set
       ),
-      tags: [
-        badgeLabels.rookie,
-        badgeLabels.autograph,
-        badgeLabels.memorabilia,
-        badgeLabels.numbered,
-        badgeLabels.tradable,
-      ],
     }),
-    [badgeLabels, filters.brand, filters.set, references]
+    [filters.brand, filters.set, references]
+  );
+
+  const displayedCards = pageData?.cards ?? [];
+  const selectedTags = useMemo(
+    () => new Set(filters.tags),
+    [filters.tags]
   );
 
   const loadPage = useCallback(async () => {
@@ -110,32 +119,14 @@ export function AdminCardsSection({
     };
   }, [filters, onTotalCountChange, reloadToken, t]);
 
-  const tagsQuery = tagsColumnFilter.toLowerCase();
-  const displayedCards = useMemo(() => {
-    const cards = pageData?.cards ?? [];
-    if (!tagsQuery) return cards;
-    return cards.filter((card) => {
-      const tagsValue = [
-        card.rookie ? badgeLabels.rookie : "",
-        card.autograph ? badgeLabels.autograph : "",
-        card.memorabilia ? badgeLabels.memorabilia : "",
-        card.serialNumber ? badgeLabels.numbered : "",
-        card.tradable ? badgeLabels.tradable : "",
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      return tagsValue.includes(tagsQuery);
-    });
-  }, [badgeLabels, pageData?.cards, tagsQuery]);
-
   const pageCount = pageData?.pageCount ?? 1;
   const totalCount = pageData?.totalCount ?? 0;
 
   async function refreshReferences() {
-    const res = await fetch("/api/references", { credentials: "include" });
-    if (res.ok) {
-      onReferencesChange(await res.json());
+    try {
+      onReferencesChange(await fetchReferences());
+    } catch {
+      /* ignore */
     }
   }
 
@@ -144,52 +135,25 @@ export function AdminCardsSection({
     setSuccess(null);
     try {
       if (editingCard) {
-        const res = await fetch("/api/cards", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ ...editingCard, ...cardData }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          setSaveError(
-            typeof data.error === "string"
-              ? data.error
-              : t("admin.cards.saveFailed")
-          );
-          return false;
-        }
+        await updateCard({ ...editingCard, ...cardData });
         setEditingCard(null);
         setFormOpen(false);
         setSuccess(t("admin.cards.updated"));
-        void loadPage();
-        void refreshReferences();
-        return true;
+      } else {
+        await createCard(cardData);
+        setEditingCard(null);
+        setFormOpen(false);
+        setSuccess(t("admin.cards.created"));
       }
-
-      const res = await fetch("/api/cards", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(cardData),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setSaveError(
-          typeof data.error === "string"
-            ? data.error
-            : t("admin.cards.saveFailed")
-        );
-        return false;
-      }
-      setEditingCard(null);
-      setFormOpen(false);
-      setSuccess(t("admin.cards.created"));
       void loadPage();
       void refreshReferences();
       return true;
-    } catch {
-      setSaveError(t("admin.cards.saveFailed"));
+    } catch (err) {
+      setSaveError(
+        err instanceof Error && err.message
+          ? err.message
+          : t("admin.cards.saveFailed")
+      );
       return false;
     }
   }
@@ -197,14 +161,13 @@ export function AdminCardsSection({
   async function handleDelete() {
     if (!deleteTarget) return;
     setSuccess(null);
-    const res = await fetch(`/api/cards?id=${deleteTarget.id}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
-    if (res.ok) {
+    try {
+      await deleteCard(deleteTarget.id);
       setSuccess(t("admin.cards.deleted"));
       void loadPage();
       void refreshReferences();
+    } catch {
+      /* ignore */
     }
     setDeleteTarget(null);
   }
@@ -267,21 +230,22 @@ export function AdminCardsSection({
           suggestions={columnSuggestions.teams}
           className="h-9 text-xs"
         />
-        <div className="grid grid-cols-2 gap-2">
-          <ColumnFilterCombobox
-            value={filters.year}
-            onChange={(value) => updateFilters({ year: value, page: 1 })}
-            placeholder={t("admin.cards.filterYear")}
-            suggestions={columnSuggestions.years}
-            className="h-9 text-xs"
-          />
-          <ColumnFilterCombobox
-            value={tagsColumnFilter}
-            onChange={setTagsColumnFilter}
-            placeholder={t("admin.cards.filterTags")}
-            suggestions={columnSuggestions.tags}
-            className="h-9 text-xs"
-          />
+        <ColumnFilterCombobox
+          value={filters.year}
+          onChange={(value) => updateFilters({ year: value, page: 1 })}
+          placeholder={t("admin.cards.filterYear")}
+          suggestions={columnSuggestions.years}
+          className="h-9 text-xs"
+        />
+        <div className="flex flex-wrap gap-1">
+          {COLLECTION_TAG_VALUES.map((tag) => (
+            <FilterChipButton
+              key={tag}
+              label={badgeLabels[tag]}
+              pressed={selectedTags.has(tag)}
+              onPressedChange={() => toggleTag(tag)}
+            />
+          ))}
         </div>
         <ColumnFilterCombobox
           value={filters.brand}
@@ -459,13 +423,16 @@ export function AdminCardsSection({
                 />
               </TableHead>
               <TableHead>
-                <ColumnFilterCombobox
-                  value={tagsColumnFilter}
-                  onChange={setTagsColumnFilter}
-                  placeholder={t("admin.cards.filterTags")}
-                  suggestions={columnSuggestions.tags}
-                  className="h-8 min-w-36 text-xs font-normal"
-                />
+                <div className="flex flex-wrap gap-1">
+                  {COLLECTION_TAG_VALUES.map((tag) => (
+                    <FilterChipButton
+                      key={tag}
+                      label={badgeLabels[tag]}
+                      pressed={selectedTags.has(tag)}
+                      onPressedChange={() => toggleTag(tag)}
+                    />
+                  ))}
+                </div>
               </TableHead>
               <TableHead />
             </TableRow>

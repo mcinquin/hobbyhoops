@@ -7,6 +7,7 @@ import { patchReferences } from "@/lib/references-client";
 import { BatchTextImport } from "@/components/admin/batch-text-import";
 import { AdminDeletableList } from "@/components/admin/admin-deletable-list";
 import { AdminFeedback } from "@/components/admin/admin-feedback";
+import { FilterableListBrowser } from "@/components/filterable-list-browser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +34,9 @@ interface AdminReferenceListSectionProps {
   buildAddPatch: (value: string) => Record<string, unknown>;
   buildBatchPatch: (values: string[]) => Record<string, unknown>;
   buildRemovePatch?: (value: string) => Record<string, unknown>;
+  /** Liste avec `FilterableListBrowser` (ex. joueurs). */
+  listLayout?: "default" | "filterable";
+  filterableListClassName?: string;
 }
 
 export function AdminReferenceListSection({
@@ -55,6 +59,8 @@ export function AdminReferenceListSection({
   buildAddPatch,
   buildBatchPatch,
   buildRemovePatch,
+  listLayout = "default",
+  filterableListClassName = "max-w-none border-0 p-0",
 }: AdminReferenceListSectionProps) {
   const t = useTranslations();
   const [unitValue, setUnitValue] = useState("");
@@ -104,29 +110,28 @@ export function AdminReferenceListSection({
     }
   }
 
-  let listContent: ReactNode;
-  if (filtered.length === 0) {
-    listContent = (
-      <p className="text-muted-foreground">{t(emptyKey)}</p>
-    );
-  } else if (deletable && buildRemovePatch) {
-    listContent = (
-      <AdminDeletableList
-        items={filtered}
-        getKey={(name) => name}
-        renderLabel={(name) => name}
-        emptyLabel={t(emptyKey)}
-        disabled={loading}
-        onDelete={async (name) => {
-          onReferencesChange(await patchReferences(buildRemovePatch(name)));
-          if (deletedKey) setSuccess(t(deletedKey));
-        }}
-      />
-    );
-  } else {
-    listContent = (
+  function renderItemsList(itemsToShow: string[]): ReactNode {
+    if (itemsToShow.length === 0) {
+      return <p className="text-muted-foreground">{t(emptyKey)}</p>;
+    }
+    if (deletable && buildRemovePatch) {
+      return (
+        <AdminDeletableList
+          items={itemsToShow}
+          getKey={(name) => name}
+          renderLabel={(name) => name}
+          emptyLabel={t(emptyKey)}
+          disabled={loading}
+          onDelete={async (name) => {
+            onReferencesChange(await patchReferences(buildRemovePatch(name)));
+            if (deletedKey) setSuccess(t(deletedKey));
+          }}
+        />
+      );
+    }
+    return (
       <ul className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((name) => (
+        {itemsToShow.map((name) => (
           <li key={name}>{name}</li>
         ))}
       </ul>
@@ -178,25 +183,37 @@ export function AdminReferenceListSection({
         />
       </div>
 
-      <div className="space-y-3">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t(filterPlaceholderKey)}
-            className="pl-9"
-            aria-label={t(filterPlaceholderKey)}
-          />
+      {listLayout === "filterable" ? (
+        <FilterableListBrowser
+          items={items}
+          filterPlaceholder={t(filterPlaceholderKey)}
+          countLabel={t(referencedKey, { count: items.length })}
+          filteredCountLabel={(count) => t(shownKey, { count })}
+          emptyLabel={t(emptyKey)}
+          className={filterableListClassName}
+          renderList={renderItemsList}
+        />
+      ) : (
+        <div className="space-y-3">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t(filterPlaceholderKey)}
+              className="pl-9"
+              aria-label={t(filterPlaceholderKey)}
+            />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {t(referencedKey, { count: items.length })}
+            {search ? ` ${t(shownKey, { count: filtered.length })}` : ""}
+          </p>
+          <div className="max-h-72 overflow-auto rounded-lg border border-border p-3 text-sm">
+            {renderItemsList(filtered)}
+          </div>
         </div>
-        <p className="text-sm text-muted-foreground">
-          {t(referencedKey, { count: items.length })}
-          {search ? ` ${t(shownKey, { count: filtered.length })}` : ""}
-        </p>
-        <div className="max-h-72 overflow-auto rounded-lg border border-border p-3 text-sm">
-          {listContent}
-        </div>
-      </div>
+      )}
     </div>
   );
 }
