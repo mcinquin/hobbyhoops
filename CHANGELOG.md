@@ -1,3 +1,11 @@
+## [1.19.3](https://github.com/mcinquin/hobbyhoops/compare/v1.19.2...v1.19.3) (2026-05-27)
+
+
+### Bug Fixes
+
+* **ci:** skip husky pre-push in CI for semantic-release ([9e32c3c](https://github.com/mcinquin/hobbyhoops/commit/9e32c3cc272477184cbd396f8c8536ab50b37cea))
+* **ui:** fix search bar in admin section ([6b18523](https://github.com/mcinquin/hobbyhoops/commit/6b185239fe3bec068b7801dd6cca39002e7b45c0))
+
 ## [1.19.2](https://github.com/mcinquin/hobbyhoops/compare/v1.19.1...v1.19.2) (2026-05-25)
 
 
