@@ -140,9 +140,10 @@ Locally, run `npm run ci` before pushing. The full network audit remains availab
 
 Config: `release.config.cjs`. Releases are created automatically after a successful CI run on `main`, based on [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `refactor:`, etc.).
 
-- Squash-merge PRs with a conventional title (e.g. `feat: add collection filter`), or push conventional commits directly to `main`.
+- Open a PR and **squash-merge** with a conventional title (e.g. `feat: add collection filter`). Direct pushes to `main` are blocked by branch protection.
 - Merge commits such as `Merge pull request #12` do not trigger a version by themselves.
-- In the GitHub repository settings: **Settings → Actions → General → Workflow permissions** → *Read and write permissions* (required so semantic-release can push the release tag and commit).
+- **GitHub App** `hobbyhoops-release` pushes release commits and tags (bypass ruleset). Repository secrets: `RELEASE_APP_ID`, `RELEASE_APP_PRIVATE_KEY`.
+- **Settings → Actions → General → Workflow permissions** → *Read and write permissions* (Docker GHCR still uses `GITHUB_TOKEN`).
 - Docker images `:latest` and `:X.Y.Z` point to the commit of the `vX.Y.Z` Git tag created by semantic-release (not the intermediate push SHA).
 
 ## Pushing to GitHub
@@ -154,14 +155,17 @@ git status
 git check-ignore -v data/hobbyhoops.db .env.local
 ```
 
-Then commit and push:
+Then commit, push a branch, and open a PR toward `main`:
 
 ```bash
 npm run ci
+git checkout -b feat/my-change
 git add .
 git commit -m "feat: application HobbyHoops"
-git push origin main
+git push -u origin feat/my-change
 ```
+
+Merge the PR on GitHub (squash-merge with a conventional title). semantic-release runs on the resulting push to `main`.
 
 Never push `.env`, `.env.local`, local accounts, or the development SQLite database. See [SECURITY.md](SECURITY.md).
 
