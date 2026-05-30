@@ -25,7 +25,9 @@ import {
   getDatabaseHealth,
   getNextCardId,
   insertCard,
+  queryAllCards,
   queryCardsPage,
+  readCardById,
   readCardCountsByBrand,
   readCardCountsBySet,
   readCardCountsByYear,
@@ -50,6 +52,23 @@ import {
   chartDataWithCards,
   referenceSetNames,
 } from "./dashboard-chart-data";
+import {
+  CARD_CSV_MAX_ROWS,
+  type CardCsvImportMode,
+  type CardCsvImportResult,
+  cardsToCsv,
+  csvRowToWritePayload,
+  parseCardCsv,
+} from "./card-csv";
+import { normalizeCardSerialFields } from "./card-serial";
+import {
+  cardCreateSchema,
+  cardUpdateSchema,
+  formatZodError,
+} from "./card-schema";
+import { formatTodayOpeningDateFr } from "./opening-date";
+import { syncReferencesFromCard } from "./reference-mutations";
+import type { Translator } from "@/i18n/translator";
 
 function toReferencesFilterIndex(refs: References): ReferencesFilterIndex {
   return {
@@ -142,6 +161,162 @@ export function editCardRecord(card: Card): Card | null {
 
 export function removeCardRecord(id: string): boolean {
   return deleteCard(id);
+}
+
+const EMPTY_COLLECTION_QUERY: CollectionListQuery = {
+  search: "",
+  player: "",
+  team: "",
+  year: "",
+  brand: "",
+  set: "",
+  variation: "",
+  tags: [],
+  page: 1,
+  pageSize: 50,
+  sort: "player",
+  sortDesc: false,
+};
+
+function resolveExportQuery(
+  query: CollectionListQuery,
+  scope: "filtered" | "all"
+): CollectionListQuery {
+  if (scope === "all") {
+    return {
+      ...EMPTY_COLLECTION_QUERY,
+      sort: query.sort,
+      sortDesc: query.sortDesc,
+    };
+  }
+  return query;
+}
+
+export function exportCardsCsv(
+  query: CollectionListQuery,
+  scope: "filtered" | "all"
+): string {
+  const resolved = resolveExportQuery(query, scope);
+  const { whereSql, params } = buildCollectionWhereClause(resolved);
+  const sortColumn = COLLECTION_SORT_SQL[resolved.sort];
+  const cards = queryAllCards(whereSql, params, {
+    sortColumn,
+    sortDesc: resolved.sortDesc,
+  });
+  return cardsToCsv(cards);
+}
+
+export function importCardsCsv(
+  csv: string,
+  mode: CardCsvImportMode,
+  t: Translator
+): CardCsvImportResult {
+  const rows = parseCardCsv(csv);
+  if (rows.length === 0) {
+    return {
+      created: 0,
+      updated: 0,
+      errors: [{ row: 0, message: t("errors.csvEmpty") }],
+    };
+  }
+  if (rows.length > CARD_CSV_MAX_ROWS) {
+    return {
+      created: 0,
+      updated: 0,
+      errors: [
+        {
+          row: 0,
+          message: t("errors.csvTooManyRows", { max: CARD_CSV_MAX_ROWS }),
+        },
+      ],
+    };
+  }
+
+  const result: CardCsvImportResult = {
+    created: 0,
+    updated: 0,
+    errors: [],
+  };
+
+  const refs = readReferencesState();
+
+  for (const row of rows) {
+    const payload = csvRowToWritePayload(row.values, mode);
+    const hasId = typeof payload.id === "string" && payload.id.trim().length > 0;
+
+    if (mode === "create") {
+      delete payload.id;
+      const parsed = cardCreateSchema.safeParse(payload);
+      if (!parsed.success) {
+        result.errors.push({
+          row: row.rowNumber,
+          message: formatZodError(parsed.error, t),
+        });
+        continue;
+      }
+
+      const card = normalizeCardSerialFields({
+        ...parsed.data,
+        openingDate: parsed.data.openingDate ?? formatTodayOpeningDateFr(),
+      });
+      const created = insertCard({ ...card, id: getNextCardId() });
+      syncReferencesFromCard(refs, created);
+      result.created += 1;
+      continue;
+    }
+
+    if (hasId) {
+      const parsed = cardUpdateSchema.safeParse(payload);
+      if (!parsed.success) {
+        result.errors.push({
+          row: row.rowNumber,
+          message: formatZodError(parsed.error, t),
+        });
+        continue;
+      }
+
+      const card = normalizeCardSerialFields(parsed.data);
+      const existing = readCardById(card.id);
+      if (existing) {
+        const saved = updateCard(card);
+        if (!saved) {
+          result.errors.push({
+            row: row.rowNumber,
+            message: t("errors.cardNotFound"),
+          });
+          continue;
+        }
+        syncReferencesFromCard(refs, saved);
+        result.updated += 1;
+        continue;
+      }
+
+      const created = insertCard(card);
+      syncReferencesFromCard(refs, created);
+      result.created += 1;
+      continue;
+    }
+
+    const parsed = cardCreateSchema.safeParse(payload);
+    if (!parsed.success) {
+      result.errors.push({
+        row: row.rowNumber,
+        message: formatZodError(parsed.error, t),
+      });
+      continue;
+    }
+
+    const card = normalizeCardSerialFields({
+      ...parsed.data,
+      openingDate: parsed.data.openingDate ?? formatTodayOpeningDateFr(),
+    });
+    const created = insertCard({ ...card, id: getNextCardId() });
+    syncReferencesFromCard(refs, created);
+    result.created += 1;
+  }
+
+  writeReferencesState(refs);
+  return result;
 }
 
 export { parseCollectionSearchParams } from "./collection-query";

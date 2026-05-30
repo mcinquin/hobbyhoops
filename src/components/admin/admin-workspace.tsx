@@ -53,6 +53,14 @@ const AdminYearsSection = dynamic(
   { loading: adminTabLoading }
 );
 
+const AdminCsvSection = dynamic(
+  () =>
+    import("@/components/admin/admin-csv-section").then(
+      (mod) => mod.AdminCsvSection
+    ),
+  { loading: adminTabLoading }
+);
+
 interface AdminWorkspaceProps {
   initialReferences: References;
   totalCardCount: number;
@@ -70,6 +78,17 @@ export function AdminWorkspace({
   const [activeTab, setActiveTab] = useState("cards");
   const [cardsReloadToken, setCardsReloadToken] = useState(0);
 
+  const handleCsvImported = useCallback(async () => {
+    try {
+      const data = await fetchAdminSnapshot();
+      setReferences(data.references);
+      setTotalCount(data.totalCount);
+      setCardsReloadToken((token) => token + 1);
+    } catch {
+      setError(t("admin.loadError"));
+    }
+  }, [t]);
+
   const tabs = useMemo(
     () => [
       { value: "cards", label: t("admin.tabs.cards") },
@@ -77,6 +96,7 @@ export function AdminWorkspace({
       { value: "catalog", label: t("admin.tabs.catalog") },
       { value: "clubs", label: t("admin.tabs.clubs") },
       { value: "years", label: t("admin.tabs.years") },
+      { value: "csv", label: t("admin.tabs.csv") },
     ],
     [t]
   );
@@ -197,6 +217,15 @@ export function AdminWorkspace({
             <AdminYearsSection
               references={references}
               onReferencesChange={setReferences}
+            />
+          ) : null}
+        </TabsContent>
+
+        <TabsContent value="csv" className="pt-6">
+          {activeTab === "csv" ? (
+            <AdminCsvSection
+              references={references}
+              onImported={() => void handleCsvImported()}
             />
           ) : null}
         </TabsContent>

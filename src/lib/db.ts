@@ -797,6 +797,25 @@ export function queryCardsPage(
   return rows.map(rowToCardListItem);
 }
 
+export function queryAllCards(
+  whereSql: string,
+  params: (string | number)[],
+  options: {
+    sortColumn: string;
+    sortDesc: boolean;
+  }
+): Card[] {
+  const orderColumn = ALLOWED_SORT_COLUMNS.has(options.sortColumn)
+    ? options.sortColumn
+    : "player";
+  const direction = options.sortDesc ? "DESC" : "ASC";
+  const sql = `SELECT * FROM cards ${whereSql} ORDER BY ${orderColumn} ${direction}, id ASC`;
+  const rows = getDb()
+    .prepare(sql)
+    .all(...params) as Record<string, unknown>[];
+  return rows.map(rowToCard);
+}
+
 export function countCards(whereSql: string, params: (string | number)[]): number {
   const sql = `SELECT COUNT(*) as count FROM cards ${whereSql}`;
   const row = getDb().prepare(sql).get(...params) as { count: number };
