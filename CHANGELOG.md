@@ -1,3 +1,10 @@
+# [1.20.0](https://github.com/mcinquin/hobbyhoops/compare/v1.19.4...v1.20.0) (2026-05-30)
+
+
+### Features
+
+* **csv:** add import/export csv feature ([ee864e3](https://github.com/mcinquin/hobbyhoops/commit/ee864e3f6a129f4eebc6cb86b948c34180e3a4c8))
+
 ## [1.19.4](https://github.com/mcinquin/hobbyhoops/compare/v1.19.3...v1.19.4) (2026-05-30)
 
 
