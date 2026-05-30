@@ -1,3 +1,10 @@
+## [1.19.4](https://github.com/mcinquin/hobbyhoops/compare/v1.19.3...v1.19.4) (2026-05-30)
+
+
+### Performance Improvements
+
+* **perf:** change dashboard and search code ([a924d05](https://github.com/mcinquin/hobbyhoops/commit/a924d054f5229c70d8150ae982ff14631a9c6a1b))
+
 ## [1.19.3](https://github.com/mcinquin/hobbyhoops/compare/v1.19.2...v1.19.3) (2026-05-27)
 
 
