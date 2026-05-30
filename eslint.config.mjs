@@ -15,6 +15,7 @@ const eslintConfig = defineConfig([
     // Tooling / config (no React rules)
     "commitlint.config.mjs",
     "postcss.config.mjs",
+    "release.config.cjs",
     "scripts/**",
   ]),
 ]);

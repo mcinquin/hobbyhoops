@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import dynamic from "next/dynamic";
 import {
   getCollectionStats,
   getDashboardChartData,
@@ -11,17 +11,12 @@ import { PageHeader } from "@/components/page-header";
 import { StatsCards } from "@/components/stats-cards";
 import { RecentCards } from "@/components/recent-cards";
 import { ChartSkeleton } from "@/components/skeletons/page-skeletons";
-import { DashboardCharts } from "@/components/dashboard-charts";
-import type { References } from "@/lib/types";
 
-async function DashboardChartsBlock({
-  references,
-}: {
-  references: References;
-}) {
-  const chartData = getDashboardChartData(references);
-  return <DashboardCharts chartData={chartData} />;
-}
+const DashboardCharts = dynamic(
+  () =>
+    import("@/components/dashboard-charts").then((mod) => mod.DashboardCharts),
+  { loading: () => <ChartSkeleton /> }
+);
 
 export default async function DashboardPage() {
   const references = getReferences();
@@ -50,9 +45,7 @@ export default async function DashboardPage() {
           tradable: t("dashboard.stats.tradable"),
         }}
       />
-      <Suspense fallback={<ChartSkeleton />}>
-        <DashboardChartsBlock references={references} />
-      </Suspense>
+      <DashboardCharts chartData={getDashboardChartData(references)} />
       <RecentCards
         cards={recentCards}
         title={t("dashboard.recentAdditions")}

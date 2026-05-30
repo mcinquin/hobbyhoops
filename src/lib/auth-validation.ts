@@ -49,7 +49,3 @@ export const profileUpdateSchema = z
     newPassword: z.string().optional(),
   })
   .strict();
-
-export type LoginInput = z.infer<typeof loginSchema>;
-export type BootstrapInput = z.infer<typeof bootstrapSchema>;
-export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;

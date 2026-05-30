@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { parseCollectionSearchParams } from "@/lib/collection-query";
+import {
+  buildCollectionWhereClause,
+  parseCollectionSearchParams,
+} from "@/lib/collection-query";
 
 describe("parseCollectionSearchParams", () => {
   it("parses pagination and filters", () => {
@@ -30,5 +33,24 @@ describe("parseCollectionSearchParams", () => {
     const query = parseCollectionSearchParams(params);
     expect(query.page).toBe(1);
     expect(query.pageSize).toBe(100);
+  });
+
+  it("builds FTS5 clause for global search", () => {
+    const { whereSql, params } = buildCollectionWhereClause({
+      search: "lebron prizm",
+      player: "",
+      team: "",
+      year: "",
+      brand: "",
+      set: "",
+      variation: "",
+      tags: [],
+      page: 1,
+      pageSize: 50,
+      sort: "player",
+      sortDesc: false,
+    });
+    expect(whereSql).toContain("cards_fts MATCH ?");
+    expect(params).toEqual(['"lebron"* AND "prizm"*']);
   });
 });

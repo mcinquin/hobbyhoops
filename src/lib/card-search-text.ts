@@ -1,4 +1,4 @@
-/** Texte dénormalisé pour la recherche globale (LIKE sur une seule colonne). */
+/** Texte dénormalisé indexé par FTS5 (`cards_fts`) pour la recherche globale. */
 export function buildCardSearchText(fields: {
   player: string;
   team: string;
