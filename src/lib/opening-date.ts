@@ -68,29 +68,6 @@ export function openingDateSortValue(
   return year * 10000 + month * 100 + day;
 }
 
-export function openingDateTimestamp(value: string | null | undefined): number | null {
-  const normalized = normalizeOpeningDate(value);
-  if (!normalized) return null;
-  const match = normalized.match(OPENING_DATE_REGEX);
-  if (!match) return null;
-  const day = Number.parseInt(match[1], 10);
-  const month = Number.parseInt(match[2], 10);
-  const year = Number.parseInt(match[3], 10);
-  return new Date(year, month - 1, day).getTime();
-}
-
-export function compareOpeningDates(
-  left: string | null | undefined,
-  right: string | null | undefined
-): number {
-  const leftTs = openingDateTimestamp(left);
-  const rightTs = openingDateTimestamp(right);
-  if (leftTs == null && rightTs == null) return 0;
-  if (leftTs == null) return 1;
-  if (rightTs == null) return -1;
-  return leftTs - rightTs;
-}
-
 export function formatOpeningDateLabel(
   value: string | null | undefined,
   locale: "fr" | "en" = "fr"

@@ -81,7 +81,7 @@ describe("card CRUD", () => {
     expect(getNextCardId()).toBe("card-0002");
   });
 
-  it("stores derived search and sort columns", () => {
+  it("finds cards via FTS5 search", () => {
     insertCard(sampleCard({ openingDate: "15/03/2024" }));
     const row = getDerivedColumns("card-0001");
     expect(row.search_text).toContain("lebron");
@@ -112,6 +112,29 @@ describe("card CRUD", () => {
     });
     expect(page).toHaveLength(1);
     expect(page[0]).not.toHaveProperty("photo");
+
+    const { whereSql: multiWhere, params: multiParams } =
+      buildCollectionWhereClause({
+        search: "lebron prizm",
+        player: "",
+        team: "",
+        year: "",
+        brand: "",
+        set: "",
+        variation: "",
+        tags: [],
+        page: 1,
+        pageSize: 50,
+        sort: "player",
+        sortDesc: false,
+      });
+    const multiPage = queryCardsPage(multiWhere, multiParams, {
+      sortColumn: "player",
+      sortDesc: false,
+      limit: 10,
+      offset: 0,
+    });
+    expect(multiPage).toHaveLength(1);
   });
 
   it("aggregates collection stats", () => {

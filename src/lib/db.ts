@@ -35,15 +35,13 @@ const ALLOWED_SORT_COLUMNS = new Set(Object.values(COLLECTION_SORT_SQL));
 
 type SqlInputValue = string | number | bigint | Buffer | null;
 
-const SCHEMA_VERSION = 8;
+const SCHEMA_VERSION = 9;
 
 const CARD_LIST_COLUMNS = `
   id, player, team, year, brand, set_name, variation,
   autograph, memorabilia, serial_number, serial_current, serial_total,
   card_number, grading, opening_date, protection, storage, tradable, rookie
 `.trim();
-
-export type { ChartCountRow, CollectionStats, PlayerSummaryRow };
 
 const globalForDb = globalThis as typeof globalThis & {
   hobbyhoopsDb?: AppDatabase;
@@ -693,7 +691,38 @@ function runSchemaMigrations(db: AppDatabase): void {
     `);
   }
 
+  if (version < 9) {
+    migrateToFts5(db);
+  }
+
   setSchemaVersion(db, SCHEMA_VERSION);
+}
+
+function migrateToFts5(db: AppDatabase): void {
+  db.exec(`
+    CREATE VIRTUAL TABLE IF NOT EXISTS cards_fts USING fts5(
+      search_text,
+      content='cards',
+      content_rowid='rowid',
+      tokenize='unicode61 remove_diacritics 2'
+    );
+  `);
+  db.exec("INSERT INTO cards_fts(cards_fts) VALUES('rebuild');");
+  db.exec(`
+    CREATE TRIGGER IF NOT EXISTS cards_fts_ai AFTER INSERT ON cards BEGIN
+      INSERT INTO cards_fts(rowid, search_text) VALUES (new.rowid, new.search_text);
+    END;
+    CREATE TRIGGER IF NOT EXISTS cards_fts_ad AFTER DELETE ON cards BEGIN
+      INSERT INTO cards_fts(cards_fts, rowid, search_text)
+      VALUES ('delete', old.rowid, old.search_text);
+    END;
+    CREATE TRIGGER IF NOT EXISTS cards_fts_au AFTER UPDATE OF search_text ON cards BEGIN
+      INSERT INTO cards_fts(cards_fts, rowid, search_text)
+      VALUES ('delete', old.rowid, old.search_text);
+      INSERT INTO cards_fts(rowid, search_text) VALUES (new.rowid, new.search_text);
+    END;
+  `);
+  db.exec("DROP INDEX IF EXISTS idx_cards_search_text;");
 }
 
 function cardsTableHasColumn(db: AppDatabase, column: string): boolean {

@@ -97,5 +97,3 @@ export async function fetchAdminSnapshot(): Promise<AdminSnapshot> {
   }
   return (await res.json()) as AdminSnapshot;
 }
-
-export type { Card };

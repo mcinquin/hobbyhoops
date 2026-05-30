@@ -1,10 +1,9 @@
 import { z } from "zod";
+import { buildFtsMatchQuery } from "@/lib/card-search-fts";
 
 export {
   setsForBrandFilter,
   variationsForFilters,
-  setsLinkedToBrand,
-  variationsLinkedToSet,
 } from "@/lib/reference-suggestions";
 
 export const COLLECTION_PAGE_SIZE = 50;
@@ -142,10 +141,12 @@ export function buildCollectionWhereClause(
   const clauses: string[] = [];
   const params: (string | number)[] = [];
 
-  if (query.search.trim()) {
-    const pattern = `%${escapeLike(query.search.trim().toLowerCase())}%`;
-    clauses.push("search_text LIKE ? ESCAPE '\\'");
-    params.push(pattern);
+  const ftsMatch = buildFtsMatchQuery(query.search);
+  if (ftsMatch) {
+    clauses.push(
+      "rowid IN (SELECT rowid FROM cards_fts WHERE cards_fts MATCH ?)"
+    );
+    params.push(ftsMatch);
   }
 
   if (query.player.trim()) {

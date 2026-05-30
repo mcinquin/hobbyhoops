@@ -53,7 +53,3 @@ export function normalizeCardSerialFields<
 
   return { ...card, serialNumber: raw };
 }
-
-export function normalizeCard<T extends Card>(card: T): T {
-  return normalizeCardSerialFields(card);
-}

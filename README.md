@@ -91,7 +91,7 @@ Two Compose files:
 After each semantic-release run on `main`, images are published to GitHub Container Registry:
 
 - `ghcr.io/mcinquin/hobbyhoops:latest`
-- `ghcr.io/mcinquin/hobbyhoops:X.Y.Z` (e.g. `1.15.0`)
+- `ghcr.io/mcinquin/hobbyhoops:X.Y.Z` (e.g. `1.19.3`)
 
 Prefer a **version tag** in production, not `latest`.
 
@@ -100,7 +100,7 @@ cp .env.example .env
 # Required: AUTH_SECRET (openssl rand -hex 32)
 mkdir -p data && sudo chown -R 1111:1111 data
 
-export HOBBYHOOPS_VERSION=1.15.0   # tag matching your GHCR release
+export HOBBYHOOPS_VERSION=1.19.3   # tag matching your GHCR release
 docker compose pull
 docker compose up -d
 ```
@@ -132,13 +132,15 @@ The `.github/workflows/ci.yml` workflow runs on every push and pull request to `
 
 - `npm ci`, then `npm run ci:full` (Node, ESLint, TypeScript, npm audit high+)
 - build and push the test Docker image on PRs
-- on **push to `main` only**: **semantic-release** (Git tag `vX.Y.Z`, GitHub Release, `CHANGELOG.md`, `package.json` bump), then publish the versioned Docker image from the `release` job
+- on **push to `main` only**: **semantic-release** (Git tag `vX.Y.Z`, GitHub Release, `CHANGELOG.md`, `package.json` bump, deploy examples in `README.md` / `docker-compose.yml`), then publish the versioned Docker image from the `release` job
 
 Locally, run `npm run ci` before pushing. The full network audit remains available with `npm run ci:full`.
 
 ### Versions (semantic-release)
 
 Config: `release.config.cjs`. Releases are created automatically after a successful CI run on `main`, based on [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `refactor:`, etc.).
+
+Deploy examples (`HOBBYHOOPS_VERSION` in `README.md` and `docker-compose.yml`) are bumped in the same release commit as `package.json` via `scripts/sync-release-examples.mjs`.
 
 - Open a PR and **squash-merge** with a conventional title (e.g. `feat: add collection filter`). Direct pushes to `main` are blocked by branch protection.
 - Merge commits such as `Merge pull request #12` do not trigger a version by themselves.

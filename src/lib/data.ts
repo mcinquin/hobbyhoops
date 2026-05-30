@@ -144,8 +144,7 @@ export function removeCardRecord(id: string): boolean {
   return deleteCard(id);
 }
 
-export { parseCollectionSearchParams, COLLECTION_MAX_PAGE_SIZE } from "./collection-query";
-export type { CollectionListQuery };
+export { parseCollectionSearchParams } from "./collection-query";
 
 export function getWantedBlocks(): WantedBlock[] {
   return readWantedBlocks();
