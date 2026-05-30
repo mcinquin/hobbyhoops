@@ -15,6 +15,7 @@ import {
   updateCard,
 } from "@/lib/db";
 import { buildCollectionWhereClause } from "@/lib/collection-query";
+import { exportCardsCsv, importCardsCsv } from "@/lib/data";
 import { resetDatabaseCacheForTests } from "@/lib/test/db-test-helper";
 
 function getDerivedColumns(id: string): Record<string, unknown> {
@@ -152,5 +153,34 @@ describe("card CRUD", () => {
     expect(stats.autographs).toBe(1);
     expect(stats.rookies).toBe(1);
     expect(stats.numbered).toBe(1);
+  });
+
+  it("imports and exports cards via csv", () => {
+    insertCard(sampleCard());
+    const identityT = (key: string) => key;
+
+    const exported = exportCardsCsv(
+      {
+        search: "",
+        player: "",
+        team: "",
+        year: "",
+        brand: "",
+        set: "",
+        variation: "",
+        tags: [],
+        page: 1,
+        pageSize: 50,
+        sort: "player",
+        sortDesc: false,
+      },
+      "all"
+    );
+    expect(exported).toContain("LeBron James");
+
+    deleteCard("card-0001");
+    const result = importCardsCsv(exported, "upsert", identityT);
+    expect(result.created).toBe(1);
+    expect(readCardById("card-0001")?.player).toBe("LeBron James");
   });
 });

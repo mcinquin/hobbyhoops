@@ -73,6 +73,17 @@ docker compose start app
 
 Backups are stored in `data/backups/` (gitignored). See [SECURITY.md](SECURITY.md).
 
+## Import / export CSV (collection)
+
+Export or import cards from **Admin → CSV import / export**.
+
+- **Export** — filtered view or full collection (UTF-8 CSV, comma-separated).
+- **Import** — create-only or upsert by `id` (max 5 000 rows per file).
+
+Full format specification, column aliases (FR/EN), and Excel/Sheets workflow: [docs/csv-import-export.md](docs/csv-import-export.md).
+
+This complements the SQLite backup (`hobbyhoops.db`): CSV is ideal for spreadsheets and portability; the database file remains the complete instance backup.
+
 ## Docker
 
 The image starts with an **empty collection**: only a writable `data/` directory is required (the SQLite database is created there automatically). The container runs as the **`hobbyhoops`** system user (UID/GID **1111**). Mount `data/` at `/app/data` and make it writable by that user.

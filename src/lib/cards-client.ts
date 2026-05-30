@@ -3,6 +3,10 @@ import {
   COLLECTION_PAGE_SIZE,
   type CollectionListQuery,
 } from "@/lib/collection-query";
+import type {
+  CardCsvImportMode,
+  CardCsvImportResult,
+} from "@/lib/card-csv";
 import type { Card, CardsPageResult, References } from "@/lib/types";
 
 export function collectionQueryToSearchParams(
@@ -96,4 +100,53 @@ export async function fetchAdminSnapshot(): Promise<AdminSnapshot> {
     throw new Error("Failed to load admin data");
   }
   return (await res.json()) as AdminSnapshot;
+}
+
+function triggerBrowserDownload(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+function filenameFromContentDisposition(header: string | null): string | null {
+  if (!header) return null;
+  const match = header.match(/filename="([^"]+)"/i);
+  return match?.[1] ?? null;
+}
+
+export async function downloadCardsCsv(
+  query: CollectionListQuery,
+  scope: "filtered" | "all"
+): Promise<void> {
+  const params = collectionQueryToSearchParams(query, { persistPageSize: false });
+  params.set("scope", scope);
+  const res = await fetch(`/api/cards/export?${params.toString()}`, API_FETCH_OPTS);
+  if (!res.ok) {
+    throw new Error(await parseApiErrorMessage(res, "Failed to export cards"));
+  }
+  const blob = await res.blob();
+  const filename =
+    filenameFromContentDisposition(res.headers.get("Content-Disposition")) ??
+    `hobbyhoops-cards-${scope}.csv`;
+  triggerBrowserDownload(blob, filename);
+}
+
+export async function importCardsCsvFile(
+  csv: string,
+  mode: CardCsvImportMode
+): Promise<CardCsvImportResult> {
+  const res = await fetch("/api/cards/import", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    ...API_FETCH_OPTS,
+    body: JSON.stringify({ csv, mode }),
+  });
+  const payload = (await res.json()) as CardCsvImportResult & { error?: string };
+  if (!res.ok && !payload.created && !payload.updated) {
+    throw new Error(payload.error ?? "Failed to import cards");
+  }
+  return payload;
 }
