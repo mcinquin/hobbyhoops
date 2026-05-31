@@ -45,9 +45,11 @@ Everything is stored in **`data/hobbyhoops.db`** (SQLite via `better-sqlite3`): 
 
 On first launch, an empty database is created; create the administrator account from the login screen.
 
-### Backup (production host)
+### Backup and restore
 
-The SQLite file is the single source of truth. Back it up **on the host** (the production container has no `sqlite3` CLI). Keep a local script or cron on the server — it is **not** versioned in this repository.
+The SQLite file is the single source of truth. The database runs in **WAL mode** (`hobbyhoops.db` plus optional `-wal` / `-shm` sidecar files). Back it up **on the host** (the production container has no `sqlite3` CLI). Keep a local script or cron on the server — it is **not** versioned in this repository.
+
+**Backup** — use SQLite’s online backup API (consistent snapshot, safe while the app is running). Do **not** copy `hobbyhoops.db` with `cp` while the application is open; that can produce an incomplete file.
 
 ```bash
 # Prerequisite: sqlite3 (apt install sqlite3)
@@ -63,13 +65,33 @@ Daily cron example:
 0 3 * * * cd /path/to/hobbyhoops && mkdir -p data/backups && sqlite3 data/hobbyhoops.db ".backup 'data/backups/hobbyhoops-$(date +\%Y-\%m-\%dT\%H-\%M-\%S).db'" && find data/backups -maxdepth 1 -name 'hobbyhoops-*.db' -mtime +14 -delete >> /var/log/hobbyhoops-backup.log 2>&1
 ```
 
-Restore:
+**Restore** — stop the application first, replace the database file, then **delete stale WAL journals**. Skipping the last step (or restoring while the app is still running) can corrupt the database (`SQLITE_CORRUPT` / *database disk image is malformed*).
+
+Production:
 
 ```bash
 docker compose stop app
 cp data/backups/hobbyhoops-YYYY-MM-DDTHH-MM-SS.db data/hobbyhoops.db
+rm -f data/hobbyhoops.db-wal data/hobbyhoops.db-shm
 docker compose start app
 ```
+
+Local development (`npm run dev`):
+
+```bash
+# Stop the dev server (Ctrl+C), then:
+cp data/backups/hobbyhoops-YYYY-MM-DDTHH-MM-SS.db data/hobbyhoops.db
+rm -f data/hobbyhoops.db-wal data/hobbyhoops.db-shm
+npm run dev
+```
+
+**Corruption recovery** — if the database is already corrupted after a bad restore, stop the app and run:
+
+```bash
+node scripts/recover-sqlite.mjs
+```
+
+This copies readable tables into a fresh file, rebuilds `references_state` from cards, and recreates the FTS index. The broken file is kept as `data/hobbyhoops.db.corrupt-<timestamp>`.
 
 Backups are stored in `data/backups/` (gitignored). See [SECURITY.md](SECURITY.md).
 
