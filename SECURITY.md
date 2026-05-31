@@ -15,7 +15,7 @@ Do not open a public issue for a security problem. Contact the repository mainta
 - Misconfigured `AUTH_SECRET` returns HTTP 503 (not 401) on protected routes.
 - Restrict network access to the container (port bound to `127.0.0.1` in `docker-compose.yml`).
 - HTTP hardening headers (`HSTS`, `X-Content-Type-Options`, etc.) are handled by the reverse proxy.
-- Back up `data/hobbyhoops.db` regularly on the host with `sqlite3 … ".backup '…'"` (consistent snapshot, WAL-safe). Keep at least 14 days in `data/backups/` (gitignored) and ideally an off-site copy. See [README.md](README.md) — backup scripts stay local, outside the repository.
+- Back up `data/hobbyhoops.db` regularly on the host with `sqlite3 … ".backup '…'"` (consistent snapshot, WAL-safe). Keep at least 14 days in `data/backups/` (gitignored) and ideally an off-site copy. On restore, stop the app, replace the `.db` file, and delete `hobbyhoops.db-wal` / `hobbyhoops.db-shm` before restarting — see [README.md](README.md). Backup scripts stay local, outside the repository.
 
 ## Access model
 
