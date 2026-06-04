@@ -3,8 +3,16 @@
  * Quality gate locale. L'audit npm réseau est réservé à `npm run ci:full`.
  */
 import { spawnSync } from "node:child_process";
+import { existsSync, rmSync } from "node:fs";
 
 const includeAudit = process.argv.includes("--with-audit");
+
+/** Types Next générés obsolètes (routes supprimées/ajoutées) font échouer `tsc`. */
+function removeStaleNextBuildArtifacts() {
+  if (!existsSync(".next")) return;
+  rmSync(".next", { recursive: true, force: true });
+  console.log("Nettoyage .next (types de routes potentiellement obsolètes).");
+}
 
 const steps = [
   { name: "Node.js", command: "node", args: ["scripts/check-node.mjs"] },
@@ -35,6 +43,8 @@ function runStep({ name, command, args }) {
   }
   return result.status ?? 1;
 }
+
+removeStaleNextBuildArtifacts();
 
 let failed = false;
 for (const step of steps) {

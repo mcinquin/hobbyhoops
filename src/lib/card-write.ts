@@ -1,6 +1,7 @@
 import { normalizeCardSerialFields } from "@/lib/card-serial";
 import { normalizeOpeningDate } from "@/lib/opening-date";
 import { REFERENCE_YEAR_REGEX } from "@/lib/reference-mutations";
+import { normalizeVariationLabel } from "@/lib/variation-label";
 import type { Card } from "@/lib/types";
 
 function asTrimmedString(value: unknown): string {
@@ -58,7 +59,7 @@ export function prepareCardWriteInput(input: unknown): Record<string, unknown> {
     year: asNullableString(raw.year),
     brand: asTrimmedString(raw.brand),
     set: asTrimmedString(raw.set),
-    variation: asTrimmedString(raw.variation),
+    variation: normalizeVariationLabel(asTrimmedString(raw.variation)),
     autograph: Boolean(raw.autograph),
     memorabilia: Boolean(raw.memorabilia),
     serialNumber: asNullableString(raw.serialNumber),
