@@ -1,3 +1,16 @@
+# [1.21.0](https://github.com/mcinquin/hobbyhoops/compare/v1.20.0...v1.21.0) (2026-06-04)
+
+
+### Bug Fixes
+
+* **ci:** harden quality gate and prevent Silver typo on card writes ([49fd30e](https://github.com/mcinquin/hobbyhoops/commit/49fd30e7c626203abe47ef2465b185d7b3b252e1))
+* **ci:** upgrade vitest to 4.1.8 for npm audit high threshold ([b837ae5](https://github.com/mcinquin/hobbyhoops/commit/b837ae5cbbd1b8df0caed6014d138ef15ec86914))
+
+
+### Features
+
+* **ui:** add new admin features ([6f0a230](https://github.com/mcinquin/hobbyhoops/commit/6f0a230cf50ce0fa6bf45bb80d39457073838150))
+
 # [1.20.0](https://github.com/mcinquin/hobbyhoops/compare/v1.19.4...v1.20.0) (2026-05-30)
 
 
