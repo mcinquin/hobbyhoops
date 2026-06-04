@@ -24,6 +24,7 @@ export const CARD_CSV_COLUMNS = [
   "protection",
   "storage",
   "photo",
+  "notes",
 ] as const;
 
 export type CardCsvColumn = (typeof CARD_CSV_COLUMNS)[number];
@@ -81,6 +82,11 @@ const COLUMN_ALIASES: Record<string, CardCsvColumn> = {
   storage: "storage",
   rangement: "storage",
   photo: "photo",
+  notes: "notes",
+  note: "notes",
+  remarques: "notes",
+  commentaire: "notes",
+  comment: "notes",
 };
 
 export type CardCsvImportMode = "create" | "upsert";
@@ -160,6 +166,7 @@ function cardToCsvRow(card: Card): string[] {
     card.protection,
     card.storage,
     card.photo ?? "",
+    card.notes,
   ];
 }
 
@@ -220,6 +227,7 @@ export function csvRowToWritePayload(
     protection: row.protection ?? "",
     storage: row.storage ?? "",
     photo: row.photo ?? "",
+    notes: row.notes ?? "",
   });
 
   if (mode === "upsert" && rawId) {

@@ -49,7 +49,10 @@
     "filteredOf": "(filtrées sur {total})",
     "noneFound": "Aucun résultat trouvé.",
     "no": "Non",
-    "ebay": "eBay"
+    "ebay": "eBay",
+    "point130": "130point",
+    "cardLadder": "Card Ladder",
+    "comc": "COMC"
   },
   "badges": {
     "rookie": "RC",
@@ -99,6 +102,7 @@
     "bySet": "Cartes par set",
     "byYear": "Cartes par année",
     "topPlayers": "Top 10 joueurs",
+    "acquisitionTimeline": "Ajouts à la collection par mois",
     "stats": {
       "total": "Total cartes",
       "autographs": "Autographes",
@@ -166,8 +170,7 @@
     "rookies": "{count} rookie(s)",
     "autographs": "{count} autographe(s)",
     "memorabilia": "{count} mémorabilia",
-    "numbered": "{count} numérotée(s)",
-    "serialsShort": "{count} /##"
+    "numbered": "{count} numérotée(s)"
   },
   "cards": {
     "searchAll": "Rechercher dans toutes les cartes…",
@@ -202,7 +205,7 @@
     "storage": "Rangement",
     "addedOn": "Carte ajoutée à la collection le {date}.",
     "addedOnMissing": "Date d'ajout à la collection non renseignée.",
-    "ebaySales": "Ventes comparables (eBay terminées) :",
+    "marketLinks": "Marché :",
     "editTitle": "Modifier la carte",
     "addTitle": "Ajouter une carte",
     "club": "Club",
@@ -212,6 +215,9 @@
     "gradeNote": "Note de gradation",
     "protectionOptional": "Protection (optionnel)",
     "storageOptional": "Rangement (optionnel)",
+    "notes": "Notes",
+    "notesOptional": "Notes (optionnel)",
+    "notesPlaceholder": "Rappels, provenance, état avant gradation…",
     "autograph": "Autographe",
     "memorabiliaLabel": "Mémorabilia",
     "tradable": "Échangeable",
@@ -271,7 +277,22 @@
       "players": "Joueurs",
       "catalog": "Marques / Sets / Variations",
       "clubs": "Clubs",
-      "years": "Années"
+      "years": "Années",
+      "tools": "Outils"
+    },
+    "tools": {
+      "backupTitle": "Sauvegarde SQLite",
+      "backupDesc": "Télécharge un instantané cohérent de la base (équivalent à sqlite3 .backup). Conservez ce fichier hors du serveur.",
+      "backupAction": "Télécharger la sauvegarde",
+      "backupPending": "Sauvegarde…",
+      "backupError": "Impossible de créer la sauvegarde.",
+      "duplicatesTitle": "Doublons potentiels",
+      "duplicatesDesc": "Cartes en double : même joueur, année, marque, set, variation, n° carte et numéro de série (vide si non numérotée).",
+      "duplicatesCardNum": "n° {number}",
+      "duplicatesSerial": "#{serial}",
+      "duplicatesNone": "Aucun doublon détecté.",
+      "duplicatesSummary": "{groups} groupe(s) · {cards} cartes concernées",
+      "duplicatesLoadError": "Impossible de charger les doublons."
     },
     "csv": {
       "intro": "Exportez la collection vers un fichier CSV ou importez des cartes depuis Excel, Google Sheets ou un éditeur texte. Les listes de référence sont enrichies automatiquement à l'import.",
@@ -309,7 +330,7 @@
       "placeholder": "Collez ici un CSV (avec en-tête)…",
       "formatHint": "Séparateur : virgule, point-virgule ou tabulation. Encodage UTF-8 recommandé.",
       "formatDetailsTitle": "Format CSV attendu",
-      "formatDetailsBody": "En-tête (ligne 1) :\nid,player,team,year,brand,set,variation,autograph,memorabilia,rookie,tradable,serial_number,serial_current,serial_total,card_number,grading,opening_date,protection,storage,photo\n\nAlias FR acceptés : joueur, club, année, marque, auto, memo, rc, échange, série, gradation, date_ajout, rangement.\n\nBooleans : true/false, 1/0, yes/no, oui/non.\nDates : jj/mm/aaaa (ex. 15/03/2024) ou aaaa-mm-jj.\nJoueur obligatoire. id optionnel (upsert). Max 5000 lignes.",
+      "formatDetailsBody": "En-tête (ligne 1) :\nid,player,team,year,brand,set,variation,autograph,memorabilia,rookie,tradable,serial_number,serial_current,serial_total,card_number,grading,opening_date,protection,storage,photo,notes\n\nAlias FR acceptés : joueur, club, année, marque, auto, memo, rc, échange, série, gradation, date_ajout, rangement.\n\nBooleans : true/false, 1/0, yes/no, oui/non.\nDates : jj/mm/aaaa (ex. 15/03/2024) ou aaaa-mm-jj.\nJoueur obligatoire. id optionnel (upsert). Max 5000 lignes.",
       "rowError": "Ligne {row} : {message}"
     },
     "cards": {
@@ -453,6 +474,7 @@
     "invalidData": "Données invalides.",
     "requestBody": "corps",
     "invalidSerialFormat": "Format de série invalide.",
+    "backupFailed": "Échec de la sauvegarde de la base.",
     "csvEmpty": "Fichier CSV vide ou sans lignes de cartes.",
     "csvTooManyRows": "Trop de lignes (maximum {max}).",
     "noValidBrands": "Aucune marque valide.",

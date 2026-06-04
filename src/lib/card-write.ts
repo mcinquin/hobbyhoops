@@ -78,6 +78,7 @@ export function prepareCardWriteInput(input: unknown): Record<string, unknown> {
     photo: asNullableString(raw.photo),
     tradable: Boolean(raw.tradable),
     rookie: Boolean(raw.rookie),
+    notes: asTrimmedString(raw.notes),
   };
 
   const id = asTrimmedString(raw.id);
@@ -115,6 +116,7 @@ export function buildCardWritePayload(
       photo: asNullableString(form.photo),
       tradable: Boolean(form.tradable),
       rookie: Boolean(form.rookie),
+      notes: asTrimmedString(form.notes),
     })
   );
 }

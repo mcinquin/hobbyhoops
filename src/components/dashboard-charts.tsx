@@ -122,7 +122,8 @@ export function DashboardCharts({ chartData }: DashboardChartsProps) {
     openCollectionFilter(key, value);
   }
 
-  const { brandData, yearData, setData, playerData } = chartData;
+  const { brandData, yearData, setData, playerData, acquisitionData } =
+    chartData;
 
   const displaySetData = useMemo(
     () => (isMobile ? setData.slice(0, MOBILE_SET_LIMIT) : setData),
@@ -320,6 +321,58 @@ export function DashboardCharts({ chartData }: DashboardChartsProps) {
           </BarChart>
         </ResponsiveContainer>
       </div>
+
+      {acquisitionData.length > 0 ? (
+        <div className="min-w-0 rounded-lg border border-border bg-card p-4 sm:p-6 lg:col-span-2">
+          <h3 className="text-sm font-medium text-muted-foreground mb-4">
+            {t("dashboard.acquisitionTimeline")}
+          </h3>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart
+              data={acquisitionData}
+              margin={{ left: -20, right: 4, bottom: 8 }}
+            >
+              <XAxis
+                dataKey="name"
+                tick={{ fill: "hsl(0, 0%, 70%)", fontSize: 10 }}
+                axisLine={false}
+                tickLine={false}
+                angle={-35}
+                textAnchor="end"
+                height={56}
+                interval={isMobile ? "preserveStartEnd" : 0}
+              />
+              <YAxis
+                tick={{ fill: "hsl(0, 0%, 70%)", fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                allowDecimals={false}
+              />
+              <Tooltip
+                content={(props) => (
+                  <ChartTooltipContent
+                    active={props.active}
+                    payload={
+                      props.payload as
+                        | ReadonlyArray<{ value?: number | string }>
+                        | undefined
+                    }
+                    label={props.label}
+                    cardsLabel={cardsLabel}
+                  />
+                )}
+                cursor={tooltipCursor}
+              />
+              <Bar
+                dataKey="count"
+                name={cardsLabel}
+                fill="hsl(262, 83%, 58%)"
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      ) : null}
 
       <div className="min-w-0 rounded-lg border border-border bg-card p-4 sm:p-6 lg:col-span-2">
         <h3 className="text-sm font-medium text-muted-foreground mb-4">

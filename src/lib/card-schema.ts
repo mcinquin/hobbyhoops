@@ -90,6 +90,7 @@ const cardFields = {
   photo: nullablePhoto,
   tradable: z.boolean(),
   rookie: z.boolean(),
+  notes: z.string().trim().max(2000).optional().default(""),
 };
 
 export const cardIdSchema = z.string().trim().min(1).max(64);
