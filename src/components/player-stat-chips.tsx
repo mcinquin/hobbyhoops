@@ -46,7 +46,7 @@ export function PlayerStatChips({
       {serials > 0 && (
         <span className="text-red-500">
           {variant === "short"
-            ? t("players.serialsShort", { count: serials })
+            ? `${serials} ${t("badges.numbered")}`
             : t("players.numbered", { count: serials })}
         </span>
       )}

@@ -19,6 +19,7 @@ export interface Card {
   photo: string | null;
   tradable: boolean;
   rookie: boolean;
+  notes: string;
 }
 
 /** Carte sans photo — listes, pagination et fiches joueur. */
@@ -114,4 +115,16 @@ export interface DashboardChartData {
   yearData: ChartCountRow[];
   setData: ChartCountRow[];
   playerData: ChartCountRow[];
+  acquisitionData: ChartCountRow[];
+}
+
+export interface DuplicateCardGroup {
+  player: string;
+  year: string | null;
+  brand: string;
+  set: string;
+  variation: string;
+  cardNumber: string;
+  serialNumber: string;
+  cards: CardListItem[];
 }

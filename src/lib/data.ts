@@ -8,6 +8,7 @@ import {
   type CardsPageResult,
   type CollectionStats,
   type DashboardChartData,
+  type DuplicateCardGroup,
   type PlayerCardGroup,
   type PlayerPageSummary,
   type PlayerSummaryRow,
@@ -28,9 +29,12 @@ import {
   queryAllCards,
   queryCardsPage,
   readCardById,
+  readAcquisitionTimeline,
   readCardCountsByBrand,
   readCardCountsBySet,
   readCardCountsByYear,
+  readCardsByIds,
+  readDuplicateGroupRows,
   readPlayerCardGroups,
   readPlayerPageSummary,
   readCollectionStats,
@@ -69,6 +73,9 @@ import {
 import { formatTodayOpeningDateFr } from "./opening-date";
 import { syncReferencesFromCard } from "./reference-mutations";
 import type { Translator } from "@/i18n/translator";
+import { mapAcquisitionTimelineRows } from "./acquisition-timeline";
+import { buildDuplicateGroups } from "./card-duplicates";
+import type { Locale } from "@/i18n/config";
 
 function toReferencesFilterIndex(refs: References): ReferencesFilterIndex {
   return {
@@ -124,7 +131,10 @@ export function getReferencesFilterIndex(): ReferencesFilterIndex {
   return toReferencesFilterIndex(getReferences());
 }
 
-export function getDashboardChartData(references: References): DashboardChartData {
+export function getDashboardChartData(
+  references: References,
+  locale: Locale
+): DashboardChartData {
   const brandCounts = readCardCountsByBrand();
   const yearCounts = readCardCountsByYear();
   const setCounts = readCardCountsBySet();
@@ -142,12 +152,38 @@ export function getDashboardChartData(references: References): DashboardChartDat
     buildChartCountData(referenceSetNames(references), setCounts)
   ).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
+  const acquisitionData = mapAcquisitionTimelineRows(
+    readAcquisitionTimeline().map((row) => ({
+      month_key: Number(row.name),
+      count: row.count,
+    })),
+    locale
+  );
+
   return {
     brandData,
     yearData,
     setData,
     playerData: playerCounts,
+    acquisitionData,
   };
+}
+
+export function getDuplicateCardGroups(): DuplicateCardGroup[] {
+  const rows = readDuplicateGroupRows();
+  const ids = [
+    ...new Set(
+      rows.flatMap((row) =>
+        row.ids
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean)
+      )
+    ),
+  ];
+  const cards = readCardsByIds(ids);
+  const cardsById = new Map(cards.map((card) => [card.id, card]));
+  return buildDuplicateGroups(rows, cardsById);
 }
 
 export function createCardRecord(card: Omit<Card, "id">): Card {

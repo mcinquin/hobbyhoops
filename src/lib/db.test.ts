@@ -11,9 +11,11 @@ import {
   queryCardsPage,
   readCardById,
   readCollectionStats,
+  readDuplicateGroupRows,
   readRecentCards,
   updateCard,
 } from "@/lib/db";
+import { getDuplicateCardGroups } from "@/lib/data";
 import { buildCollectionWhereClause } from "@/lib/collection-query";
 import { exportCardsCsv, importCardsCsv } from "@/lib/data";
 import { resetDatabaseCacheForTests } from "@/lib/test/db-test-helper";
@@ -45,6 +47,7 @@ const sampleCard = (overrides: Partial<Card> = {}): Card => ({
   photo: null,
   tradable: false,
   rookie: true,
+  notes: "",
   ...overrides,
 });
 
@@ -153,6 +156,33 @@ describe("card CRUD", () => {
     expect(stats.autographs).toBe(1);
     expect(stats.rookies).toBe(1);
     expect(stats.numbered).toBe(1);
+  });
+
+  it("detects strict duplicate cards (same year and card number)", () => {
+    insertCard(sampleCard({ id: "card-0001" }));
+    insertCard(sampleCard({ id: "card-0002" }));
+    insertCard(sampleCard({ id: "card-0003", cardNumber: "2" }));
+    insertCard(
+      sampleCard({
+        id: "card-0004",
+        player: "Stephen Curry",
+        set: "Select",
+      })
+    );
+
+    expect(readDuplicateGroupRows()).toHaveLength(1);
+    const groups = getDuplicateCardGroups();
+    expect(groups).toHaveLength(1);
+    expect(groups[0]?.cards).toHaveLength(2);
+    expect(groups[0]?.cardNumber).toBe("1");
+  });
+
+  it("persists notes on create and update", () => {
+    insertCard(sampleCard({ notes: "First note" }));
+    expect(readCardById("card-0001")?.notes).toBe("First note");
+
+    updateCard(sampleCard({ notes: "Updated note" }));
+    expect(readCardById("card-0001")?.notes).toBe("Updated note");
   });
 
   it("imports and exports cards via csv", () => {

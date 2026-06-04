@@ -61,6 +61,14 @@ const AdminCsvSection = dynamic(
   { loading: adminTabLoading }
 );
 
+const AdminToolsSection = dynamic(
+  () =>
+    import("@/components/admin/admin-tools-section").then(
+      (mod) => mod.AdminToolsSection
+    ),
+  { loading: adminTabLoading }
+);
+
 interface AdminWorkspaceProps {
   initialReferences: References;
   totalCardCount: number;
@@ -97,6 +105,7 @@ export function AdminWorkspace({
       { value: "clubs", label: t("admin.tabs.clubs") },
       { value: "years", label: t("admin.tabs.years") },
       { value: "csv", label: t("admin.tabs.csv") },
+      { value: "tools", label: t("admin.tabs.tools") },
     ],
     [t]
   );
@@ -228,6 +237,10 @@ export function AdminWorkspace({
               onImported={() => void handleCsvImported()}
             />
           ) : null}
+        </TabsContent>
+
+        <TabsContent value="tools" className="pt-6">
+          {activeTab === "tools" ? <AdminToolsSection /> : null}
         </TabsContent>
       </Tabs>
     </div>

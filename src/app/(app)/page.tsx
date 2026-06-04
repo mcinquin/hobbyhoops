@@ -45,7 +45,9 @@ export default async function DashboardPage() {
           tradable: t("dashboard.stats.tradable"),
         }}
       />
-      <DashboardCharts chartData={getDashboardChartData(references)} />
+      <DashboardCharts
+        chartData={getDashboardChartData(references, locale)}
+      />
       <RecentCards
         cards={recentCards}
         title={t("dashboard.recentAdditions")}

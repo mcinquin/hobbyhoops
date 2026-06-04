@@ -20,6 +20,8 @@ import { normalizeCardSerialFields } from "./card-serial";
 import { normalizeOpeningDate, openingDateSortValue } from "./opening-date";
 import { COLLECTION_SORT_SQL } from "./collection-query";
 import { EMPTY_REFERENCES } from "./references-defaults";
+import { syncReferencesFromCard } from "./reference-mutations";
+import { normalizeVariationLabel } from "./variation-label";
 
 const PLAYER_CARD_STATS_AGG_SQL = `
   MIN(team) as team,
@@ -35,12 +37,12 @@ const ALLOWED_SORT_COLUMNS = new Set(Object.values(COLLECTION_SORT_SQL));
 
 type SqlInputValue = string | number | bigint | Buffer | null;
 
-const SCHEMA_VERSION = 9;
+const SCHEMA_VERSION = 11;
 
 const CARD_LIST_COLUMNS = `
   id, player, team, year, brand, set_name, variation,
   autograph, memorabilia, serial_number, serial_current, serial_total,
-  card_number, grading, opening_date, protection, storage, tradable, rookie
+  card_number, grading, opening_date, protection, storage, tradable, rookie, notes
 `.trim();
 
 const globalForDb = globalThis as typeof globalThis & {
@@ -96,7 +98,8 @@ function initSchema(db: AppDatabase): void {
       tradable INTEGER NOT NULL DEFAULT 0,
       rookie INTEGER NOT NULL DEFAULT 0,
       opening_date_sort INTEGER,
-      search_text TEXT
+      search_text TEXT,
+      notes TEXT NOT NULL DEFAULT ''
     );
 
     CREATE TABLE IF NOT EXISTS users (
@@ -495,6 +498,7 @@ function rowToCardListItem(row: Record<string, unknown>): CardListItem {
     storage: String(row.storage),
     tradable: Boolean(row.tradable),
     rookie: Boolean(row.rookie),
+    notes: row.notes == null ? "" : String(row.notes),
   });
 }
 
@@ -549,6 +553,7 @@ function cardToRow(card: Card): Record<string, SqlInputValue> {
     photo: normalized.photo,
     tradable: normalized.tradable ? 1 : 0,
     rookie: normalized.rookie ? 1 : 0,
+    notes: normalized.notes.trim(),
     opening_date_sort: derived.opening_date_sort,
     search_text: derived.search_text,
   };
@@ -560,12 +565,12 @@ function importCards(db: AppDatabase, cards: Card[]): void {
       id, player, team, year, brand, set_name, variation,
       autograph, memorabilia, serial_number, serial_current, serial_total,
       card_number, grading, opening_date, protection, storage, photo,
-      tradable, rookie, opening_date_sort, search_text
+      tradable, rookie, notes, opening_date_sort, search_text
     ) VALUES (
       @id, @player, @team, @year, @brand, @set_name, @variation,
       @autograph, @memorabilia, @serial_number, @serial_current, @serial_total,
       @card_number, @grading, @opening_date, @protection, @storage, @photo,
-      @tradable, @rookie, @opening_date_sort, @search_text
+      @tradable, @rookie, @notes, @opening_date_sort, @search_text
     )
   `);
 
@@ -695,7 +700,73 @@ function runSchemaMigrations(db: AppDatabase): void {
     migrateToFts5(db);
   }
 
+  if (version < 10) {
+    if (!cardsTableHasColumn(db, "notes")) {
+      db.exec("ALTER TABLE cards ADD COLUMN notes TEXT NOT NULL DEFAULT ''");
+    }
+  }
+
+  if (version < 11) {
+    migrateFixSilverVariationTypo(db);
+  }
+
   setSchemaVersion(db, SCHEMA_VERSION);
+}
+
+function rebuildReferencesFromAllCards(db: AppDatabase): void {
+  const refs: References = {
+    ...EMPTY_REFERENCES,
+    brandSets: {},
+    setVariations: {},
+  };
+  const rows = db
+    .prepare(
+      "SELECT player, team, year, brand, set_name, variation FROM cards"
+    )
+    .all() as Record<string, unknown>[];
+
+  for (const row of rows) {
+    syncReferencesFromCard(refs, {
+      player: String(row.player),
+      team: String(row.team),
+      year: row.year == null ? null : String(row.year),
+      brand: String(row.brand),
+      set: String(row.set_name),
+      variation: String(row.variation),
+    });
+  }
+
+  importReferences(db, refs);
+}
+
+function migrateFixSilverVariationTypo(db: AppDatabase): void {
+  const rows = db
+    .prepare(
+      `SELECT * FROM cards
+       WHERE instr(variation, 'SIlver') > 0 OR variation GLOB '*  *'`
+    )
+    .all() as Record<string, unknown>[];
+
+  const update = db.prepare(`
+    UPDATE cards
+    SET variation = @variation, search_text = @search_text
+    WHERE id = @id
+  `);
+
+  runInTransaction(db, () => {
+    for (const row of rows) {
+      const card = rowToCardListItem(row);
+      const variation = normalizeVariationLabel(card.variation);
+      if (variation === card.variation) continue;
+      const derived = cardDerivedRowFields({ ...card, variation });
+      update.run({
+        id: card.id,
+        variation,
+        search_text: derived.search_text,
+      });
+    }
+    rebuildReferencesFromAllCards(db);
+  });
 }
 
 function migrateToFts5(db: AppDatabase): void {
@@ -827,12 +898,12 @@ const CARD_INSERT_SQL = `
     id, player, team, year, brand, set_name, variation,
     autograph, memorabilia, serial_number, serial_current, serial_total,
     card_number, grading, opening_date, protection, storage, photo,
-    tradable, rookie, opening_date_sort, search_text
+    tradable, rookie, notes, opening_date_sort, search_text
   ) VALUES (
     @id, @player, @team, @year, @brand, @set_name, @variation,
     @autograph, @memorabilia, @serial_number, @serial_current, @serial_total,
     @card_number, @grading, @opening_date, @protection, @storage, @photo,
-    @tradable, @rookie, @opening_date_sort, @search_text
+    @tradable, @rookie, @notes, @opening_date_sort, @search_text
   )
 `;
 
@@ -857,6 +928,7 @@ const CARD_UPDATE_SQL = `
     photo = @photo,
     tradable = @tradable,
     rookie = @rookie,
+    notes = @notes,
     opening_date_sort = @opening_date_sort,
     search_text = @search_text
   WHERE id = @id
@@ -994,6 +1066,80 @@ export function readCardCountsBySet(): ChartCountRow[] {
   return readCardCountsByColumn("set_name");
 }
 
+export function readAcquisitionTimeline(): ChartCountRow[] {
+  const rows = getDb()
+    .prepare(
+      `SELECT (opening_date_sort / 100) as month_key, COUNT(*) as count
+       FROM cards
+       WHERE opening_date_sort IS NOT NULL
+       GROUP BY month_key
+       ORDER BY month_key ASC`
+    )
+    .all() as { month_key: number; count: number }[];
+  return rows.map((row) => ({
+    name: String(row.month_key),
+    count: Number(row.count),
+  }));
+}
+
+export function readDuplicateGroupRows(): {
+  player: string;
+  year: string | null;
+  brand: string;
+  set_name: string;
+  variation: string;
+  card_number: string;
+  serial_number: string;
+  ids: string;
+}[] {
+  return getDb()
+    .prepare(
+      `SELECT
+        MIN(player) as player,
+        MIN(year) as year,
+        MIN(brand) as brand,
+        MIN(set_name) as set_name,
+        MIN(variation) as variation,
+        TRIM(card_number) as card_number,
+        COALESCE(NULLIF(TRIM(serial_number), ''), '') as serial_number,
+        GROUP_CONCAT(id) as ids
+       FROM cards
+       GROUP BY
+         LOWER(TRIM(player)),
+         COALESCE(TRIM(year), ''),
+         TRIM(brand),
+         TRIM(set_name),
+         TRIM(variation),
+         TRIM(card_number),
+         COALESCE(NULLIF(TRIM(serial_number), ''), '')
+       HAVING COUNT(*) > 1`
+    )
+    .all() as {
+    player: string;
+    year: string | null;
+    brand: string;
+    set_name: string;
+    variation: string;
+    card_number: string;
+    serial_number: string;
+    ids: string;
+  }[];
+}
+
+export function readCardsByIds(ids: string[]): CardListItem[] {
+  if (ids.length === 0) return [];
+  const placeholders = ids.map(() => "?").join(", ");
+  const rows = getDb()
+    .prepare(
+      `SELECT ${CARD_LIST_COLUMNS} FROM cards WHERE id IN (${placeholders})`
+    )
+    .all(...ids) as Record<string, unknown>[];
+  const byId = new Map(rows.map((row) => [String(row.id), rowToCardListItem(row)]));
+  return ids
+    .map((id) => byId.get(id))
+    .filter((card): card is CardListItem => card != null);
+}
+
 export function readTopPlayerCounts(limit = 10): ChartCountRow[] {
   const rows = getDb()
     .prepare(
@@ -1060,6 +1206,10 @@ export function readReferencesState(): References {
 
 export function writeReferencesState(refs: References): void {
   importReferences(getDb(), refs);
+}
+
+export async function createDatabaseBackupFile(destPath: string): Promise<void> {
+  await getDb().backup(destPath);
 }
 
 export function getDatabaseHealth(): { ok: boolean } {

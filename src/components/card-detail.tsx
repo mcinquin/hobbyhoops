@@ -10,10 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import {
-  cardComparableSalesQuery,
-  ebaySoldListingsUrl,
-} from "@/lib/card-sales-links";
+import { CardMarketLinks } from "@/components/card-market-links";
 import { useCardBadgeLabels } from "@/hooks/use-card-badge-labels";
 import { useI18n, useTranslations } from "@/i18n/client";
 
@@ -26,7 +23,6 @@ interface CardDetailProps {
 export function CardDetail({ card, open, onClose }: CardDetailProps) {
   const { locale } = useI18n();
   const t = useTranslations();
-  const salesQuery = cardComparableSalesQuery(card);
   const badgeLabels = useCardBadgeLabels();
   const details = [
     { label: t("cards.teamLabel"), value: card.team },
@@ -62,17 +58,7 @@ export function CardDetail({ card, open, onClose }: CardDetailProps) {
           </p>
         </DialogHeader>
         <Separator />
-        <p className="text-xs text-muted-foreground">
-          {t("cards.ebaySales")}{" "}
-          <a
-            href={ebaySoldListingsUrl(salesQuery)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-amber-500 hover:underline"
-          >
-            {t("common.ebay")}
-          </a>
-        </p>
+        <CardMarketLinks card={card} />
         <div className="grid grid-cols-2 gap-3 py-2">
           {details.map((d) => (
             <div key={d.label}>
@@ -81,6 +67,12 @@ export function CardDetail({ card, open, onClose }: CardDetailProps) {
             </div>
           ))}
         </div>
+        {card.notes ? (
+          <div className="pt-1">
+            <p className="text-xs text-muted-foreground">{t("cards.notes")}</p>
+            <p className="text-sm whitespace-pre-wrap">{card.notes}</p>
+          </div>
+        ) : null}
       </DialogContent>
     </Dialog>
   );

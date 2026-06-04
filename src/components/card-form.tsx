@@ -71,6 +71,7 @@ const emptyCard: Partial<Card> = {
   photo: null,
   tradable: false,
   rookie: false,
+  notes: "",
 };
 
 export function CardForm({
@@ -490,6 +491,18 @@ function CardFormFields({
                 value={form.storage || ""}
                 onChange={(value) => update("storage", value)}
                 suggestions={references.storages}
+              />
+            </div>
+
+            <div className="space-y-2 col-span-2">
+              <Label>{t("cards.notesOptional")}</Label>
+              <textarea
+                value={form.notes || ""}
+                onChange={(e) => update("notes", e.target.value)}
+                rows={3}
+                maxLength={2000}
+                className="w-full min-h-[4.5rem] rounded-md border border-input bg-background px-3 py-2 text-sm resize-y"
+                placeholder={t("cards.notesPlaceholder")}
               />
             </div>
           </div>

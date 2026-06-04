@@ -49,7 +49,10 @@
     "filteredOf": "(filtered from {total})",
     "noneFound": "No results found.",
     "no": "No",
-    "ebay": "eBay"
+    "ebay": "eBay",
+    "point130": "130point",
+    "cardLadder": "Card Ladder",
+    "comc": "COMC"
   },
   "badges": {
     "rookie": "RC",
@@ -99,6 +102,7 @@
     "bySet": "Cards by set",
     "byYear": "Cards by year",
     "topPlayers": "Top 10 players",
+    "acquisitionTimeline": "Collection additions by month",
     "stats": {
       "total": "Total cards",
       "autographs": "Autographs",
@@ -166,8 +170,7 @@
     "rookies": "{count} rookie(s)",
     "autographs": "{count} autograph(s)",
     "memorabilia": "{count} memorabilia",
-    "numbered": "{count} numbered",
-    "serialsShort": "{count} /##"
+    "numbered": "{count} numbered"
   },
   "cards": {
     "searchAll": "Search all cards…",
@@ -202,7 +205,7 @@
     "storage": "Storage",
     "addedOn": "Added to the collection on {date}.",
     "addedOnMissing": "Collection add date not set.",
-    "ebaySales": "Comparable sales (eBay sold):",
+    "marketLinks": "Market:",
     "editTitle": "Edit card",
     "addTitle": "Add card",
     "club": "Team",
@@ -212,6 +215,9 @@
     "gradeNote": "Grade notes",
     "protectionOptional": "Protection (optional)",
     "storageOptional": "Storage (optional)",
+    "notes": "Notes",
+    "notesOptional": "Notes (optional)",
+    "notesPlaceholder": "Reminders, provenance, pre-grade condition…",
     "autograph": "Autograph",
     "memorabiliaLabel": "Memorabilia",
     "tradable": "Tradable",
@@ -271,7 +277,22 @@
       "players": "Players",
       "catalog": "Brands / Sets / Variations",
       "clubs": "Teams",
-      "years": "Years"
+      "years": "Years",
+      "tools": "Tools"
+    },
+    "tools": {
+      "backupTitle": "SQLite backup",
+      "backupDesc": "Download a consistent snapshot of the database (same as sqlite3 .backup). Store this file off the server.",
+      "backupAction": "Download backup",
+      "backupPending": "Backing up…",
+      "backupError": "Could not create backup.",
+      "duplicatesTitle": "Potential duplicates",
+      "duplicatesDesc": "Duplicate cards: same player, year, brand, set, variation, card number, and serial (empty if not numbered).",
+      "duplicatesCardNum": "#{number}",
+      "duplicatesSerial": "#{serial}",
+      "duplicatesNone": "No duplicates detected.",
+      "duplicatesSummary": "{groups} group(s) · {cards} cards involved",
+      "duplicatesLoadError": "Could not load duplicates."
     },
     "csv": {
       "intro": "Export your collection to CSV or import cards from Excel, Google Sheets, or plain text. Reference lists are updated automatically on import.",
@@ -309,7 +330,7 @@
       "placeholder": "Paste CSV text here (with header row)…",
       "formatHint": "Delimiter: comma, semicolon, or tab. UTF-8 encoding recommended.",
       "formatDetailsTitle": "Expected CSV format",
-      "formatDetailsBody": "Header (row 1):\nid,player,team,year,brand,set,variation,autograph,memorabilia,rookie,tradable,serial_number,serial_current,serial_total,card_number,grading,opening_date,protection,storage,photo\n\nFrench aliases accepted: joueur, club, année, marque, auto, memo, rc, échange, série, gradation, date_ajout, rangement.\n\nBooleans: true/false, 1/0, yes/no, oui/non.\nDates: dd/mm/yyyy (e.g. 15/03/2024) or yyyy-mm-dd.\nPlayer required. id optional (upsert). Max 5000 rows.",
+      "formatDetailsBody": "Header (row 1):\nid,player,team,year,brand,set,variation,autograph,memorabilia,rookie,tradable,serial_number,serial_current,serial_total,card_number,grading,opening_date,protection,storage,photo,notes\n\nFrench aliases accepted: joueur, club, année, marque, auto, memo, rc, échange, série, gradation, date_ajout, rangement.\n\nBooleans: true/false, 1/0, yes/no, oui/non.\nDates: dd/mm/yyyy (e.g. 15/03/2024) or yyyy-mm-dd.\nPlayer required. id optional (upsert). Max 5000 rows.",
       "rowError": "Row {row}: {message}"
     },
     "cards": {
@@ -453,6 +474,7 @@
     "invalidData": "Invalid data.",
     "requestBody": "body",
     "invalidSerialFormat": "Invalid serial format.",
+    "backupFailed": "Database backup failed.",
     "csvEmpty": "CSV file is empty or has no card rows.",
     "csvTooManyRows": "Too many rows (maximum {max}).",
     "noValidBrands": "No valid brands.",
