@@ -28,7 +28,7 @@ import {
 import { patchReferences } from "@/lib/references-client";
 
 interface CardFormProps {
-  card?: Card | null;
+  card?: Partial<Card> | null;
   references: References;
   open: boolean;
   onClose: () => void;
@@ -38,6 +38,13 @@ interface CardFormProps {
   /** Après ajout marque/set via l’API, recharger les références (ex. refetch GET /api/references). */
   onReferencesUpdated?: () => Promise<void>;
   saveError?: string | null;
+  dialogTitle?: string;
+  submitLabel?: string;
+  secondaryAction?: {
+    label: string;
+    onClick: () => void | Promise<void>;
+    disabled?: boolean;
+  };
 }
 
 function FormCombobox(props: ComponentProps<typeof AutocompleteCombobox>) {
@@ -83,6 +90,9 @@ export function CardForm({
   manageReferences = true,
   onReferencesUpdated,
   saveError = null,
+  dialogTitle,
+  submitLabel,
+  secondaryAction,
 }: CardFormProps) {
   const formId = useId();
 
@@ -101,6 +111,9 @@ export function CardForm({
             manageReferences={manageReferences}
             onReferencesUpdated={onReferencesUpdated}
             saveError={saveError}
+            dialogTitle={dialogTitle}
+            submitLabel={submitLabel}
+            secondaryAction={secondaryAction}
             formId={formId}
           />
         ) : null}
@@ -110,13 +123,20 @@ export function CardForm({
 }
 
 type CardFormFieldsProps = {
-  card?: Card | null;
+  card?: Partial<Card> | null;
   references: References;
   onClose: () => void;
   onSave: (card: Partial<Card>) => boolean | Promise<boolean>;
   manageReferences: boolean;
   onReferencesUpdated?: () => Promise<void>;
   saveError?: string | null;
+  dialogTitle?: string;
+  submitLabel?: string;
+  secondaryAction?: {
+    label: string;
+    onClick: () => void | Promise<void>;
+    disabled?: boolean;
+  };
   formId: string;
 };
 
@@ -128,6 +148,9 @@ function CardFormFields({
   manageReferences,
   onReferencesUpdated,
   saveError = null,
+  dialogTitle,
+  submitLabel,
+  secondaryAction,
   formId,
 }: CardFormFieldsProps) {
   const t = useTranslations();
@@ -274,7 +297,9 @@ function CardFormFields({
   return (
     <>
       <DialogHeader>
-        <DialogTitle>{card ? t("cards.editTitle") : t("cards.addTitle")}</DialogTitle>
+        <DialogTitle>
+          {dialogTitle ?? (card ? t("cards.editTitle") : t("cards.addTitle"))}
+        </DialogTitle>
       </DialogHeader>
       <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -545,15 +570,25 @@ function CardFormFields({
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
+            {secondaryAction ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="mr-auto"
+                disabled={saving || secondaryAction.disabled}
+                onClick={() => void secondaryAction.onClick()}
+              >
+                {secondaryAction.label}
+              </Button>
+            ) : null}
             <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
               {t("common.cancel")}
             </Button>
-            <Button type="submit" disabled={saving}>
+            <Button type="submit" disabled={saving || secondaryAction?.disabled}>
               {saving
                 ? t("common.saving")
-                : card
-                  ? t("common.save")
-                  : t("cards.addCard")}
+                : (submitLabel ??
+                  (card?.id ? t("common.save") : t("cards.addCard")))}
             </Button>
           </DialogFooter>
         </form>

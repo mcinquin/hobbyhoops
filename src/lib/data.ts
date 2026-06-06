@@ -45,10 +45,14 @@ import {
   readTopPlayerCounts,
   readWantedBlocks,
   deleteWantedEntry,
+  deleteShipment,
   insertFrNbaPlayer,
+  insertShipment,
   insertWantedEntry,
+  readShipments,
   updateCard,
   updateFrNbaPlayer,
+  updateShipment,
   writeReferencesState,
 } from "./db";
 import {
@@ -389,6 +393,27 @@ export function createWantedEntry(input: {
 
 export function removeWantedEntry(id: number): boolean {
   return deleteWantedEntry(id);
+}
+
+export function getShipments(includeReceived = false) {
+  return readShipments(includeReceived);
+}
+
+export function createShipment(
+  input: Parameters<typeof insertShipment>[0]
+) {
+  return insertShipment(input);
+}
+
+export function editShipment(
+  id: string,
+  patch: Parameters<typeof updateShipment>[1]
+) {
+  return updateShipment(id, patch);
+}
+
+export function removeShipment(id: string): boolean {
+  return deleteShipment(id);
 }
 
 export function createFrNbaPlayer(player: Omit<FrNbaPlayer, "id">): FrNbaPlayer {

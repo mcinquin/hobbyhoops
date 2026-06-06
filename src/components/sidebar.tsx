@@ -12,6 +12,7 @@ import {
   LogOut,
   ListChecks,
   Flag,
+  Package,
 } from "lucide-react";
 import { APP_VERSION } from "@/lib/app-version";
 import { useTranslations } from "@/i18n/client";
@@ -36,6 +37,7 @@ export function Sidebar({ username, onNavigate, className }: SidebarProps) {
       { href: "/", label: t("nav.dashboard"), icon: LayoutDashboard },
       { href: "/collection", label: t("nav.collection"), icon: Library },
       { href: "/wanted", label: t("nav.wanted"), icon: ListChecks },
+      { href: "/shipments", label: t("nav.shipments"), icon: Package },
       { href: "/fr-nba", label: t("nav.frNba"), icon: Flag },
       { href: "/player", label: t("nav.players"), icon: Users },
       { href: "/admin", label: t("nav.admin"), icon: Settings },

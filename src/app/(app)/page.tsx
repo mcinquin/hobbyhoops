@@ -4,12 +4,14 @@ import {
   getDashboardChartData,
   getRecentCards,
   getReferences,
+  getShipments,
 } from "@/lib/data";
 import { buildCardBadgeLabels } from "@/lib/card-badge-labels";
 import { getTranslations } from "@/i18n/server";
 import { PageHeader } from "@/components/page-header";
 import { StatsCards } from "@/components/stats-cards";
 import { RecentCards } from "@/components/recent-cards";
+import { IncomingShipmentsWidget } from "@/components/incoming-shipments-widget";
 import { ChartSkeleton } from "@/components/skeletons/page-skeletons";
 
 const DashboardCharts = dynamic(
@@ -20,9 +22,10 @@ const DashboardCharts = dynamic(
 
 export default async function DashboardPage() {
   const references = getReferences();
-  const [stats, recentCards] = await Promise.all([
+  const [stats, recentCards, activeShipments] = await Promise.all([
     Promise.resolve(getCollectionStats()),
     Promise.resolve(getRecentCards(8)),
+    Promise.resolve(getShipments(false)),
   ]);
   const { t, locale } = await getTranslations();
   const badgeLabels = buildCardBadgeLabels(t);
@@ -43,6 +46,23 @@ export default async function DashboardPage() {
           numbered: t("dashboard.stats.numbered"),
           rookies: t("dashboard.stats.rookies"),
           tradable: t("dashboard.stats.tradable"),
+        }}
+      />
+      <IncomingShipmentsWidget
+        shipments={activeShipments}
+        locale={locale}
+        labels={{
+          title: t("dashboard.incoming.title"),
+          activeCount: t("dashboard.incoming.activeCount", {
+            count: activeShipments.length,
+          }),
+          viewAll: t("dashboard.incoming.viewAll"),
+          alertOne: t("dashboard.incoming.alertOne"),
+          alertMany: t("dashboard.incoming.alertMany"),
+          empty: t("dashboard.incoming.empty"),
+          protectionDays: t("dashboard.incoming.protectionDays"),
+          protectionDay: t("dashboard.incoming.protectionDay"),
+          protectionExpired: t("dashboard.incoming.protectionExpired"),
         }}
       />
       <DashboardCharts
