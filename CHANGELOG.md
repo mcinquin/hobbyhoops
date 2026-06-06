@@ -1,3 +1,10 @@
+# [1.22.0](https://github.com/mcinquin/hobbyhoops/compare/v1.21.0...v1.22.0) (2026-06-06)
+
+
+### Features
+
+* **tracking:** add tracking section ([d73ec7f](https://github.com/mcinquin/hobbyhoops/commit/d73ec7f8b73ff1bc9c9c8d9df23df0f288e1a8e9))
+
 # [1.21.0](https://github.com/mcinquin/hobbyhoops/compare/v1.20.0...v1.21.0) (2026-06-04)
 
 
