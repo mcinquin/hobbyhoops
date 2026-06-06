@@ -118,6 +118,34 @@ export interface DashboardChartData {
   acquisitionData: ChartCountRow[];
 }
 
+export type ShipmentPlatform = "ebay" | "comc" | "private" | "other";
+
+export type ShipmentStatus =
+  | "pending"
+  | "shipped"
+  | "in_transit"
+  | "delivered"
+  | "received"
+  | "dispute";
+
+export interface Shipment {
+  id: string;
+  platform: ShipmentPlatform;
+  orderId: string | null;
+  seller: string | null;
+  description: string;
+  priceCents: number | null;
+  currency: string;
+  orderedAt: string;
+  shippedAt: string | null;
+  trackingNumber: string | null;
+  carrier: string | null;
+  expectedDelivery: string | null;
+  status: ShipmentStatus;
+  cardId: string | null;
+  notes: string;
+}
+
 export interface DuplicateCardGroup {
   player: string;
   year: string | null;

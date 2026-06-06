@@ -17,6 +17,7 @@
     "dashboard": "Tableau de bord",
     "collection": "Collection",
     "wanted": "Wanted",
+    "shipments": "En route",
     "frNba": "Fr NBA",
     "players": "Joueurs",
     "admin": "Admin",
@@ -110,11 +111,122 @@
       "numbered": "Numérotées",
       "rookies": "Rookies",
       "tradable": "Échangeables"
+    },
+    "incoming": {
+      "title": "En route",
+      "activeCount": "{count} colis en cours",
+      "viewAll": "Voir tout",
+      "alertOne": "1 alerte protection eBay",
+      "alertMany": "{count} alertes protection eBay",
+      "empty": "Aucun colis en cours.",
+      "protectionDays": "{count} j restants",
+      "protectionDay": "1 j restant",
+      "protectionExpired": "Protection expirée"
     }
   },
   "collection": {
     "title": "Collection",
     "subtitle": "Parcourez, filtrez et recherchez toute votre collection."
+  },
+  "shipments": {
+    "title": "En route",
+    "subtitle": "Suivez vos achats eBay et autres plateformes avant qu'ils arrivent dans votre collection.",
+    "intro": "Ajoutez un achat dès la commande pour suivre l'expédition et ne pas manquer la fenêtre de protection eBay (30 jours).",
+    "stats": {
+      "active": "Colis en cours"
+    },
+    "addEntry": "Nouvel achat",
+    "description": "Description",
+    "descriptionPlaceholder": "ex. Victor Wembanyama 2023 Prizm Silver",
+    "platformLabel": "Plateforme",
+    "orderedAt": "Date d'achat",
+    "orderedAtRequired": "La date d'achat est obligatoire.",
+    "price": "Prix payé",
+    "pricePlaceholder": "ex. 89.00",
+    "priceInvalid": "Prix invalide.",
+    "orderId": "N° commande",
+    "orderIdPlaceholder": "ex. 12-34567-89012",
+    "sellerLabel": "Vendeur",
+    "trackingNumber": "N° de suivi",
+    "trackingPlaceholder": "Colissimo, La Poste, USPS…",
+    "expectedDeliveryLabel": "Livraison estimée",
+    "fieldsRequired": "La description est obligatoire.",
+    "added": "Achat ajouté.",
+    "updated": "Statut mis à jour.",
+    "deleted": "Achat supprimé.",
+    "count": "{count} envoi(s)",
+    "showReceived": "Afficher les reçus",
+    "emptyTitle": "Aucun colis en cours",
+    "emptyHint": "Ajoutez votre prochain achat eBay pour suivre l'expédition ici.",
+    "seller": "Vendeur : {name}",
+    "orderedOn": "Acheté le {date}",
+    "tracking": "Suivi",
+    "expectedDelivery": "Estimée le {date}",
+    "noTrackingYet": "En attente du numéro de suivi",
+    "trackPackage": "Suivre le colis",
+    "openEbay": "Voir sur eBay",
+    "openDispute": "Litige eBay",
+    "deleteEntry": "Supprimer {description}",
+    "platform": {
+      "ebay": "eBay",
+      "comc": "COMC",
+      "private": "Privé",
+      "other": "Autre"
+    },
+    "status": {
+      "pending": "En attente",
+      "shipped": "Expédié",
+      "in_transit": "En transit",
+      "delivered": "Livré",
+      "received": "Reçu",
+      "dispute": "Litige"
+    },
+    "timeline": {
+      "pending": "Payé",
+      "shipped": "Expédié",
+      "inTransit": "Transit",
+      "delivered": "Livré",
+      "dispute": "Litige ouvert"
+    },
+    "carrier": {
+      "laposte": "La Poste",
+      "colissimo": "Colissimo",
+      "chronopost": "Chronopost",
+      "usps": "USPS",
+      "ups": "UPS",
+      "fedex": "FedEx",
+      "dhl": "DHL",
+      "unknown": "Transporteur"
+    },
+    "protection": {
+      "title": "Protection eBay (30 j)",
+      "daysRemaining": "{count} jours restants",
+      "daysRemainingOne": "1 jour restant",
+      "expired": "Fenêtre dépassée — agissez maintenant",
+      "critical": "Urgent : moins de 3 jours",
+      "warning": "Attention : moins de 7 jours"
+    },
+    "actions": {
+      "markShipped": "Marquer expédié",
+      "markInTransit": "En transit",
+      "markDelivered": "Marquer livré",
+      "markReceived": "Reçu ✓",
+      "openDispute": "Litige"
+    },
+    "receive": {
+      "title": "Ajouter à la collection",
+      "submit": "Ajouter et marquer reçu",
+      "skip": "Marquer reçu sans ajouter",
+      "saveFailed": "Impossible d'enregistrer la carte.",
+      "addedToCollection": "Carte ajoutée et colis marqué reçu.",
+      "markedReceived": "Colis marqué reçu."
+    },
+    "provenance": {
+      "platform": "Achat {platform}",
+      "seller": "vendeur {name}",
+      "order": "commande {id}",
+      "price": "{price}"
+    }
   },
   "guides": {
     "wanted": {
@@ -485,6 +597,9 @@
     "noValidYears": "Aucune année valide.",
     "wantedIdMissing": "Identifiant wanted manquant.",
     "wantedNotFound": "Entrée wanted introuvable.",
+    "shipmentIdMissing": "Identifiant d'envoi manquant.",
+    "shipmentNotFound": "Envoi introuvable.",
+    "shipmentDateInvalid": "Date invalide.",
     "frNbaNotFound": "Joueur Fr NBA introuvable.",
     "updateFailed": "Échec de la mise à jour.",
     "pageError": "Une erreur est survenue",
