@@ -1,3 +1,10 @@
+## [1.22.2](https://github.com/mcinquin/hobbyhoops/compare/v1.22.1...v1.22.2) (2026-06-07)
+
+
+### Bug Fixes
+
+* **storage:** fix issue with storage and protection ([5695cdc](https://github.com/mcinquin/hobbyhoops/commit/5695cdcf9ca114fcfa143ed68c648f0bd7306744))
+
 ## [1.22.1](https://github.com/mcinquin/hobbyhoops/compare/v1.22.0...v1.22.1) (2026-06-07)
 
 
