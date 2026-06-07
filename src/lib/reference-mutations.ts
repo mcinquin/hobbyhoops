@@ -4,6 +4,42 @@ export const LABEL_MAX = 160;
 
 export const REFERENCE_YEAR_REGEX = /^(\d{4}|\d{4}-\d{2})$/;
 
+/** Valeurs initiales (grading, protection, rangement) injectées une fois en base. */
+export const SEED_ATTRIBUTE_REFERENCES = {
+  grading: ["Ungraded", "PSA", "SGC", "BGS", "CGC"],
+  protection: ["Magnetic One-Touch", "Sleeve", "Toploader"],
+  storage: [
+    "Box",
+    "Carbonite - Magnetic",
+    "Carbonite - Trade",
+    "Classeur",
+    "Collection - Sleeve Binder",
+    "Collection - Toploader Binder",
+    "Magnetic Box",
+    "Sleeve Box",
+    "Toploader Box",
+    "Trade - Sleeve Binder",
+    "Trade - Toploader Binder",
+    "Wizards",
+  ],
+} as const;
+
+export function createEmptyReferences(): References {
+  return {
+    players: [],
+    teams: [],
+    years: [],
+    brands: [],
+    sets: [],
+    brandSets: {},
+    setVariations: {},
+    variations: [],
+    gradings: [],
+    protections: [],
+    storages: [],
+  };
+}
+
 export function normYear(s: string): string | null {
   const label = normLabel(s);
   if (!label || !REFERENCE_YEAR_REGEX.test(label)) return null;
@@ -145,6 +181,49 @@ export function addYear(refs: References, year: string): References {
   return refs;
 }
 
+export function addGrading(refs: References, grading: string): References {
+  const name = normLabel(grading);
+  if (!name) return refs;
+  refs.gradings = addUniqueSorted(refs.gradings, [name]);
+  return refs;
+}
+
+export function addProtection(refs: References, protection: string): References {
+  const name = normLabel(protection);
+  if (!name) return refs;
+  refs.protections = addUniqueSorted(refs.protections, [name]);
+  return refs;
+}
+
+export function addStorage(refs: References, storage: string): References {
+  const name = normLabel(storage);
+  if (!name) return refs;
+  refs.storages = addUniqueSorted(refs.storages, [name]);
+  return refs;
+}
+
+export function applySeedAttributeReferences(refs: References): References {
+  for (const grading of SEED_ATTRIBUTE_REFERENCES.grading) {
+    addGrading(refs, grading);
+  }
+  for (const protection of SEED_ATTRIBUTE_REFERENCES.protection) {
+    addProtection(refs, protection);
+  }
+  for (const storage of SEED_ATTRIBUTE_REFERENCES.storage) {
+    addStorage(refs, storage);
+  }
+  return refs;
+}
+
+function gradingCompany(grading: string | null | undefined): string {
+  const value = grading?.trim() || "Ungraded";
+  if (value === "Ungraded") return "Ungraded";
+  const comma = value.indexOf(",");
+  if (comma === -1) return value;
+  const company = value.slice(0, comma).trim();
+  return company || "Ungraded";
+}
+
 function removeFromSorted(list: string[], value: string): string[] {
   return list.filter((item) => item !== value);
 }
@@ -233,6 +312,21 @@ export function removeVariation(
   return refs;
 }
 
+/** Enrichit protection, rangement et société de grading depuis une carte. */
+export function syncCardAttributeReferences(
+  refs: References,
+  attrs: {
+    grading?: string | null;
+    protection?: string | null;
+    storage?: string | null;
+  }
+): References {
+  addGrading(refs, gradingCompany(attrs.grading));
+  if (attrs.protection?.trim()) addProtection(refs, attrs.protection);
+  if (attrs.storage?.trim()) addStorage(refs, attrs.storage);
+  return refs;
+}
+
 /** Enrichit les listes de référence à partir d'une carte (saisie libre dans le formulaire). */
 export function syncReferencesFromCard(
   refs: References,
@@ -243,6 +337,9 @@ export function syncReferencesFromCard(
     brand: string;
     set: string;
     variation: string;
+    grading?: string;
+    protection?: string;
+    storage?: string;
   }
 ): References {
   if (card.player) addPlayer(refs, card.player);
@@ -251,5 +348,6 @@ export function syncReferencesFromCard(
   if (card.brand) addBrand(refs, card.brand);
   if (card.brand && card.set) addSet(refs, card.brand, card.set);
   if (card.set && card.variation) addVariation(refs, card.set, card.variation);
+  syncCardAttributeReferences(refs, card);
   return refs;
 }

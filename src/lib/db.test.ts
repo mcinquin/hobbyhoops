@@ -13,8 +13,11 @@ import {
   readCollectionStats,
   readDuplicateGroupRows,
   readRecentCards,
+  readReferencesState,
   updateCard,
+  writeReferencesState,
 } from "@/lib/db";
+import { createEmptyReferences } from "@/lib/reference-mutations";
 import { getDuplicateCardGroups } from "@/lib/data";
 import { buildCollectionWhereClause } from "@/lib/collection-query";
 import { exportCardsCsv, importCardsCsv } from "@/lib/data";
@@ -212,5 +215,27 @@ describe("card CRUD", () => {
     const result = importCardsCsv(exported, "upsert", identityT);
     expect(result.created).toBe(1);
     expect(readCardById("card-0001")?.player).toBe("LeBron James");
+  });
+
+  it("persists grading, protection and storage references in sqlite payload", () => {
+    writeReferencesState({
+      ...createEmptyReferences(),
+      gradings: ["PSA", "BGS"],
+      protections: ["Sleeve", "  "],
+      storages: ["Trade - Sleeve Binder"],
+    });
+
+    const refs = readReferencesState();
+    expect(refs.gradings).toEqual(["BGS", "PSA"]);
+    expect(refs.protections).toEqual(["Sleeve"]);
+    expect(refs.storages).toEqual(["Trade - Sleeve Binder"]);
+
+    const payloadRow = getDb()
+      .prepare("SELECT payload FROM references_state WHERE id = 1")
+      .get() as { payload: string } | undefined;
+    const payload = JSON.parse(String(payloadRow?.payload ?? "{}"));
+    expect(payload.gradings).toEqual(["BGS", "PSA"]);
+    expect(payload.protections).toEqual(["Sleeve"]);
+    expect(payload.storages).toEqual(["Trade - Sleeve Binder"]);
   });
 });

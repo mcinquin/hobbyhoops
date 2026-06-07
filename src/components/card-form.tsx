@@ -58,18 +58,6 @@ function FormCombobox(props: ComponentProps<typeof AutocompleteCombobox>) {
   );
 }
 
-const referenceSelectClassName =
-  "w-full h-9 rounded-md border border-input bg-background px-3 text-sm";
-
-function referenceSelectOptions(
-  items: string[],
-  current: string | undefined
-): string[] {
-  const value = (current ?? "").trim();
-  if (!value || items.includes(value)) return items;
-  return [value, ...items];
-}
-
 const emptyCard: Partial<Card> = {
   player: "",
   team: "",
@@ -194,16 +182,6 @@ function CardFormFields({
   const variationsForSet = useMemo(
     () => variationsLinkedToSet(references, setKey),
     [references, setKey]
-  );
-
-  const protectionOptions = useMemo(
-    () => referenceSelectOptions(references.protections, form.protection ?? ""),
-    [form.protection, references.protections]
-  );
-
-  const storageOptions = useMemo(
-    () => referenceSelectOptions(references.storages, form.storage ?? ""),
-    [form.storage, references.storages]
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -525,34 +503,24 @@ function CardFormFields({
 
             <div className="space-y-2">
               <Label>{t("cards.protectionOptional")}</Label>
-              <select
+              <FormCombobox
                 value={form.protection || ""}
-                onChange={(e) => update("protection", e.target.value)}
-                className={referenceSelectClassName}
-              >
-                <option value="">{t("cards.selectNone")}</option>
-                {protectionOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => update("protection", value)}
+                suggestions={references.protections}
+                clearOptionLabel={t("cards.selectNone")}
+                placeholder={t("cards.selectNone")}
+              />
             </div>
 
             <div className="space-y-2 col-span-2">
               <Label>{t("cards.storageOptional")}</Label>
-              <select
+              <FormCombobox
                 value={form.storage || ""}
-                onChange={(e) => update("storage", e.target.value)}
-                className={referenceSelectClassName}
-              >
-                <option value="">{t("cards.selectNone")}</option>
-                {storageOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => update("storage", value)}
+                suggestions={references.storages}
+                clearOptionLabel={t("cards.selectNone")}
+                placeholder={t("cards.selectNone")}
+              />
             </div>
 
             <div className="space-y-2 col-span-2">
