@@ -17,6 +17,8 @@ export interface AutocompleteComboboxProps {
   debounceMs?: number;
   /** N’affiche les suggestions que lorsque la liste est ouverte (formulaires). */
   suggestionsOnlyWhenOpen?: boolean;
+  /** Première option pour effacer la valeur (champs optionnels). */
+  clearOptionLabel?: string;
   listClassName?: string;
 }
 
@@ -31,6 +33,7 @@ export function AutocompleteCombobox({
   required,
   debounceMs,
   suggestionsOnlyWhenOpen = false,
+  clearOptionLabel,
   listClassName,
 }: AutocompleteComboboxProps) {
   const generatedId = useId();
@@ -60,6 +63,17 @@ export function AutocompleteCombobox({
       suggestion.toLowerCase().includes(query)
     );
   }, [open, query, suggestions, suggestionsOnlyWhenOpen]);
+
+  const listOptions = useMemo(() => {
+    const options: { label: string; value: string }[] = [];
+    if (clearOptionLabel) {
+      options.push({ label: clearOptionLabel, value: "" });
+    }
+    for (const suggestion of visibleSuggestions) {
+      options.push({ label: suggestion, value: suggestion });
+    }
+    return options;
+  }, [clearOptionLabel, visibleSuggestions]);
 
   function commitValue(nextValue: string): void {
     if (isDebounced) {
@@ -108,34 +122,32 @@ export function AutocompleteCombobox({
             setOpen(false);
             return;
           }
-          if (visibleSuggestions.length === 0) return;
+          if (listOptions.length === 0) return;
           if (event.key === "ArrowDown") {
             event.preventDefault();
-            setActiveIndex((index) => (index + 1) % visibleSuggestions.length);
+            setActiveIndex((index) => (index + 1) % listOptions.length);
           }
           if (event.key === "ArrowUp") {
             event.preventDefault();
             setActiveIndex(
-              (index) =>
-                (index - 1 + visibleSuggestions.length) %
-                visibleSuggestions.length
+              (index) => (index - 1 + listOptions.length) % listOptions.length
             );
           }
           if (event.key === "Enter" && open) {
             event.preventDefault();
-            commitValue(visibleSuggestions[activeIndex]);
+            commitValue(listOptions[activeIndex]?.value ?? "");
           }
         }}
         placeholder={placeholder}
         disabled={disabled}
         required={required}
         role="combobox"
-        aria-expanded={open && visibleSuggestions.length > 0}
+        aria-expanded={open && listOptions.length > 0}
         aria-controls={listboxId}
         aria-autocomplete="list"
         className={className}
       />
-      {open && visibleSuggestions.length > 0 && !disabled && (
+      {open && listOptions.length > 0 && !disabled && (
         <div
           id={listboxId}
           role="listbox"
@@ -144,20 +156,23 @@ export function AutocompleteCombobox({
             listClassName
           )}
         >
-          {visibleSuggestions.map((suggestion, index) => (
+          {listOptions.map((option, index) => (
             <button
-              key={suggestion}
+              key={option.value || "__empty__"}
               type="button"
               role="option"
               aria-selected={index === activeIndex}
-              className="block w-full rounded px-2 py-1.5 text-left hover:bg-accent aria-selected:bg-accent"
+              className={cn(
+                "block w-full rounded px-2 py-1.5 text-left hover:bg-accent aria-selected:bg-accent",
+                option.value === "" && "text-muted-foreground"
+              )}
               onMouseDown={(event) => {
                 event.preventDefault();
-                commitValue(suggestion);
+                commitValue(option.value);
               }}
               onMouseEnter={() => setActiveIndex(index)}
             >
-              {suggestion}
+              {option.label}
             </button>
           ))}
         </div>

@@ -22,8 +22,13 @@ import { buildCardSearchText } from "./card-search-text";
 import { normalizeCardSerialFields } from "./card-serial";
 import { normalizeOpeningDate, openingDateSortValue } from "./opening-date";
 import { COLLECTION_SORT_SQL } from "./collection-query";
-import { EMPTY_REFERENCES } from "./references-defaults";
-import { syncReferencesFromCard } from "./reference-mutations";
+import {
+  applySeedAttributeReferences,
+  createEmptyReferences,
+  normLabel,
+  syncCardAttributeReferences,
+  syncReferencesFromCard,
+} from "./reference-mutations";
 import { normalizeVariationLabel } from "./variation-label";
 
 const PLAYER_CARD_STATS_AGG_SQL = `
@@ -40,7 +45,7 @@ const ALLOWED_SORT_COLUMNS = new Set(Object.values(COLLECTION_SORT_SQL));
 
 type SqlInputValue = string | number | bigint | Buffer | null;
 
-const SCHEMA_VERSION = 12;
+const SCHEMA_VERSION = 15;
 
 const CARD_LIST_COLUMNS = `
   id, player, team, year, brand, set_name, variation,
@@ -603,10 +608,62 @@ function importCards(db: AppDatabase, cards: Card[]): void {
   });
 }
 
+function readReferencesPayload(db: AppDatabase): References {
+  const row = db
+    .prepare("SELECT payload FROM references_state WHERE id = 1")
+    .get() as { payload: string } | undefined;
+  if (!row) return createEmptyReferences();
+  try {
+    return parseReferences(JSON.parse(row.payload) as Partial<References>);
+  } catch {
+    return createEmptyReferences();
+  }
+}
+
+function backfillAttributeReferencesFromCards(db: AppDatabase, refs: References): void {
+  const rows = db
+    .prepare("SELECT grading, protection, storage FROM cards")
+    .all() as Record<string, unknown>[];
+
+  for (const cardRow of rows) {
+    syncCardAttributeReferences(refs, {
+      grading: cardRow.grading == null ? null : String(cardRow.grading),
+      protection:
+        cardRow.protection == null ? null : String(cardRow.protection),
+      storage: cardRow.storage == null ? null : String(cardRow.storage),
+    });
+  }
+}
+
+function normalizeReferenceStringList(values: string[]): string[] {
+  return [...new Set(values.map((value) => normLabel(value)).filter(Boolean))].sort(
+    (a, b) => a.localeCompare(b)
+  );
+}
+
 function importReferences(db: AppDatabase, refs: References): void {
+  const payload: References = {
+    ...refs,
+    gradings: normalizeReferenceStringList(refs.gradings),
+    protections: normalizeReferenceStringList(refs.protections),
+    storages: normalizeReferenceStringList(refs.storages),
+  };
   db.prepare(
     "INSERT INTO references_state (id, payload) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET payload = excluded.payload"
-  ).run(JSON.stringify(refs));
+  ).run(JSON.stringify(payload));
+}
+
+function seedAttributeReferencesIfEmpty(db: AppDatabase): void {
+  const refs = readReferencesPayload(db);
+  if (
+    refs.gradings.length > 0 ||
+    refs.protections.length > 0 ||
+    refs.storages.length > 0
+  ) {
+    return;
+  }
+  applySeedAttributeReferences(refs);
+  importReferences(db, refs);
 }
 
 function migrateOpeningDatesToFrench(db: AppDatabase): void {
@@ -638,8 +695,9 @@ function ensureReferencesState(db: AppDatabase): void {
     }
   ).count;
   if (referencesCount === 0) {
-    importReferences(db, EMPTY_REFERENCES);
+    importReferences(db, createEmptyReferences());
   }
+  seedAttributeReferencesIfEmpty(db);
 }
 
 function runSchemaMigrations(db: AppDatabase): void {
@@ -756,18 +814,97 @@ function runSchemaMigrations(db: AppDatabase): void {
     `);
   }
 
+  if (version < 13) {
+    migrateBackfillCardAttributeReferences(db);
+  }
+
+  if (version < 14) {
+    migrateAttributeReferencesToTable();
+  }
+
+  if (version < 15) {
+    migrateUnifyReferencesStorage(db);
+  }
+
   setSchemaVersion(db, SCHEMA_VERSION);
 }
 
+function readLegacyAttributeLabels(
+  db: AppDatabase,
+  category: "grading" | "protection" | "storage"
+): string[] {
+  try {
+    const rows = db
+      .prepare(
+        "SELECT label FROM reference_attribute_items WHERE category = ? ORDER BY label COLLATE NOCASE ASC"
+      )
+      .all(category) as { label: string }[];
+    return rows.map((row) => String(row.label));
+  } catch {
+    return [];
+  }
+}
+
+function migrateUnifyReferencesStorage(db: AppDatabase): void {
+  const refs = readReferencesPayload(db);
+  const hasLegacyTable = Boolean(
+    db
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'reference_attribute_items'"
+      )
+      .get()
+  );
+
+  if (hasLegacyTable) {
+    const gradings = readLegacyAttributeLabels(db, "grading");
+    const protections = readLegacyAttributeLabels(db, "protection");
+    const storages = readLegacyAttributeLabels(db, "storage");
+    if (gradings.length > 0) refs.gradings = gradings;
+    if (protections.length > 0) refs.protections = protections;
+    if (storages.length > 0) refs.storages = storages;
+  }
+
+  applySeedAttributeReferences(refs);
+  backfillAttributeReferencesFromCards(db, refs);
+  importReferences(db, refs);
+
+  if (hasLegacyTable) {
+    db.exec("DROP INDEX IF EXISTS idx_reference_attribute_items_category");
+    db.exec("DROP TABLE IF EXISTS reference_attribute_items");
+  }
+}
+
+function migrateBackfillCardAttributeReferences(db: AppDatabase): void {
+  const refs = readReferencesPayload(db);
+  applySeedAttributeReferences(refs);
+  backfillAttributeReferencesFromCards(db, refs);
+  importReferences(db, refs);
+}
+
+function migrateAttributeReferencesToTable(): void {
+  // Historique v14 — le stockage unifié est appliqué en v15.
+}
+
 function rebuildReferencesFromAllCards(db: AppDatabase): void {
+  const current = readReferencesPayload(db);
   const refs: References = {
-    ...EMPTY_REFERENCES,
+    ...createEmptyReferences(),
+    gradings: [...current.gradings],
+    protections: [...current.protections],
+    storages: [...current.storages],
     brandSets: {},
     setVariations: {},
   };
+  if (
+    refs.gradings.length === 0 &&
+    refs.protections.length === 0 &&
+    refs.storages.length === 0
+  ) {
+    applySeedAttributeReferences(refs);
+  }
   const rows = db
     .prepare(
-      "SELECT player, team, year, brand, set_name, variation FROM cards"
+      "SELECT player, team, year, brand, set_name, variation, grading, protection, storage FROM cards"
     )
     .all() as Record<string, unknown>[];
 
@@ -779,6 +916,9 @@ function rebuildReferencesFromAllCards(db: AppDatabase): void {
       brand: String(row.brand),
       set: String(row.set_name),
       variation: String(row.variation),
+      grading: String(row.grading ?? ""),
+      protection: String(row.protection ?? ""),
+      storage: String(row.storage ?? ""),
     });
   }
 
@@ -811,8 +951,8 @@ function migrateFixSilverVariationTypo(db: AppDatabase): void {
         search_text: derived.search_text,
       });
     }
-    rebuildReferencesFromAllCards(db);
   });
+  rebuildReferencesFromAllCards(db);
 }
 
 function migrateToFts5(db: AppDatabase): void {
@@ -1239,15 +1379,7 @@ export function readPlayerSummaries(): PlayerSummaryRow[] {
 }
 
 export function readReferencesState(): References {
-  const row = getDb()
-    .prepare("SELECT payload FROM references_state WHERE id = 1")
-    .get() as { payload: string } | undefined;
-  if (!row) return { ...EMPTY_REFERENCES };
-  try {
-    return parseReferences(JSON.parse(row.payload) as Partial<References>);
-  } catch {
-    return { ...EMPTY_REFERENCES };
-  }
+  return readReferencesPayload(getDb());
 }
 
 export function writeReferencesState(refs: References): void {
