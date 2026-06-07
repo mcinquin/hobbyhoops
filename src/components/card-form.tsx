@@ -58,6 +58,18 @@ function FormCombobox(props: ComponentProps<typeof AutocompleteCombobox>) {
   );
 }
 
+const referenceSelectClassName =
+  "w-full h-9 rounded-md border border-input bg-background px-3 text-sm";
+
+function referenceSelectOptions(
+  items: string[],
+  current: string | undefined
+): string[] {
+  const value = (current ?? "").trim();
+  if (!value || items.includes(value)) return items;
+  return [value, ...items];
+}
+
 const emptyCard: Partial<Card> = {
   player: "",
   team: "",
@@ -182,6 +194,16 @@ function CardFormFields({
   const variationsForSet = useMemo(
     () => variationsLinkedToSet(references, setKey),
     [references, setKey]
+  );
+
+  const protectionOptions = useMemo(
+    () => referenceSelectOptions(references.protections, form.protection ?? ""),
+    [form.protection, references.protections]
+  );
+
+  const storageOptions = useMemo(
+    () => referenceSelectOptions(references.storages, form.storage ?? ""),
+    [form.storage, references.storages]
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -503,20 +525,34 @@ function CardFormFields({
 
             <div className="space-y-2">
               <Label>{t("cards.protectionOptional")}</Label>
-              <FormCombobox
+              <select
                 value={form.protection || ""}
-                onChange={(value) => update("protection", value)}
-                suggestions={references.protections}
-              />
+                onChange={(e) => update("protection", e.target.value)}
+                className={referenceSelectClassName}
+              >
+                <option value="">{t("cards.selectNone")}</option>
+                {protectionOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-2 col-span-2">
               <Label>{t("cards.storageOptional")}</Label>
-              <FormCombobox
+              <select
                 value={form.storage || ""}
-                onChange={(value) => update("storage", value)}
-                suggestions={references.storages}
-              />
+                onChange={(e) => update("storage", e.target.value)}
+                className={referenceSelectClassName}
+              >
+                <option value="">{t("cards.selectNone")}</option>
+                {storageOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-2 col-span-2">

@@ -329,6 +329,7 @@
     "storageOptional": "Rangement (optionnel)",
     "notes": "Notes",
     "notesOptional": "Notes (optionnel)",
+    "selectNone": "—",
     "notesPlaceholder": "Rappels, provenance, état avant gradation…",
     "autograph": "Autographe",
     "memorabiliaLabel": "Mémorabilia",
