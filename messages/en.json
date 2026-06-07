@@ -329,6 +329,7 @@
     "storageOptional": "Storage (optional)",
     "notes": "Notes",
     "notesOptional": "Notes (optional)",
+    "selectNone": "—",
     "notesPlaceholder": "Reminders, provenance, pre-grade condition…",
     "autograph": "Autograph",
     "memorabiliaLabel": "Memorabilia",
