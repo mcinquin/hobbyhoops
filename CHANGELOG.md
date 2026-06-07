@@ -1,3 +1,10 @@
+## [1.22.1](https://github.com/mcinquin/hobbyhoops/compare/v1.22.0...v1.22.1) (2026-06-07)
+
+
+### Bug Fixes
+
+* **select:** revert to select for storage and protection ([10c3152](https://github.com/mcinquin/hobbyhoops/commit/10c315276b7135436c891573b17d64768a1e3c45))
+
 # [1.22.0](https://github.com/mcinquin/hobbyhoops/compare/v1.21.0...v1.22.0) (2026-06-06)
 
 
