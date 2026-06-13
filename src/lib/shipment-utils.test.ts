@@ -3,6 +3,7 @@ import {
   buildTrackingUrl,
   computeEbayProtection,
   detectCarrier,
+  formatShipmentDateLabel,
   normalizeShipmentDate,
 } from "./shipment-utils";
 
@@ -17,6 +18,16 @@ describe("normalizeShipmentDate", () => {
 
   it("rejects invalid dates", () => {
     expect(normalizeShipmentDate("31/02/2025")).toBeNull();
+  });
+});
+
+describe("formatShipmentDateLabel", () => {
+  it("formats dates for French locale", () => {
+    expect(formatShipmentDateLabel("2025-06-15", "fr")).toBe("15/06/2025");
+  });
+
+  it("formats dates for English locale", () => {
+    expect(formatShipmentDateLabel("2025-06-15", "en")).toBe("06/15/2025");
   });
 });
 

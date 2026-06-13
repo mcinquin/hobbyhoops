@@ -50,7 +50,6 @@ export default async function DashboardPage() {
       />
       <IncomingShipmentsWidget
         shipments={activeShipments}
-        locale={locale}
         labels={{
           title: t("dashboard.incoming.title"),
           activeCount: t("dashboard.incoming.activeCount", {
