@@ -19,6 +19,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { AutocompleteCombobox } from "@/components/autocomplete-combobox";
+import { OpeningDateInput } from "@/components/opening-date-input";
 import { AdminFeedback } from "@/components/admin/admin-feedback";
 import { useTranslations } from "@/i18n/client";
 import {
@@ -458,17 +459,12 @@ function CardFormFields({
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>{t("cards.openingDate")}</Label>
-              <Input
-                value={form.openingDate || ""}
-                onChange={(e) =>
-                  update("openingDate", e.target.value || null)
-                }
-                placeholder={t("cards.placeholderDate")}
-                inputMode="numeric"
-              />
-            </div>
+            <OpeningDateInput
+              id={`${formId}-opening-date`}
+              label={t("cards.openingDate")}
+              value={form.openingDate ?? null}
+              onChange={(value) => update("openingDate", value)}
+            />
 
             <div className="space-y-2">
               <Label>{t("cards.grading")}</Label>

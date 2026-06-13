@@ -1,21 +1,39 @@
+import {
+  formatIsoDateForInput,
+  formatIsoDateLabel,
+  formatTodayIsoDate,
+  isValidCalendarDate,
+  ISO_DATE_REGEX,
+  parseDateInputToIso,
+  parseIsoDate,
+  type DateLocale,
+} from "./locale-date";
+
 export const OPENING_DATE_REGEX = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-const ISO_DATE_REGEX = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 function pad2(value: number): string {
   return String(value).padStart(2, "0");
 }
 
-function isValidCalendarDate(day: number, month: number, year: number): boolean {
-  const date = new Date(year, month - 1, day);
-  return (
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day
-  );
-}
-
 function toFrenchDate(day: number, month: number, year: number): string {
   return `${pad2(day)}/${pad2(month)}/${year}`;
+}
+
+function openingDateToIso(value: string): string | null {
+  const match = value.match(OPENING_DATE_REGEX);
+  if (!match) return null;
+  const iso = `${match[3]}-${match[2]}-${match[1]}`;
+  return parseIsoDate(iso) ? iso : null;
+}
+
+function isoToOpeningDate(iso: string): string | null {
+  const match = iso.match(ISO_DATE_REGEX);
+  if (!match) return null;
+  const year = Number.parseInt(match[1], 10);
+  const month = Number.parseInt(match[2], 10);
+  const day = Number.parseInt(match[3], 10);
+  if (!isValidCalendarDate(day, month, year)) return null;
+  return toFrenchDate(day, month, year);
 }
 
 export function formatOpeningDateFrFromDate(date: Date): string {
@@ -23,7 +41,7 @@ export function formatOpeningDateFrFromDate(date: Date): string {
 }
 
 export function formatTodayOpeningDateFr(): string {
-  return formatOpeningDateFrFromDate(new Date());
+  return isoToOpeningDate(formatTodayIsoDate())!;
 }
 
 export function normalizeOpeningDate(
@@ -42,14 +60,8 @@ export function normalizeOpeningDate(
     return toFrenchDate(day, month, year);
   }
 
-  const iso = trimmed.match(ISO_DATE_REGEX);
-  if (iso) {
-    const year = Number.parseInt(iso[1], 10);
-    const month = Number.parseInt(iso[2], 10);
-    const day = Number.parseInt(iso[3], 10);
-    if (!isValidCalendarDate(day, month, year)) return null;
-    return toFrenchDate(day, month, year);
-  }
+  const iso = parseDateInputToIso(trimmed, "fr");
+  if (iso) return isoToOpeningDate(iso);
 
   return null;
 }
@@ -70,14 +82,31 @@ export function openingDateSortValue(
 
 export function formatOpeningDateLabel(
   value: string | null | undefined,
-  locale: "fr" | "en" = "fr"
+  locale: DateLocale = "fr"
 ): string {
   const normalized = normalizeOpeningDate(value);
   if (!normalized) return "—";
-  if (locale === "en") {
-    const match = normalized.match(OPENING_DATE_REGEX);
-    if (!match) return normalized;
-    return `${match[2]}/${match[1]}/${match[3]}`;
-  }
-  return normalized;
+  const iso = openingDateToIso(normalized);
+  if (!iso) return "—";
+  return formatIsoDateLabel(iso, locale);
+}
+
+export function formatOpeningDateForInput(
+  value: string | null | undefined,
+  locale: DateLocale = "fr"
+): string {
+  const normalized = normalizeOpeningDate(value);
+  if (!normalized) return "";
+  const iso = openingDateToIso(normalized);
+  if (!iso) return "";
+  return formatIsoDateForInput(iso, locale);
+}
+
+export function parseOpeningDateInput(
+  value: string | null | undefined,
+  locale: DateLocale = "fr"
+): string | null {
+  const iso = parseDateInputToIso(value, locale);
+  if (!iso) return null;
+  return isoToOpeningDate(iso);
 }

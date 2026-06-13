@@ -1,4 +1,13 @@
 import type { Shipment, ShipmentPlatform, ShipmentStatus } from "./types";
+import {
+  formatIsoDateForInput,
+  formatIsoDateLabel,
+  formatTodayIsoDate,
+  ISO_DATE_REGEX,
+  parseDateInputToIso,
+  parseIsoDate,
+  type DateLocale,
+} from "./locale-date";
 
 export const EBAY_PROTECTION_DAYS = 30;
 
@@ -18,29 +27,6 @@ export const SHIPMENT_PLATFORMS: ShipmentPlatform[] = [
   "other",
 ];
 
-const ISO_DATE_REGEX = /^(\d{4})-(\d{2})-(\d{2})$/;
-
-function shipmentLocaleTag(locale: "fr" | "en"): string {
-  return locale === "fr" ? "fr-FR" : "en-US";
-}
-
-function parseIsoDate(value: string): Date | null {
-  const match = value.match(ISO_DATE_REGEX);
-  if (!match) return null;
-  const year = Number.parseInt(match[1], 10);
-  const month = Number.parseInt(match[2], 10);
-  const day = Number.parseInt(match[3], 10);
-  const date = new Date(year, month - 1, day);
-  if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
-    date.getDate() !== day
-  ) {
-    return null;
-  }
-  return date;
-}
-
 export function normalizeShipmentDate(
   value: string | null | undefined
 ): string | null {
@@ -48,46 +34,45 @@ export function normalizeShipmentDate(
   const trimmed = value.trim();
   if (!trimmed) return null;
 
-  const iso = trimmed.match(ISO_DATE_REGEX);
-  if (iso) {
-    const parsed = parseIsoDate(trimmed);
-    return parsed ? trimmed : null;
+  if (ISO_DATE_REGEX.test(trimmed)) {
+    return parseIsoDate(trimmed) ? trimmed : null;
   }
 
-  const french = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (french) {
-    const day = french[1];
-    const month = french[2];
-    const year = french[3];
-    const isoValue = `${year}-${month}-${day}`;
-    return parseIsoDate(isoValue) ? isoValue : null;
-  }
-
-  return null;
+  return parseDateInputToIso(trimmed, "fr");
 }
 
 export function formatShipmentDateLabel(
   value: string | null | undefined,
-  locale: "fr" | "en" = "fr"
+  locale: DateLocale = "fr"
 ): string {
   const normalized = normalizeShipmentDate(value);
   if (!normalized) return "—";
-  const parsed = parseIsoDate(normalized);
-  if (!parsed) return "—";
-  return new Intl.DateTimeFormat(shipmentLocaleTag(locale), {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(parsed);
+  return formatIsoDateLabel(normalized, locale);
 }
 
-export function formatTodayIsoDate(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+export function formatShipmentDateForInput(
+  value: string | null | undefined,
+  locale: DateLocale = "fr"
+): string {
+  const normalized = normalizeShipmentDate(value);
+  if (!normalized) return "";
+  return formatIsoDateForInput(normalized, locale);
 }
+
+export function parseShipmentDateInput(
+  value: string | null | undefined,
+  locale: DateLocale = "fr"
+): string | null {
+  return parseDateInputToIso(value, locale);
+}
+
+export function formatTodayShipmentDateForInput(
+  locale: DateLocale = "fr"
+): string {
+  return formatShipmentDateForInput(formatTodayIsoDate(), locale);
+}
+
+export { formatTodayIsoDate };
 
 export type ProtectionUrgency = "safe" | "warning" | "critical" | "expired";
 

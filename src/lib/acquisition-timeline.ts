@@ -1,4 +1,5 @@
 import type { ChartCountRow } from "./types";
+import { dateLocaleTag } from "./locale-date";
 
 /** Entier YYYYMM dérivé de opening_date_sort (YYYYMMDD). */
 export function openingDateSortToMonthKey(sortValue: number): number {
@@ -17,7 +18,7 @@ export function formatAcquisitionMonthLabel(
   }
 
   const date = new Date(year, month - 1, 1);
-  return new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-US", {
+  return new Intl.DateTimeFormat(dateLocaleTag(locale), {
     month: "short",
     year: "numeric",
   }).format(date);
