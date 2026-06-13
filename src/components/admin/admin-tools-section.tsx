@@ -5,11 +5,13 @@ import type { DuplicateCardGroup } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { CardBadges } from "@/components/card-badges";
 import { useCardBadgeLabels } from "@/hooks/use-card-badge-labels";
-import { useTranslations } from "@/i18n/client";
+import { formatOpeningDateLabel } from "@/lib/opening-date";
+import { useI18n, useTranslations } from "@/i18n/client";
 import { Download, Loader2, RefreshCw } from "lucide-react";
 
 export function AdminToolsSection() {
   const t = useTranslations();
+  const { locale } = useI18n();
   const badgeLabels = useCardBadgeLabels();
   const [groups, setGroups] = useState<DuplicateCardGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -197,7 +199,7 @@ export function AdminToolsSection() {
                               ? ` · ${card.storage}`
                               : ""}
                             {card.openingDate
-                              ? ` · ${card.openingDate}`
+                              ? ` · ${formatOpeningDateLabel(card.openingDate, locale)}`
                               : ""}
                           </p>
                         </div>

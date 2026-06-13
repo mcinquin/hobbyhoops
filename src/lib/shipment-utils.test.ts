@@ -3,8 +3,10 @@ import {
   buildTrackingUrl,
   computeEbayProtection,
   detectCarrier,
+  formatShipmentDateForInput,
   formatShipmentDateLabel,
   normalizeShipmentDate,
+  parseShipmentDateInput,
 } from "./shipment-utils";
 
 describe("normalizeShipmentDate", () => {
@@ -28,6 +30,26 @@ describe("formatShipmentDateLabel", () => {
 
   it("formats dates for English locale", () => {
     expect(formatShipmentDateLabel("2025-06-15", "en")).toBe("06/15/2025");
+  });
+});
+
+describe("parseShipmentDateInput", () => {
+  it("parses French slash dates", () => {
+    expect(parseShipmentDateInput("15/06/2025", "fr")).toBe("2025-06-15");
+  });
+
+  it("parses English slash dates", () => {
+    expect(parseShipmentDateInput("06/15/2025", "en")).toBe("2025-06-15");
+  });
+
+  it("accepts ISO input in any locale", () => {
+    expect(parseShipmentDateInput("2025-06-15", "en")).toBe("2025-06-15");
+  });
+});
+
+describe("formatShipmentDateForInput", () => {
+  it("returns empty string for missing values", () => {
+    expect(formatShipmentDateForInput(null, "fr")).toBe("");
   });
 });
 

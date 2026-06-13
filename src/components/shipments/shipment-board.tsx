@@ -16,6 +16,7 @@ import {
   updateShipment,
 } from "@/lib/shipments-client";
 import { ShipmentCard } from "@/components/shipments/shipment-card";
+import { ShipmentDateInput } from "@/components/shipments/shipment-date-input";
 import { ShipmentReceiveDialog } from "@/components/shipments/shipment-receive-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,9 +52,9 @@ export function ShipmentBoard({ initialShipments, references }: ShipmentBoardPro
   const [orderId, setOrderId] = useState("");
   const [seller, setSeller] = useState("");
   const [price, setPrice] = useState("");
-  const [orderedAt, setOrderedAt] = useState(formatTodayIsoDate());
+  const [orderedAt, setOrderedAt] = useState<string | null>(formatTodayIsoDate());
   const [trackingNumber, setTrackingNumber] = useState("");
-  const [expectedDelivery, setExpectedDelivery] = useState("");
+  const [expectedDelivery, setExpectedDelivery] = useState<string | null>(null);
 
   const activeCount = useMemo(
     () => shipments.filter((s) => isActiveShipment(s.status)).length,
@@ -78,7 +79,7 @@ export function ShipmentBoard({ initialShipments, references }: ShipmentBoardPro
       setFormError(t("shipments.fieldsRequired"));
       return;
     }
-    if (!orderedAt.trim()) {
+    if (!orderedAt) {
       setFormError(t("shipments.orderedAtRequired"));
       return;
     }
@@ -101,10 +102,10 @@ export function ShipmentBoard({ initialShipments, references }: ShipmentBoardPro
         orderId: orderId.trim() || null,
         seller: seller.trim() || null,
         priceCents,
-        orderedAt: orderedAt.trim(),
+        orderedAt,
         trackingNumber: tracking,
         carrier: carrier === "unknown" ? null : carrier,
-        expectedDelivery: expectedDelivery.trim() || null,
+        expectedDelivery,
       });
       await refreshShipments();
       setDescription("");
@@ -112,7 +113,7 @@ export function ShipmentBoard({ initialShipments, references }: ShipmentBoardPro
       setSeller("");
       setPrice("");
       setTrackingNumber("");
-      setExpectedDelivery("");
+      setExpectedDelivery(null);
       setSuccess(t("shipments.added"));
     } catch {
       setFormError(t("errors.updateFailed"));
@@ -224,16 +225,13 @@ export function ShipmentBoard({ initialShipments, references }: ShipmentBoardPro
               ))}
             </select>
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="shipment-ordered-at">{t("shipments.orderedAt")}</Label>
-            <Input
-              id="shipment-ordered-at"
-              type="date"
-              value={orderedAt}
-              onChange={(e) => setOrderedAt(e.target.value)}
-              disabled={loading}
-            />
-          </div>
+          <ShipmentDateInput
+            id="shipment-ordered-at"
+            label={t("shipments.orderedAt")}
+            value={orderedAt}
+            onChange={setOrderedAt}
+            disabled={loading}
+          />
           <div className="space-y-1">
             <Label htmlFor="shipment-price">{t("shipments.price")}</Label>
             <Input
@@ -274,16 +272,13 @@ export function ShipmentBoard({ initialShipments, references }: ShipmentBoardPro
               disabled={loading}
             />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="shipment-expected">{t("shipments.expectedDeliveryLabel")}</Label>
-            <Input
-              id="shipment-expected"
-              type="date"
-              value={expectedDelivery}
-              onChange={(e) => setExpectedDelivery(e.target.value)}
-              disabled={loading}
-            />
-          </div>
+          <ShipmentDateInput
+            id="shipment-expected"
+            label={t("shipments.expectedDeliveryLabel")}
+            value={expectedDelivery}
+            onChange={setExpectedDelivery}
+            disabled={loading}
+          />
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button
