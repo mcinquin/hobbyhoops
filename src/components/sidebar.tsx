@@ -50,7 +50,7 @@ export function Sidebar({ username, onNavigate, className }: SidebarProps) {
     setLoggingOut(true);
     try {
       await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-      window.location.href = "/login";
+      window.location.href = "/";
     } finally {
       setLoggingOut(false);
     }

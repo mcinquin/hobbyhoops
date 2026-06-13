@@ -93,7 +93,7 @@ export async function deleteCard(id: string): Promise<void> {
 export async function fetchAdminSnapshot(): Promise<AdminSnapshot> {
   const res = await fetch("/api/admin/data", API_FETCH_OPTS);
   if (res.status === 401) {
-    window.location.href = "/login";
+    window.location.href = "/";
     throw new Error("Unauthorized");
   }
   if (!res.ok) {
