@@ -1,3 +1,11 @@
+# [1.23.0](https://github.com/mcinquin/hobbyhoops/compare/v1.22.2...v1.23.0) (2026-06-13)
+
+
+### Features
+
+* **audit:** add security audit recommendations ([a138fbd](https://github.com/mcinquin/hobbyhoops/commit/a138fbd64eb1d64dcb511d0ecdea7a527e369042))
+* **audit:** add security audit recommendations ([cc0b2cd](https://github.com/mcinquin/hobbyhoops/commit/cc0b2cd8d5ceffe37a78429be262a021f4a9d000))
+
 ## [1.22.2](https://github.com/mcinquin/hobbyhoops/compare/v1.22.1...v1.22.2) (2026-06-07)
 
 
