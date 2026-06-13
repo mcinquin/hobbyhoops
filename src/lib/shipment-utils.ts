@@ -20,6 +20,10 @@ export const SHIPMENT_PLATFORMS: ShipmentPlatform[] = [
 
 const ISO_DATE_REGEX = /^(\d{4})-(\d{2})-(\d{2})$/;
 
+function shipmentLocaleTag(locale: "fr" | "en"): string {
+  return locale === "fr" ? "fr-FR" : "en-US";
+}
+
 function parseIsoDate(value: string): Date | null {
   const match = value.match(ISO_DATE_REGEX);
   if (!match) return null;
@@ -68,12 +72,13 @@ export function formatShipmentDateLabel(
 ): string {
   const normalized = normalizeShipmentDate(value);
   if (!normalized) return "—";
-  const match = normalized.match(ISO_DATE_REGEX);
-  if (!match) return normalized;
-  if (locale === "en") {
-    return `${match[2]}/${match[3]}/${match[1]}`;
-  }
-  return `${match[3]}/${match[2]}/${match[1]}`;
+  const parsed = parseIsoDate(normalized);
+  if (!parsed) return "—";
+  return new Intl.DateTimeFormat(shipmentLocaleTag(locale), {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(parsed);
 }
 
 export function formatTodayIsoDate(): string {

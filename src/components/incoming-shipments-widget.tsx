@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import type { Shipment } from "@/lib/types";
 import {
@@ -5,13 +7,12 @@ import {
   formatShipmentDateLabel,
   isUrgentProtection,
 } from "@/lib/shipment-utils";
-import type { Locale } from "@/i18n/config";
+import { useI18n } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { AlertTriangle, ArrowRight, Package } from "lucide-react";
 
 interface IncomingShipmentsWidgetProps {
   shipments: Shipment[];
-  locale: Locale;
   labels: {
     title: string;
     activeCount: string;
@@ -27,9 +28,9 @@ interface IncomingShipmentsWidgetProps {
 
 export function IncomingShipmentsWidget({
   shipments,
-  locale,
   labels,
 }: IncomingShipmentsWidgetProps) {
+  const { locale } = useI18n();
   const summary = buildShipmentAlertSummary(shipments, 4);
 
   if (summary.activeCount === 0) {
