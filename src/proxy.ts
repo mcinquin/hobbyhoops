@@ -28,6 +28,21 @@ const PUBLIC_STATIC_PATHS = new Set([
   "/robots.txt",
 ]);
 
+function copySearchParams(source: URL, target: URL): URL {
+  source.searchParams.forEach((value, key) => {
+    target.searchParams.set(key, value);
+  });
+  return target;
+}
+
+function unauthenticatedEntryUrl(request: NextRequest, fromPath: string): URL {
+  const url = new URL("/", request.url);
+  if (fromPath !== "/") {
+    url.searchParams.set("from", fromPath);
+  }
+  return url;
+}
+
 function nextWithCsp(request: NextRequest): NextResponse {
   const nonce = createNonce();
   const csp = buildContentSecurityPolicy(nonce);
@@ -69,18 +84,26 @@ export function proxy(request: NextRequest) {
   if (pageMisconfigured) return pageMisconfigured;
 
   if (pathname === "/login") {
-    const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-    if (verifySessionToken(token)) {
-      return NextResponse.redirect(new URL("/", request.url));
+    const home = copySearchParams(request.nextUrl, new URL("/", request.url));
+    return NextResponse.redirect(home, 301);
+  }
+
+  const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+  const isAuthenticated = verifySessionToken(token);
+
+  if (pathname === "/") {
+    if (!isAuthenticated) {
+      const loginUrl = copySearchParams(
+        request.nextUrl,
+        new URL("/login", request.url)
+      );
+      return NextResponse.rewrite(loginUrl);
     }
     return nextWithCsp(request);
   }
 
-  const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-  if (!verifySessionToken(token)) {
-    const login = new URL("/login", request.url);
-    login.searchParams.set("from", pathname);
-    return NextResponse.redirect(login);
+  if (!isAuthenticated) {
+    return NextResponse.redirect(unauthenticatedEntryUrl(request, pathname));
   }
 
   return nextWithCsp(request);
