@@ -1,13 +1,13 @@
 # Production — image GHCR, reverse proxy Apache en amont (hors Compose).
 # Déploiement : cp .env.example .env, renseigner AUTH_SECRET, puis :
-#   export HOBBYHOOPS_VERSION=1.23.1   # tag publié sur GHCR
+#   export HOBBYHOOPS_VERSION=1.23.2   # tag publié sur GHCR
 #   docker compose pull && docker compose up -d
 #
 # Dev local (build) : docker compose -f docker-compose.dev.yml up --build
 
 services:
   app:
-    image: ghcr.io/mcinquin/hobbyhoops:${HOBBYHOOPS_VERSION:-1.23.1}
+    image: ghcr.io/mcinquin/hobbyhoops:${HOBBYHOOPS_VERSION:-1.23.2}
     pull_policy: always
     container_name: hobbyhoops
     user: "1111:1111"

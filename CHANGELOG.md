@@ -1,3 +1,10 @@
+## [1.23.2](https://github.com/mcinquin/hobbyhoops/compare/v1.23.1...v1.23.2) (2026-06-13)
+
+
+### Bug Fixes
+
+* **incoming:** fix issue with date format ([eebd505](https://github.com/mcinquin/hobbyhoops/commit/eebd50526287ea80146bac751d5a24c7632e80a2))
+
 ## [1.23.1](https://github.com/mcinquin/hobbyhoops/compare/v1.23.0...v1.23.1) (2026-06-13)
 
 
