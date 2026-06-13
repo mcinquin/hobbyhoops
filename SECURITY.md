@@ -19,6 +19,8 @@ Do not open a public issue for a security problem. Contact the repository mainta
 
 ## Access model
 
+Unauthenticated visitors see the login form at `/` (internal rewrite, no redirect). `/login` permanently redirects to `/`. Other protected paths redirect once to `/?from=<path>` for post-login return.
+
 Every authenticated user can access `/admin` and write APIs. This model fits a personal or family instance; multi-user deployments with roles would require evolving the user schema.
 
 ## Sessions and authentication
