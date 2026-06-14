@@ -1,3 +1,10 @@
+# [1.25.0](https://github.com/mcinquin/hobbyhoops/compare/v1.24.1...v1.25.0) (2026-06-14)
+
+
+### Features
+
+* **logs:** add logs for some actions ([183e7f1](https://github.com/mcinquin/hobbyhoops/commit/183e7f170a8f7314229b9fafe7e558e43e319f1c))
+
 ## [1.24.1](https://github.com/mcinquin/hobbyhoops/compare/v1.24.0...v1.24.1) (2026-06-14)
 
 
