@@ -52,16 +52,31 @@ export interface WantedBlock {
   entries: WantedEntry[];
 }
 
+export type FrNbaHoldingType = "auto" | "patch" | "rpa" | "immaculate";
+export type FrNbaAutoStyle = "on_card" | "sticker";
+
+export interface FrNbaHolding {
+  id: number;
+  type: FrNbaHoldingType;
+  autoStyle: FrNbaAutoStyle | null;
+  rookie: boolean;
+}
+
+export type FrNbaHoldingInput = Omit<FrNbaHolding, "id">;
+
 export interface FrNbaPlayer {
   id: number;
   player: string;
   draftYear: string;
   draftedBy: string;
-  rookieCard: boolean | null;
-  auto: string | null;
-  patch: boolean | null;
-  immaculate: boolean | null;
+  /** Objectif checklist : 1 RPA par joueur. */
+  rpa: boolean | null;
+  holdings: FrNbaHolding[];
 }
+
+export type FrNbaPlayerWrite = Omit<FrNbaPlayer, "id" | "holdings"> & {
+  holdings: FrNbaHoldingInput[];
+};
 
 export interface References {
   players: string[];

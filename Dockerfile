@@ -43,6 +43,7 @@ COPY --from=builder --chown=hobbyhoops:hobbyhoops /app/.next/static ./.next/stat
 RUN mkdir -p /app/data && chown hobbyhoops:hobbyhoops /app/data
 
 COPY --chmod=755 scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY --chmod=755 scripts/docker-ensure-db.mjs /app/scripts/docker-ensure-db.mjs
 
 RUN rm -rf \
   /sbin/apk \

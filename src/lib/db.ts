@@ -9,6 +9,8 @@ import type {
   ChartCountRow,
   CollectionStats,
   FrNbaPlayer,
+  FrNbaHolding,
+  FrNbaPlayerWrite,
   PlayerCardGroup,
   PlayerPageSummary,
   PlayerSummaryRow,
@@ -21,6 +23,13 @@ import type {
 import { buildCardSearchText } from "./card-search-text";
 import { normalizeCardSerialFields } from "./card-serial";
 import { normalizeOpeningDate, openingDateSortValue } from "./opening-date";
+import {
+  deriveRpaObjectiveFromLegacy,
+  frNbaAutoStyleToDb,
+  legacyFrNbaRowToHoldings,
+  normalizeFrNbaAutoStyleDb,
+} from "./fr-nba";
+import type { DatabaseFileMeta } from "./site-info-types";
 import { COLLECTION_SORT_SQL } from "./collection-query";
 import {
   applySeedAttributeReferences,
@@ -45,7 +54,21 @@ const ALLOWED_SORT_COLUMNS = new Set(Object.values(COLLECTION_SORT_SQL));
 
 type SqlInputValue = string | number | bigint | Buffer | null;
 
-const SCHEMA_VERSION = 15;
+const SCHEMA_VERSION = 16;
+
+/** Version de schéma attendue par le code déployé (migrations SQLite). */
+export const EXPECTED_SCHEMA_VERSION = SCHEMA_VERSION;
+
+const DB_MIGRATE_LOG_PREFIX = "[hobbyhoops:db:migrate]";
+
+function logDbMigration(message: string): void {
+  console.info(`${DB_MIGRATE_LOG_PREFIX} ${message}`);
+}
+
+function logDbMigrationError(message: string, error: unknown): void {
+  const detail = error instanceof Error ? error.message : String(error);
+  console.error(`${DB_MIGRATE_LOG_PREFIX} ${message} ${detail}`);
+}
 
 const CARD_LIST_COLUMNS = `
   id, player, team, year, brand, set_name, variation,
@@ -56,6 +79,59 @@ const CARD_LIST_COLUMNS = `
 const globalForDb = globalThis as typeof globalThis & {
   hobbyhoopsDb?: AppDatabase;
 };
+
+export function getDatabaseDisplayPath(): string {
+  const configured = process.env.HOBBYHOOPS_DB_PATH?.trim();
+  return configured || "data/hobbyhoops.db";
+}
+
+export function readDatabaseSchemaVersion(): number {
+  return getSchemaVersion(getDb());
+}
+
+export function readDatabaseFileMeta(): DatabaseFileMeta {
+  const db = getDb();
+  const dbPath = getDbPath();
+  const stat = fs.statSync(dbPath);
+  const journalMode = String(db.pragma("journal_mode", { simple: true }));
+  const pageCount = Number(db.pragma("page_count", { simple: true }));
+  const pageSize = Number(db.pragma("page_size", { simple: true }));
+  const foreignKeys = Boolean(db.pragma("foreign_keys", { simple: true }));
+
+  return {
+    displayPath: getDatabaseDisplayPath(),
+    sizeBytes: stat.size,
+    journalMode,
+    pageCount,
+    pageSize,
+    foreignKeys,
+  };
+}
+
+export interface AuthSiteCounts {
+  users: number;
+  activeSessions: number;
+}
+
+export function readAuthSiteCounts(): AuthSiteCounts {
+  const db = getDb();
+  const now = Math.floor(Date.now() / 1000);
+
+  const users = Number(
+    (db.prepare("SELECT COUNT(*) as count FROM users").get() as { count: number })
+      .count
+  );
+
+  const activeSessions = Number(
+    (
+      db
+        .prepare("SELECT COUNT(*) as count FROM sessions WHERE exp > ?")
+        .get(now) as { count: number }
+    ).count
+  );
+
+  return { users, activeSessions };
+}
 
 function getDbPath(): string {
   const configured = process.env.HOBBYHOOPS_DB_PATH?.trim();
@@ -146,11 +222,20 @@ function initSchema(db: AppDatabase): void {
       player TEXT NOT NULL,
       draft_year TEXT NOT NULL DEFAULT '',
       drafted_by TEXT NOT NULL DEFAULT '',
-      rookie_card INTEGER,
-      auto TEXT,
-      patch INTEGER,
-      immaculate INTEGER
+      rpa INTEGER
     );
+
+    CREATE TABLE IF NOT EXISTS fr_nba_holdings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      player_id INTEGER NOT NULL,
+      type TEXT NOT NULL,
+      auto_style TEXT,
+      rookie INTEGER NOT NULL DEFAULT 0,
+      FOREIGN KEY (player_id) REFERENCES fr_nba_players(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_fr_nba_holdings_player
+      ON fr_nba_holdings(player_id);
 
     CREATE TABLE IF NOT EXISTS shipments (
       id TEXT PRIMARY KEY,
@@ -182,26 +267,161 @@ function nullableBoolToDb(value: boolean | null): number | null {
   return value ? 1 : 0;
 }
 
-function normalizeFrNbaAuto(value: string | null): string | null {
-  if (!value) return null;
-  const lower = value.trim().toLowerCase();
-  if (lower === "on card") return "On card";
-  if (lower === "sticker") return "Sticker";
-  return value.trim();
+function tableHasColumn(
+  db: AppDatabase,
+  table: string,
+  column: string
+): boolean {
+  const rows = db.prepare(`PRAGMA table_info(${table})`).all() as {
+    name: string;
+  }[];
+  return rows.some((row) => row.name === column);
 }
 
-function rowToFrNbaPlayer(row: Record<string, unknown>): FrNbaPlayer {
-  const auto = row.auto == null ? null : String(row.auto);
+function rowToFrNbaHolding(row: Record<string, unknown>): FrNbaHolding {
+  return {
+    id: Number(row.id),
+    type: String(row.type) as FrNbaHolding["type"],
+    autoStyle: normalizeFrNbaAutoStyleDb(
+      row.auto_style == null ? null : String(row.auto_style)
+    ),
+    rookie: Boolean(row.rookie),
+  };
+}
+
+function readFrNbaHoldingsByPlayerIds(
+  db: AppDatabase,
+  playerIds: number[]
+): Map<number, FrNbaHolding[]> {
+  const map = new Map<number, FrNbaHolding[]>();
+  if (playerIds.length === 0) return map;
+
+  const placeholders = playerIds.map(() => "?").join(", ");
+  const rows = db
+    .prepare(
+      `SELECT id, player_id, type, auto_style, rookie
+       FROM fr_nba_holdings
+       WHERE player_id IN (${placeholders})
+       ORDER BY id ASC`
+    )
+    .all(...playerIds) as Record<string, unknown>[];
+
+  for (const row of rows) {
+    const playerId = Number(row.player_id);
+    const holding = rowToFrNbaHolding(row);
+    const bucket = map.get(playerId);
+    if (bucket) bucket.push(holding);
+    else map.set(playerId, [holding]);
+  }
+
+  return map;
+}
+
+function rowToFrNbaPlayer(
+  row: Record<string, unknown>,
+  holdings: FrNbaHolding[]
+): FrNbaPlayer {
   return {
     id: Number(row.id),
     player: String(row.player),
     draftYear: String(row.draft_year),
     draftedBy: String(row.drafted_by),
-    rookieCard: nullableBoolFromDb(row.rookie_card),
-    auto: normalizeFrNbaAuto(auto),
-    patch: nullableBoolFromDb(row.patch),
-    immaculate: nullableBoolFromDb(row.immaculate),
+    rpa: nullableBoolFromDb(row.rpa),
+    holdings,
   };
+}
+
+function replaceFrNbaHoldings(
+  db: AppDatabase,
+  playerId: number,
+  holdings: Omit<FrNbaHolding, "id">[]
+): FrNbaHolding[] {
+  db.prepare("DELETE FROM fr_nba_holdings WHERE player_id = ?").run(playerId);
+  const insert = db.prepare(`
+    INSERT INTO fr_nba_holdings (player_id, type, auto_style, rookie)
+    VALUES (@player_id, @type, @auto_style, @rookie)
+  `);
+
+  const saved: FrNbaHolding[] = [];
+  for (const holding of holdings) {
+    const result = insert.run({
+      player_id: playerId,
+      type: holding.type,
+      auto_style: frNbaAutoStyleToDb(holding.autoStyle),
+      rookie: holding.rookie ? 1 : 0,
+    });
+    saved.push({
+      id: Number(result.lastInsertRowid),
+      type: holding.type,
+      autoStyle: holding.autoStyle,
+      rookie: holding.rookie,
+    });
+  }
+  return saved;
+}
+
+function normalizeImportedFrNbaPlayer(
+  raw: Record<string, unknown>
+): FrNbaPlayerWrite {
+  if (Array.isArray(raw.holdings)) {
+    return {
+      player: String(raw.player ?? ""),
+      draftYear: String(raw.draftYear ?? raw.draft_year ?? ""),
+      draftedBy: String(raw.draftedBy ?? raw.drafted_by ?? ""),
+      rpa:
+        raw.rpa == null
+          ? null
+          : typeof raw.rpa === "boolean"
+            ? raw.rpa
+            : nullableBoolFromDb(raw.rpa),
+      holdings: raw.holdings.map((holding) => {
+        const item = holding as Record<string, unknown>;
+        return {
+          type: String(item.type) as FrNbaHolding["type"],
+          autoStyle: normalizeFrNbaAutoStyleDb(
+            item.autoStyle == null && item.auto_style == null
+              ? null
+              : String(item.autoStyle ?? item.auto_style ?? "")
+          ),
+          rookie: Boolean(item.rookie),
+        };
+      }),
+    };
+  }
+
+  const legacy = {
+    rookieCard: legacyNullableBool(raw, "rookieCard", "rookie_card"),
+    auto:
+      raw.auto == null
+        ? null
+        : normalizeLegacyAutoLabel(String(raw.auto)),
+    patch: legacyNullableBool(raw, "patch", "patch"),
+    immaculate: legacyNullableBool(raw, "immaculate", "immaculate"),
+  };
+
+  return {
+    player: String(raw.player ?? ""),
+    draftYear: String(raw.draftYear ?? raw.draft_year ?? ""),
+    draftedBy: String(raw.draftedBy ?? raw.drafted_by ?? ""),
+    rpa: deriveRpaObjectiveFromLegacy(legacy),
+    holdings: legacyFrNbaRowToHoldings(legacy),
+  };
+}
+
+function normalizeLegacyAutoLabel(value: string): string | null {
+  const trimmed = value.trim();
+  return trimmed || null;
+}
+
+function legacyNullableBool(
+  raw: Record<string, unknown>,
+  camelKey: string,
+  snakeKey: string
+): boolean | null {
+  const value = raw[camelKey] ?? raw[snakeKey];
+  if (value == null) return null;
+  if (typeof value === "boolean") return value;
+  return nullableBoolFromDb(value);
 }
 
 function importWantedBlocks(db: AppDatabase, blocks: WantedBlock[]): void {
@@ -259,26 +479,37 @@ export function deleteWantedEntry(id: number): boolean {
 }
 
 function importFrNbaPlayers(db: AppDatabase, players: FrNbaPlayer[]): void {
-  const insert = db.prepare(`
+  const insertPlayer = db.prepare(`
     INSERT INTO fr_nba_players (
-      player, draft_year, drafted_by, rookie_card, auto, patch, immaculate
+      player, draft_year, drafted_by, rpa
     ) VALUES (
-      @player, @draft_year, @drafted_by, @rookie_card, @auto, @patch, @immaculate
+      @player, @draft_year, @drafted_by, @rpa
     )
   `);
 
   runInTransaction(db, () => {
+    db.prepare("DELETE FROM fr_nba_holdings").run();
     db.prepare("DELETE FROM fr_nba_players").run();
     for (const player of players) {
-      insert.run({
-        player: player.player,
-        draft_year: player.draftYear,
-        drafted_by: player.draftedBy,
-        rookie_card: nullableBoolToDb(player.rookieCard),
-        auto: player.auto,
-        patch: nullableBoolToDb(player.patch),
-        immaculate: nullableBoolToDb(player.immaculate),
+      const normalized = normalizeImportedFrNbaPlayer(
+        player as unknown as Record<string, unknown>
+      );
+      const result = insertPlayer.run({
+        player: normalized.player,
+        draft_year: normalized.draftYear,
+        drafted_by: normalized.draftedBy,
+        rpa: nullableBoolToDb(normalized.rpa),
       });
+      const playerId = Number(result.lastInsertRowid);
+      replaceFrNbaHoldings(
+        db,
+        playerId,
+        normalized.holdings.map(({ type, autoStyle, rookie }) => ({
+          type,
+          autoStyle,
+          rookie,
+        }))
+      );
     }
   });
 }
@@ -380,78 +611,100 @@ export function readWantedBlocks(): WantedBlock[] {
 }
 
 export function readFrNbaPlayers(): FrNbaPlayer[] {
-  const rows = getDb()
+  const db = getDb();
+  const rows = db
     .prepare(
-      `SELECT id, player, draft_year, drafted_by, rookie_card, auto, patch, immaculate
+      `SELECT id, player, draft_year, drafted_by, rpa
        FROM fr_nba_players
        ORDER BY player COLLATE NOCASE`
     )
     .all() as Record<string, unknown>[];
-  return rows.map(rowToFrNbaPlayer);
+  const holdingsByPlayer = readFrNbaHoldingsByPlayerIds(
+    db,
+    rows.map((row) => Number(row.id))
+  );
+  return rows.map((row) =>
+    rowToFrNbaPlayer(row, holdingsByPlayer.get(Number(row.id)) ?? [])
+  );
 }
 
 function frNbaPlayerToRow(
-  player: Omit<FrNbaPlayer, "id">
+  player: Omit<FrNbaPlayerWrite, "holdings">
 ): Record<string, SqlInputValue> {
   return {
     player: player.player.trim(),
     draft_year: player.draftYear.trim(),
     drafted_by: player.draftedBy.trim(),
-    rookie_card: nullableBoolToDb(player.rookieCard),
-    auto: player.auto,
-    patch: nullableBoolToDb(player.patch),
-    immaculate: nullableBoolToDb(player.immaculate),
+    rpa: nullableBoolToDb(player.rpa),
   };
 }
 
-export function insertFrNbaPlayer(
-  player: Omit<FrNbaPlayer, "id">
-): FrNbaPlayer {
+export function insertFrNbaPlayer(player: FrNbaPlayerWrite): FrNbaPlayer {
   const db = getDb();
-  const row = frNbaPlayerToRow(player);
-  const result = db
-    .prepare(
-      `INSERT INTO fr_nba_players (
-        player, draft_year, drafted_by, rookie_card, auto, patch, immaculate
-      ) VALUES (
-        @player, @draft_year, @drafted_by, @rookie_card, @auto, @patch, @immaculate
-      )`
-    )
-    .run(row);
-  const id = Number(result.lastInsertRowid);
-  return { id, ...player };
+  const { holdings, ...identity } = player;
+  const row = frNbaPlayerToRow(identity);
+  const normalizedHoldings = holdings.map(({ type, autoStyle, rookie }) => ({
+    type,
+    autoStyle,
+    rookie,
+  }));
+  return runInTransaction(db, () => {
+    const result = db
+      .prepare(
+        `INSERT INTO fr_nba_players (
+          player, draft_year, drafted_by, rpa
+        ) VALUES (
+          @player, @draft_year, @drafted_by, @rpa
+        )`
+      )
+      .run(row);
+    const id = Number(result.lastInsertRowid);
+    const savedHoldings = replaceFrNbaHoldings(db, id, normalizedHoldings);
+    return {
+      id,
+      player: identity.player.trim(),
+      draftYear: identity.draftYear.trim(),
+      draftedBy: identity.draftedBy.trim(),
+      rpa: identity.rpa,
+      holdings: savedHoldings,
+    };
+  });
 }
 
 export function updateFrNbaPlayer(
   id: number,
-  player: Omit<FrNbaPlayer, "id">
+  player: FrNbaPlayerWrite
 ): FrNbaPlayer | null {
   const db = getDb();
-  const row = frNbaPlayerToRow(player);
-  const result = db
-    .prepare(
-      `UPDATE fr_nba_players SET
-        player = @player,
-        draft_year = @draft_year,
-        drafted_by = @drafted_by,
-        rookie_card = @rookie_card,
-        auto = @auto,
-        patch = @patch,
-        immaculate = @immaculate
-      WHERE id = @id`
-    )
-    .run({ ...row, id });
-  if (result.changes === 0) return null;
-  return {
-    id,
-    player: player.player.trim(),
-    draftYear: player.draftYear.trim(),
-    draftedBy: player.draftedBy.trim(),
-    rookieCard: player.rookieCard,
-    auto: player.auto,
-    patch: player.patch,
-    immaculate: player.immaculate,
-  };
+  const { holdings, ...identity } = player;
+  const row = frNbaPlayerToRow(identity);
+  const normalizedHoldings = holdings.map(({ type, autoStyle, rookie }) => ({
+    type,
+    autoStyle,
+    rookie,
+  }));
+  return runInTransaction(db, () => {
+    const result = db
+      .prepare(
+        `UPDATE fr_nba_players SET
+          player = @player,
+          draft_year = @draft_year,
+          drafted_by = @drafted_by,
+          rpa = @rpa
+        WHERE id = @id`
+      )
+      .run({ ...row, id });
+    if (result.changes === 0) return null;
+    const savedHoldings = replaceFrNbaHoldings(db, id, normalizedHoldings);
+    return {
+      id,
+      player: identity.player.trim(),
+      draftYear: identity.draftYear.trim(),
+      draftedBy: identity.draftedBy.trim(),
+      rpa: identity.rpa,
+      holdings: savedHoldings,
+    };
+  });
 }
 
 function getSchemaVersion(db: AppDatabase): number {
@@ -702,28 +955,39 @@ function ensureReferencesState(db: AppDatabase): void {
 
 function runSchemaMigrations(db: AppDatabase): void {
   const version = getSchemaVersion(db);
-  if (version >= SCHEMA_VERSION) return;
-
-  if (version < 2) {
-    migrateOpeningDatesToFrench(db);
+  if (version >= SCHEMA_VERSION) {
+    logDbMigration(`Schema up to date (v${version})`);
+    return;
   }
 
-  if (version < 3) {
-    db.exec("DROP TABLE IF EXISTS french_players");
-  }
+  logDbMigration(
+    `Starting migration v${version} → v${SCHEMA_VERSION} (${getDatabaseDisplayPath()})`
+  );
 
-  if (version < 6) {
-    if (version < 5) {
-      db.exec(`
+  try {
+    if (version < 2) {
+      logDbMigration("Applying v2: normalize opening dates");
+      migrateOpeningDatesToFrench(db);
+    }
+
+    if (version < 3) {
+      logDbMigration("Applying v3: drop legacy french_players table");
+      db.exec("DROP TABLE IF EXISTS french_players");
+    }
+
+    if (version < 6) {
+      logDbMigration("Applying v6: guides tables (wanted, fr_nba)");
+      if (version < 5) {
+        db.exec(`
         CREATE TABLE IF NOT EXISTS guides_state (
           id INTEGER PRIMARY KEY CHECK (id = 1),
           wanted_payload TEXT NOT NULL DEFAULT '[]',
           fr_nba_payload TEXT NOT NULL DEFAULT '[]'
         );
       `);
-    }
+      }
 
-    db.exec(`
+      db.exec(`
       CREATE TABLE IF NOT EXISTS wanted_entries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         set_name TEXT NOT NULL,
@@ -743,12 +1007,13 @@ function runSchemaMigrations(db: AppDatabase): void {
         immaculate INTEGER
       );
     `);
-    seedGuidesTablesIfEmpty(db);
-    db.exec("DROP TABLE IF EXISTS guides_state");
-  }
+      seedGuidesTablesIfEmpty(db);
+      db.exec("DROP TABLE IF EXISTS guides_state");
+    }
 
-  if (version < 7) {
-    db.exec(`
+    if (version < 7) {
+      logDbMigration("Applying v7: card indexes");
+      db.exec(`
       CREATE INDEX IF NOT EXISTS idx_cards_player ON cards(player);
       CREATE INDEX IF NOT EXISTS idx_cards_year ON cards(year);
       CREATE INDEX IF NOT EXISTS idx_cards_brand ON cards(brand);
@@ -757,40 +1022,45 @@ function runSchemaMigrations(db: AppDatabase): void {
       CREATE INDEX IF NOT EXISTS idx_cards_rookie ON cards(rookie);
       CREATE INDEX IF NOT EXISTS idx_cards_autograph ON cards(autograph);
     `);
-  }
+    }
 
-  if (version < 8) {
-    if (!cardsTableHasColumn(db, "opening_date_sort")) {
-      db.exec("ALTER TABLE cards ADD COLUMN opening_date_sort INTEGER");
-    }
-    if (!cardsTableHasColumn(db, "search_text")) {
-      db.exec("ALTER TABLE cards ADD COLUMN search_text TEXT");
-    }
-    backfillCardDerivedColumns(db);
-    db.exec(`
+    if (version < 8) {
+      logDbMigration("Applying v8: derived card columns and indexes");
+      if (!cardsTableHasColumn(db, "opening_date_sort")) {
+        db.exec("ALTER TABLE cards ADD COLUMN opening_date_sort INTEGER");
+      }
+      if (!cardsTableHasColumn(db, "search_text")) {
+        db.exec("ALTER TABLE cards ADD COLUMN search_text TEXT");
+      }
+      backfillCardDerivedColumns(db);
+      db.exec(`
       CREATE INDEX IF NOT EXISTS idx_cards_opening_date_sort ON cards(opening_date_sort);
       CREATE INDEX IF NOT EXISTS idx_cards_search_text ON cards(search_text);
       CREATE INDEX IF NOT EXISTS idx_cards_player_year ON cards(player, year);
       CREATE INDEX IF NOT EXISTS idx_cards_brand_set ON cards(brand, set_name);
     `);
-  }
-
-  if (version < 9) {
-    migrateToFts5(db);
-  }
-
-  if (version < 10) {
-    if (!cardsTableHasColumn(db, "notes")) {
-      db.exec("ALTER TABLE cards ADD COLUMN notes TEXT NOT NULL DEFAULT ''");
     }
-  }
 
-  if (version < 11) {
-    migrateFixSilverVariationTypo(db);
-  }
+    if (version < 9) {
+      logDbMigration("Applying v9: FTS5 full-text search");
+      migrateToFts5(db);
+    }
 
-  if (version < 12) {
-    db.exec(`
+    if (version < 10) {
+      logDbMigration("Applying v10: card notes column");
+      if (!cardsTableHasColumn(db, "notes")) {
+        db.exec("ALTER TABLE cards ADD COLUMN notes TEXT NOT NULL DEFAULT ''");
+      }
+    }
+
+    if (version < 11) {
+      logDbMigration("Applying v11: fix silver variation typo");
+      migrateFixSilverVariationTypo(db);
+    }
+
+    if (version < 12) {
+      logDbMigration("Applying v12: shipments table");
+      db.exec(`
       CREATE TABLE IF NOT EXISTS shipments (
         id TEXT PRIMARY KEY,
         platform TEXT NOT NULL DEFAULT 'ebay',
@@ -812,21 +1082,85 @@ function runSchemaMigrations(db: AppDatabase): void {
       CREATE INDEX IF NOT EXISTS idx_shipments_status ON shipments(status);
       CREATE INDEX IF NOT EXISTS idx_shipments_ordered_at ON shipments(ordered_at);
     `);
+    }
+
+    if (version < 13) {
+      logDbMigration("Applying v13: backfill card attribute references");
+      migrateBackfillCardAttributeReferences(db);
+    }
+
+    if (version < 14) {
+      logDbMigration("Applying v14: attribute references table");
+      migrateAttributeReferencesToTable();
+    }
+
+    if (version < 15) {
+      logDbMigration("Applying v15: unify references storage");
+      migrateUnifyReferencesStorage(db);
+    }
+
+    if (version < 16) {
+      logDbMigration("Applying v16: Fr NBA holdings model");
+      migrateFrNbaHoldingsModel(db);
+    }
+
+    setSchemaVersion(db, SCHEMA_VERSION);
+    logDbMigration(`Migration complete (v${SCHEMA_VERSION})`);
+  } catch (error) {
+    logDbMigrationError("Migration failed:", error);
+    throw error;
+  }
+}
+
+function migrateFrNbaHoldingsModel(db: AppDatabase): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS fr_nba_holdings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      player_id INTEGER NOT NULL,
+      type TEXT NOT NULL,
+      auto_style TEXT,
+      rookie INTEGER NOT NULL DEFAULT 0,
+      FOREIGN KEY (player_id) REFERENCES fr_nba_players(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_fr_nba_holdings_player
+      ON fr_nba_holdings(player_id);
+  `);
+
+  if (!tableHasColumn(db, "fr_nba_players", "rpa")) {
+    db.exec("ALTER TABLE fr_nba_players ADD COLUMN rpa INTEGER");
   }
 
-  if (version < 13) {
-    migrateBackfillCardAttributeReferences(db);
+  if (!tableHasColumn(db, "fr_nba_players", "rookie_card")) {
+    return;
   }
 
-  if (version < 14) {
-    migrateAttributeReferencesToTable();
+  const rows = db
+    .prepare("SELECT * FROM fr_nba_players")
+    .all() as Record<string, unknown>[];
+
+  for (const row of rows) {
+    const playerId = Number(row.id);
+    const legacy = {
+      rookieCard: nullableBoolFromDb(row.rookie_card),
+      auto: row.auto == null ? null : String(row.auto),
+      patch: nullableBoolFromDb(row.patch),
+      immaculate: nullableBoolFromDb(row.immaculate),
+    };
+    const holdings = legacyFrNbaRowToHoldings(legacy);
+    const rpa = deriveRpaObjectiveFromLegacy(legacy);
+
+    db.prepare("UPDATE fr_nba_players SET rpa = ? WHERE id = ?").run(
+      nullableBoolToDb(rpa),
+      playerId
+    );
+    replaceFrNbaHoldings(db, playerId, holdings);
   }
 
-  if (version < 15) {
-    migrateUnifyReferencesStorage(db);
-  }
-
-  setSchemaVersion(db, SCHEMA_VERSION);
+  db.exec("ALTER TABLE fr_nba_players DROP COLUMN rookie_card");
+  db.exec("ALTER TABLE fr_nba_players DROP COLUMN auto");
+  db.exec("ALTER TABLE fr_nba_players DROP COLUMN patch");
+  db.exec("ALTER TABLE fr_nba_players DROP COLUMN immaculate");
 }
 
 function readLegacyAttributeLabels(
@@ -1019,6 +1353,7 @@ function openDatabase(): AppDatabase {
     fs.mkdirSync(dir, { recursive: true });
   }
 
+  logDbMigration(`Opening database (${getDatabaseDisplayPath()})`);
   const db = createDatabase(dbPath);
   initSchema(db);
   runSchemaMigrations(db);
