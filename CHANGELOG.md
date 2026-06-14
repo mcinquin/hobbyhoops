@@ -1,3 +1,10 @@
+## [1.24.1](https://github.com/mcinquin/hobbyhoops/compare/v1.24.0...v1.24.1) (2026-06-14)
+
+
+### Performance Improvements
+
+* **sqlite:** fix issue with proxy ([93c531d](https://github.com/mcinquin/hobbyhoops/commit/93c531d6a7a8be26564a201a9f9a012208fbb556))
+
 # [1.24.0](https://github.com/mcinquin/hobbyhoops/compare/v1.23.2...v1.24.0) (2026-06-14)
 
 
