@@ -5,6 +5,7 @@ import {
   getFrNbaPlayers,
 } from "@/lib/data";
 import { requireAuth } from "@/lib/auth-api";
+import { auditLog } from "@/lib/audit-log";
 import {
   formatZodError,
   frNbaUpdateSchema,
@@ -50,6 +51,13 @@ export async function POST(request: NextRequest) {
   }
 
   const player = createFrNbaPlayer(parsed.data);
+  auditLog("fr-nba.create", {
+    user: gate.username,
+    id: player.id,
+    player: player.player,
+    holdings: player.holdings.length,
+    rpa: player.rpa,
+  });
   return NextResponse.json(player, { status: 201 });
 }
 
@@ -87,6 +95,14 @@ export async function PUT(request: NextRequest) {
       { status: 404 }
     );
   }
+
+  auditLog("fr-nba.update", {
+    user: gate.username,
+    id: updated.id,
+    player: updated.player,
+    holdings: updated.holdings.length,
+    rpa: updated.rpa,
+  });
 
   return NextResponse.json(updated);
 }

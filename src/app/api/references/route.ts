@@ -28,6 +28,7 @@ import type { Translator } from "@/i18n/translator";
 import { parseJsonBody } from "@/lib/parse-json-body";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
 import { rejectWriteRateLimit } from "@/lib/api-write-rate-limit";
+import { auditReferencePatch } from "@/lib/audit-log";
 
 export async function GET(request: NextRequest) {
   const gate = requireAuth(request);
@@ -203,6 +204,8 @@ export async function PATCH(request: NextRequest) {
       { status: 400 }
     );
   }
+
+  auditReferencePatch(gate.username, parsed.data);
 
   return NextResponse.json(refs);
 }

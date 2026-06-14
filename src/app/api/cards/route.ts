@@ -5,9 +5,11 @@ import {
   getCollectionPage,
   mutateReferences,
   parseCollectionSearchParams,
+  readCard,
   removeCardRecord,
 } from "@/lib/data";
 import { requireAuth } from "@/lib/auth-api";
+import { auditCardFields, auditLog } from "@/lib/audit-log";
 import { normalizeCardSerialFields } from "@/lib/card-serial";
 import { prepareCardWriteInput } from "@/lib/card-write";
 import { formatTodayOpeningDateFr } from "@/lib/opening-date";
@@ -71,6 +73,10 @@ export async function POST(request: NextRequest) {
   await mutateReferences((refs) => {
     syncReferencesFromCard(refs, created);
   });
+  auditLog("card.create", {
+    user: gate.username,
+    ...auditCardFields(created),
+  });
   return NextResponse.json(created, { status: 201 });
 }
 
@@ -110,6 +116,10 @@ export async function PUT(request: NextRequest) {
   await mutateReferences((refs) => {
     syncReferencesFromCard(refs, saved);
   });
+  auditLog("card.update", {
+    user: gate.username,
+    ...auditCardFields(saved),
+  });
   return NextResponse.json(saved);
 }
 
@@ -138,10 +148,20 @@ export async function DELETE(request: NextRequest) {
     );
   }
 
+  const existing = readCard(idParsed.data);
+  if (!existing) {
+    return NextResponse.json({ error: t("errors.cardNotFound") }, { status: 404 });
+  }
+
   const removed = removeCardRecord(idParsed.data);
   if (!removed) {
     return NextResponse.json({ error: t("errors.cardNotFound") }, { status: 404 });
   }
+
+  auditLog("card.delete", {
+    user: gate.username,
+    ...auditCardFields(existing),
+  });
 
   return NextResponse.json({ success: true });
 }

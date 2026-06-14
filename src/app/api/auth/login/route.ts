@@ -19,6 +19,7 @@ import { rejectCrossSiteMutation } from "@/lib/request-guard";
 import { deleteAllStoredSessionsForUser } from "@/lib/session-store";
 import { findUserByUsername } from "@/lib/users-store";
 import { authMisconfiguredResponse } from "@/lib/auth-config";
+import { auditLog } from "@/lib/audit-log";
 
 export async function POST(request: NextRequest) {
   const misconfigured = authMisconfiguredResponse(request);
@@ -94,6 +95,7 @@ export async function POST(request: NextRequest) {
   await deleteAllStoredSessionsForUser(user.id);
 
   const token = await createSessionToken(user.id, user.username);
+  auditLog("auth.login", { user: user.username, ip });
   const res = NextResponse.json({ ok: true, username: user.username });
   res.cookies.set(
     SESSION_COOKIE_NAME,

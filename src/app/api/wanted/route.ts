@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createWantedEntry, getWantedBlocks, removeWantedEntry } from "@/lib/data";
+import { createWantedEntry, getWantedBlocks, readWantedEntry, removeWantedEntry } from "@/lib/data";
 import { requireAuth } from "@/lib/auth-api";
+import { auditLog } from "@/lib/audit-log";
 import { formatZodError, wantedCreateSchema } from "@/lib/guide-schema";
 import { getRequestTranslator } from "@/i18n/request";
 import { parseJsonBody } from "@/lib/parse-json-body";
@@ -42,6 +43,12 @@ export async function POST(request: NextRequest) {
   }
 
   const entry = createWantedEntry(parsed.data);
+  auditLog("wanted.add", {
+    user: gate.username,
+    id: entry.id,
+    player: entry.player,
+    set: parsed.data.set,
+  });
   return NextResponse.json(
     { entry, blocks: getWantedBlocks() },
     { status: 201 }
@@ -73,12 +80,27 @@ export async function DELETE(request: NextRequest) {
     );
   }
 
+  const existing = readWantedEntry(id);
+  if (!existing) {
+    return NextResponse.json(
+      { error: t("errors.wantedNotFound") },
+      { status: 404 }
+    );
+  }
+
   if (!removeWantedEntry(id)) {
     return NextResponse.json(
       { error: t("errors.wantedNotFound") },
       { status: 404 }
     );
   }
+
+  auditLog("wanted.delete", {
+    user: gate.username,
+    id: existing.id,
+    player: existing.player,
+    set: existing.set,
+  });
 
   return NextResponse.json({ success: true, blocks: getWantedBlocks() });
 }

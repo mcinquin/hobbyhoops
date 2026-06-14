@@ -3,9 +3,11 @@ import {
   createShipment,
   editShipment,
   getShipments,
+  readShipment,
   removeShipment,
 } from "@/lib/data";
 import { requireAuth } from "@/lib/auth-api";
+import { auditLog, auditShipmentUpdateFields } from "@/lib/audit-log";
 import {
   formatZodError,
   shipmentCreateSchema,
@@ -59,6 +61,13 @@ export async function POST(request: NextRequest) {
   }
 
   const shipment = createShipment(parsed.data);
+  auditLog("shipment.create", {
+    user: gate.username,
+    id: shipment.id,
+    platform: shipment.platform,
+    status: shipment.status,
+    description: shipment.description,
+  });
   return NextResponse.json({ shipment }, { status: 201 });
 }
 
@@ -101,6 +110,12 @@ export async function PATCH(request: NextRequest) {
     );
   }
 
+  auditLog("shipment.update", {
+    user: gate.username,
+    id: shipment.id,
+    ...auditShipmentUpdateFields(patch),
+  });
+
   return NextResponse.json({ shipment });
 }
 
@@ -131,12 +146,27 @@ export async function DELETE(request: NextRequest) {
     );
   }
 
+  const existing = readShipment(id);
+  if (!existing) {
+    return NextResponse.json(
+      { error: t("errors.shipmentNotFound") },
+      { status: 404 }
+    );
+  }
+
   if (!removeShipment(id)) {
     return NextResponse.json(
       { error: t("errors.shipmentNotFound") },
       { status: 404 }
     );
   }
+
+  auditLog("shipment.delete", {
+    user: gate.username,
+    id: existing.id,
+    platform: existing.platform,
+    description: existing.description,
+  });
 
   return NextResponse.json({ success: true });
 }
