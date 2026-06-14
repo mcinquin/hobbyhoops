@@ -1,3 +1,10 @@
+# [1.24.0](https://github.com/mcinquin/hobbyhoops/compare/v1.23.2...v1.24.0) (2026-06-14)
+
+
+### Features
+
+* **ui:** optimize visibility in table ([0fa076f](https://github.com/mcinquin/hobbyhoops/commit/0fa076f5799a7584c54af2044a0909f2e7f78bac))
+
 ## [1.23.2](https://github.com/mcinquin/hobbyhoops/compare/v1.23.1...v1.23.2) (2026-06-13)
 
 
