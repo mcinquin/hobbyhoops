@@ -4,7 +4,7 @@ import { getRequestTranslator } from "@/i18n/request";
 import { authMisconfiguredResponse } from "@/lib/auth-config";
 import { authMisconfiguredPageResponse } from "@/lib/auth-pages";
 import { SESSION_COOKIE_NAME } from "@/lib/auth-secret";
-import { verifySessionToken } from "@/lib/auth-session";
+import { readSessionTokenPayload } from "@/lib/auth-session-crypto";
 import {
   applyCspRequestHeaders,
   applyCspResponseHeaders,
@@ -73,7 +73,7 @@ export function proxy(request: NextRequest) {
     if (misconfigured) return misconfigured;
 
     const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-    if (!verifySessionToken(token)) {
+    if (!readSessionTokenPayload(token)) {
       const t = getRequestTranslator(request);
       return NextResponse.json({ error: t("errors.unauthorized") }, { status: 401 });
     }
@@ -89,7 +89,7 @@ export function proxy(request: NextRequest) {
   }
 
   const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-  const isAuthenticated = verifySessionToken(token);
+  const isAuthenticated = readSessionTokenPayload(token) !== null;
 
   if (pathname === "/") {
     if (!isAuthenticated) {

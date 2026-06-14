@@ -78,6 +78,7 @@ const CARD_LIST_COLUMNS = `
 
 const globalForDb = globalThis as typeof globalThis & {
   hobbyhoopsDb?: AppDatabase;
+  hobbyhoopsReferencesEnsured?: boolean;
 };
 
 export function getDatabaseDisplayPath(): string {
@@ -956,7 +957,6 @@ function ensureReferencesState(db: AppDatabase): void {
 function runSchemaMigrations(db: AppDatabase): void {
   const version = getSchemaVersion(db);
   if (version >= SCHEMA_VERSION) {
-    logDbMigration(`Schema up to date (v${version})`);
     return;
   }
 
@@ -1353,11 +1353,13 @@ function openDatabase(): AppDatabase {
     fs.mkdirSync(dir, { recursive: true });
   }
 
-  logDbMigration(`Opening database (${getDatabaseDisplayPath()})`);
   const db = createDatabase(dbPath);
   initSchema(db);
   runSchemaMigrations(db);
-  ensureReferencesState(db);
+  if (!globalForDb.hobbyhoopsReferencesEnsured) {
+    ensureReferencesState(db);
+    globalForDb.hobbyhoopsReferencesEnsured = true;
+  }
   return db;
 }
 
