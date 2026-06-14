@@ -3,6 +3,9 @@
 #   export HOBBYHOOPS_VERSION=1.23.2   # tag publié sur GHCR
 #   docker compose pull && docker compose up -d
 #
+# Au démarrage, l'entrypoint exécute la migration SQLite avant le serveur.
+# Si la migration échoue, le conteneur quitte avec le code 1 (Compose échoue).
+#
 # Dev local (build) : docker compose -f docker-compose.dev.yml up --build
 
 services:
@@ -10,6 +13,8 @@ services:
     image: ghcr.io/mcinquin/hobbyhoops:${HOBBYHOOPS_VERSION:-1.23.2}
     pull_policy: always
     container_name: hobbyhoops
+    entrypoint: ["/usr/local/bin/docker-entrypoint.sh"]
+    command: ["node", "server.js"]
     user: "1111:1111"
     init: true
     read_only: true

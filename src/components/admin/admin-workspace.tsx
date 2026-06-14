@@ -61,6 +61,14 @@ const AdminCsvSection = dynamic(
   { loading: adminTabLoading }
 );
 
+const AdminSiteInfoSection = dynamic(
+  () =>
+    import("@/components/admin/admin-site-info-section").then(
+      (mod) => mod.AdminSiteInfoSection
+    ),
+  { loading: adminTabLoading }
+);
+
 const AdminToolsSection = dynamic(
   () =>
     import("@/components/admin/admin-tools-section").then(
@@ -106,6 +114,7 @@ export function AdminWorkspace({
       { value: "years", label: t("admin.tabs.years") },
       { value: "csv", label: t("admin.tabs.csv") },
       { value: "tools", label: t("admin.tabs.tools") },
+      { value: "site", label: t("admin.tabs.site") },
     ],
     [t]
   );
@@ -241,6 +250,10 @@ export function AdminWorkspace({
 
         <TabsContent value="tools" className="pt-6">
           {activeTab === "tools" ? <AdminToolsSection /> : null}
+        </TabsContent>
+
+        <TabsContent value="site" className="pt-6">
+          {activeTab === "site" ? <AdminSiteInfoSection /> : null}
         </TabsContent>
       </Tabs>
     </div>

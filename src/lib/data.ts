@@ -3,6 +3,7 @@ import "server-only";
 import {
   Card,
   FrNbaPlayer,
+  FrNbaPlayerWrite,
   References,
   WantedBlock,
   type CardsPageResult,
@@ -416,13 +417,13 @@ export function removeShipment(id: string): boolean {
   return deleteShipment(id);
 }
 
-export function createFrNbaPlayer(player: Omit<FrNbaPlayer, "id">): FrNbaPlayer {
+export function createFrNbaPlayer(player: FrNbaPlayerWrite): FrNbaPlayer {
   return insertFrNbaPlayer(player);
 }
 
 export function editFrNbaPlayer(
   id: number,
-  player: Omit<FrNbaPlayer, "id">
+  player: FrNbaPlayerWrite
 ): FrNbaPlayer | null {
   return updateFrNbaPlayer(id, player);
 }

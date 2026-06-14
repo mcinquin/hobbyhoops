@@ -12,11 +12,18 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import type { FrNbaPlayer } from "@/lib/types";
+import {
+  computeFrNbaCollectionStats,
+  playerHasAutoStyle,
+  playerHasHoldingType,
+  playerHasRookieHolding,
+} from "@/lib/fr-nba";
 import { SortableTableHead } from "@/components/data-table/sortable-table-head";
 import { TablePagination } from "@/components/data-table/table-pagination";
 import { FilterChipButton } from "@/components/filter-chip-button";
 import { useStableTablePagination } from "@/hooks/use-stable-table-pagination";
 import { FrNbaPlayerForm } from "@/components/guides/fr-nba-player-form";
+import { FrNbaHoldingChips } from "@/components/guides/fr-nba-holding-chips";
 import { SearchField } from "@/components/search-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,11 +41,26 @@ interface FrNbaTableProps {
   initialPlayers: FrNbaPlayer[];
 }
 
-function BoolCell({ value, yesLabel }: { value: boolean | null; yesLabel: string }) {
+function RpaObjectiveCell({
+  value,
+  yesLabel,
+  noLabel,
+}: {
+  value: boolean | null;
+  yesLabel: string;
+  noLabel: string;
+}) {
   if (value === true) {
     return (
       <Badge variant="secondary" className="text-emerald-600 dark:text-emerald-400">
         {yesLabel}
+      </Badge>
+    );
+  }
+  if (value === false) {
+    return (
+      <Badge variant="outline" className="text-amber-600 dark:text-amber-400">
+        {noLabel}
       </Badge>
     );
   }
@@ -51,20 +73,45 @@ export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
   const [formOpen, setFormOpen] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<FrNbaPlayer | null>(null);
   const [search, setSearch] = useState("");
-  const [rookieOnly, setRookieOnly] = useState(false);
-  const [patchOnly, setPatchOnly] = useState(false);
+  const [rpaAcquiredOnly, setRpaAcquiredOnly] = useState(false);
+  const [rpaMissingOnly, setRpaMissingOnly] = useState(false);
   const [immaculateOnly, setImmaculateOnly] = useState(false);
   const [autoOnly, setAutoOnly] = useState(false);
+  const [patchOnly, setPatchOnly] = useState(false);
+  const [rookieOnly, setRookieOnly] = useState(false);
+  const [onCardOnly, setOnCardOnly] = useState(false);
+  const [stickerOnly, setStickerOnly] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([
     { id: "player", desc: false },
   ]);
 
+  const stats = useMemo(
+    () => computeFrNbaCollectionStats(players),
+    [players]
+  );
+
   const filteredPlayers = useMemo(() => {
     let result = players;
-    if (rookieOnly) result = result.filter((p) => p.rookieCard === true);
-    if (patchOnly) result = result.filter((p) => p.patch === true);
-    if (immaculateOnly) result = result.filter((p) => p.immaculate === true);
-    if (autoOnly) result = result.filter((p) => Boolean(p.auto));
+    if (rpaAcquiredOnly) result = result.filter((p) => p.rpa === true);
+    if (rpaMissingOnly) result = result.filter((p) => p.rpa !== true);
+    if (immaculateOnly) {
+      result = result.filter((p) => playerHasHoldingType(p, "immaculate"));
+    }
+    if (autoOnly) {
+      result = result.filter(
+        (p) =>
+          playerHasHoldingType(p, "auto") || playerHasHoldingType(p, "rpa")
+      );
+    }
+    if (patchOnly) {
+      result = result.filter(
+        (p) =>
+          playerHasHoldingType(p, "patch") || playerHasHoldingType(p, "rpa")
+      );
+    }
+    if (rookieOnly) result = result.filter((p) => playerHasRookieHolding(p));
+    if (onCardOnly) result = result.filter((p) => playerHasAutoStyle(p, "on_card"));
+    if (stickerOnly) result = result.filter((p) => playerHasAutoStyle(p, "sticker"));
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       result = result.filter(
@@ -75,7 +122,18 @@ export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
       );
     }
     return result;
-  }, [players, search, rookieOnly, patchOnly, immaculateOnly, autoOnly]);
+  }, [
+    players,
+    search,
+    rpaAcquiredOnly,
+    rpaMissingOnly,
+    immaculateOnly,
+    autoOnly,
+    patchOnly,
+    rookieOnly,
+    onCardOnly,
+    stickerOnly,
+  ]);
 
   const columns = useMemo<ColumnDef<FrNbaPlayer>[]>(
     () => [
@@ -99,34 +157,20 @@ export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
         ),
       },
       {
-        accessorKey: "rookieCard",
-        header: t("guides.frNba.rookieCard"),
-        cell: ({ row }) => (
-          <BoolCell value={row.original.rookieCard} yesLabel={t("guides.frNba.yes")} />
-        ),
+        id: "holdings",
+        header: t("guides.frNba.holdings"),
+        enableSorting: false,
+        cell: ({ row }) => <FrNbaHoldingChips holdings={row.original.holdings} />,
       },
       {
-        accessorKey: "auto",
-        header: t("guides.frNba.auto"),
-        cell: ({ row }) =>
-          row.original.auto ? (
-            <span className="text-sm">{row.original.auto}</span>
-          ) : (
-            <span className="text-muted-foreground">—</span>
-          ),
-      },
-      {
-        accessorKey: "patch",
-        header: t("guides.frNba.patch"),
+        accessorKey: "rpa",
+        header: t("guides.frNba.rpaObjective"),
         cell: ({ row }) => (
-          <BoolCell value={row.original.patch} yesLabel={t("guides.frNba.yes")} />
-        ),
-      },
-      {
-        accessorKey: "immaculate",
-        header: t("guides.frNba.immaculate"),
-        cell: ({ row }) => (
-          <BoolCell value={row.original.immaculate} yesLabel={t("guides.frNba.yes")} />
+          <RpaObjectiveCell
+            value={row.original.rpa}
+            yesLabel={t("guides.frNba.yes")}
+            noLabel={t("guides.frNba.no")}
+          />
         ),
       },
       {
@@ -167,7 +211,17 @@ export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
     });
   }
 
-  const filterResetKey = `${search}\0${rookieOnly}\0${patchOnly}\0${immaculateOnly}\0${autoOnly}`;
+  const filterResetKey = [
+    search,
+    rpaAcquiredOnly,
+    rpaMissingOnly,
+    immaculateOnly,
+    autoOnly,
+    patchOnly,
+    rookieOnly,
+    onCardOnly,
+    stickerOnly,
+  ].join("\0");
 
   const tablePagination = useStableTablePagination({
     pageSize: 20,
@@ -191,6 +245,14 @@ export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
 
   return (
     <div className="space-y-4">
+      <div className="rounded-lg border border-border bg-card p-4 text-sm">
+        <p>{t("guides.frNba.goalDescription")}</p>
+        <p className="mt-2 text-muted-foreground">{t("guides.frNba.licenseNote")}</p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          {t("guides.frNba.chipLegend")}
+        </p>
+      </div>
+
       <div className="flex justify-end">
         <Button
           type="button"
@@ -215,29 +277,55 @@ export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
 
       <div className="flex flex-wrap gap-2">
         <FilterChipButton
-          label={t("guides.frNba.rookieCard")}
-          pressed={rookieOnly}
-          onPressedChange={setRookieOnly}
+          label={t("guides.frNba.filterRpaAcquired")}
+          pressed={rpaAcquiredOnly}
+          onPressedChange={setRpaAcquiredOnly}
         />
         <FilterChipButton
-          label={t("guides.frNba.auto")}
+          label={t("guides.frNba.filterRpaMissing")}
+          pressed={rpaMissingOnly}
+          onPressedChange={setRpaMissingOnly}
+        />
+        <FilterChipButton
+          label={t("guides.frNba.filterImmaculate")}
+          pressed={immaculateOnly}
+          onPressedChange={setImmaculateOnly}
+        />
+        <FilterChipButton
+          label={t("guides.frNba.filterAuto")}
           pressed={autoOnly}
           onPressedChange={setAutoOnly}
         />
         <FilterChipButton
-          label={t("guides.frNba.patch")}
+          label={t("guides.frNba.filterPatch")}
           pressed={patchOnly}
           onPressedChange={setPatchOnly}
         />
         <FilterChipButton
-          label={t("guides.frNba.immaculate")}
-          pressed={immaculateOnly}
-          onPressedChange={setImmaculateOnly}
+          label={t("guides.frNba.filterRookie")}
+          pressed={rookieOnly}
+          onPressedChange={setRookieOnly}
+        />
+        <FilterChipButton
+          label={t("guides.frNba.filterOnCard")}
+          pressed={onCardOnly}
+          onPressedChange={setOnCardOnly}
+        />
+        <FilterChipButton
+          label={t("guides.frNba.filterSticker")}
+          pressed={stickerOnly}
+          onPressedChange={setStickerOnly}
         />
       </div>
 
       <p className="text-sm text-muted-foreground">
-        {t("guides.frNba.count", { count: filteredPlayers.length })}
+        {t("guides.frNba.stats", {
+          players: stats.total,
+          rpaAcquired: stats.rpaAcquired,
+          rpaTotal: stats.total,
+          immaculate: stats.immaculateCount,
+          holdings: stats.holdingsCount,
+        })}
         {filteredPlayers.length !== players.length &&
           ` ${t("common.filteredOf", { total: players.length })}`}
       </p>
@@ -246,42 +334,43 @@ export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
         {table.getRowModel().rows.length ? (
           table.getRowModel().rows.map((row) => {
             const p = row.original;
-            const tags = [
-              p.rookieCard ? t("guides.frNba.rookieCard") : null,
-              p.auto,
-              p.patch ? t("guides.frNba.patch") : null,
-              p.immaculate ? t("guides.frNba.immaculate") : null,
-            ].filter(Boolean);
-
             return (
               <div
                 key={row.id}
-                className="flex items-start justify-between gap-3 rounded-lg border border-border bg-card p-3 text-sm"
+                className="rounded-lg border border-border bg-card p-3 text-sm"
               >
-                <div className="min-w-0">
-                  <p className="font-medium">{p.player}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {p.draftYear} · {p.draftedBy}
-                  </p>
-                  {tags.length > 0 && (
-                    <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-                      {tags.join(" · ")}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium">{p.player}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {p.draftYear} · {p.draftedBy}
                     </p>
-                  )}
+                    <div className="mt-2">
+                      <FrNbaHoldingChips holdings={p.holdings} />
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {t("guides.frNba.rpaObjective")}:{" "}
+                      <RpaObjectiveCell
+                        value={p.rpa}
+                        yesLabel={t("guides.frNba.yes")}
+                        noLabel={t("guides.frNba.no")}
+                      />
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    aria-label={t("guides.frNba.editPlayer", { player: p.player })}
+                    onClick={() => {
+                      setEditingPlayer(p);
+                      setFormOpen(true);
+                    }}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 shrink-0"
-                  aria-label={t("guides.frNba.editPlayer", { player: p.player })}
-                  onClick={() => {
-                    setEditingPlayer(p);
-                    setFormOpen(true);
-                  }}
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </Button>
               </div>
             );
           })
@@ -308,7 +397,7 @@ export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-2">
+                    <TableCell key={cell.id} className="py-2 align-top">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

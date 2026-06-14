@@ -1,5 +1,5 @@
 import { API_FETCH_OPTS, parseApiErrorMessage } from "@/lib/api-fetch";
-import type { FrNbaPlayer, WantedBlock } from "@/lib/types";
+import type { FrNbaPlayer, FrNbaPlayerWrite, WantedBlock } from "@/lib/types";
 
 export async function createWantedEntry(body: {
   set: string;
@@ -37,7 +37,7 @@ export async function deleteWantedEntry(id: number): Promise<WantedBlock[]> {
 }
 
 export async function saveFrNbaPlayer(
-  body: Partial<FrNbaPlayer> & { id?: number }
+  body: FrNbaPlayerWrite & { id?: number }
 ): Promise<FrNbaPlayer> {
   const isEdit = body.id !== undefined;
   const res = await fetch("/api/fr-nba", {

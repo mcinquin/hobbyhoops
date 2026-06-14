@@ -20,6 +20,7 @@
     "ci:full": "node scripts/ci.mjs --with-audit",
     "check": "npm run ci",
     "test": "vitest run",
+    "db:migrate": "node scripts/migrate-db.mjs",
     "clean": "node scripts/clean.mjs",
     "optimize:logo": "node scripts/optimize-logo.mjs",
     "generate:icons": "node scripts/generate-pwa-icons.mjs",

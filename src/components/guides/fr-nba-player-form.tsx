@@ -2,7 +2,18 @@
 
 import { useState } from "react";
 import { saveFrNbaPlayer } from "@/lib/guides-client";
-import type { FrNbaPlayer } from "@/lib/types";
+import type {
+  FrNbaAutoStyle,
+  FrNbaHolding,
+  FrNbaHoldingType,
+  FrNbaPlayer,
+  FrNbaPlayerWrite,
+} from "@/lib/types";
+import {
+  FR_NBA_AUTO_STYLES,
+  FR_NBA_HOLDING_TYPES,
+  holdingNeedsAutoStyle,
+} from "@/lib/fr-nba";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,28 +24,54 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "@/i18n/client";
 
-const EMPTY_FORM: Omit<FrNbaPlayer, "id"> = {
+interface HoldingDraft {
+  key: string;
+  type: FrNbaHoldingType;
+  autoStyle: FrNbaAutoStyle | "";
+  rookie: boolean;
+}
+
+interface FrNbaFormState {
+  player: string;
+  draftYear: string;
+  draftedBy: string;
+  rpa: boolean | null;
+  holdings: HoldingDraft[];
+}
+
+const EMPTY_FORM: FrNbaFormState = {
   player: "",
   draftYear: "",
   draftedBy: "",
-  rookieCard: null,
-  auto: null,
-  patch: null,
-  immaculate: null,
+  rpa: null,
+  holdings: [],
 };
 
-function initialForm(player: FrNbaPlayer | null): Omit<FrNbaPlayer, "id"> {
+function createHoldingDraft(
+  holding?: FrNbaHolding,
+  key?: string
+): HoldingDraft {
+  return {
+    key: key ?? `holding-${crypto.randomUUID()}`,
+    type: holding?.type ?? "auto",
+    autoStyle: holding?.autoStyle ?? "",
+    rookie: holding?.rookie ?? false,
+  };
+}
+
+function initialForm(player: FrNbaPlayer | null): FrNbaFormState {
   if (!player) return EMPTY_FORM;
   return {
     player: player.player,
     draftYear: player.draftYear,
     draftedBy: player.draftedBy,
-    rookieCard: player.rookieCard,
-    auto: player.auto,
-    patch: player.patch,
-    immaculate: player.immaculate,
+    rpa: player.rpa,
+    holdings: player.holdings.map((holding) =>
+      createHoldingDraft(holding, `holding-${holding.id}`)
+    ),
   };
 }
 
@@ -42,6 +79,18 @@ function parseOptionalBool(value: string): boolean | null {
   if (value === "true") return true;
   if (value === "false") return false;
   return null;
+}
+
+function holdingsToPayload(
+  holdings: HoldingDraft[]
+): Omit<FrNbaHolding, "id">[] {
+  return holdings.map((holding) => ({
+    type: holding.type,
+    autoStyle: holdingNeedsAutoStyle(holding.type)
+      ? (holding.autoStyle as FrNbaAutoStyle)
+      : null,
+    rookie: holding.type === "rpa" ? true : holding.rookie,
+  }));
 }
 
 interface FrNbaPlayerFormProps {
@@ -65,12 +114,48 @@ function FrNbaPlayerFormFields({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  function updateHolding(key: string, patch: Partial<HoldingDraft>) {
+    setForm((current) => ({
+      ...current,
+      holdings: current.holdings.map((holding) => {
+        if (holding.key !== key) return holding;
+        const next = { ...holding, ...patch };
+        if (patch.type && !holdingNeedsAutoStyle(patch.type)) {
+          next.autoStyle = "";
+        }
+        if (patch.type === "rpa") {
+          next.rookie = true;
+        }
+        if (patch.type && holdingNeedsAutoStyle(patch.type) && !next.autoStyle) {
+          next.autoStyle = "on_card";
+        }
+        return next;
+      }),
+    }));
+  }
+
+  function removeHolding(key: string) {
+    setForm((current) => ({
+      ...current,
+      holdings: current.holdings.filter((holding) => holding.key !== key),
+    }));
+  }
+
   async function handleSubmit() {
     setError(null);
     setSaving(true);
     try {
+      const holdings = holdingsToPayload(form.holdings);
+      const hasRpaHolding = holdings.some((holding) => holding.type === "rpa");
+      const payload: FrNbaPlayerWrite = {
+        player: form.player,
+        draftYear: form.draftYear,
+        draftedBy: form.draftedBy,
+        rpa: hasRpaHolding ? true : form.rpa,
+        holdings,
+      };
       const saved = await saveFrNbaPlayer(
-        player ? { id: player.id, ...form } : form
+        player ? { id: player.id, ...payload } : payload
       );
       onSaved(saved);
       onClose();
@@ -83,7 +168,7 @@ function FrNbaPlayerFormFields({
 
   return (
     <>
-      <div className="grid gap-3 py-2">
+      <div className="grid gap-4 py-2">
         <div className="space-y-1">
           <Label htmlFor="fr-nba-player">{t("guides.frNba.player")}</Label>
           <Input
@@ -113,86 +198,148 @@ function FrNbaPlayerFormFields({
             />
           </div>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1">
-            <Label htmlFor="fr-nba-rookie">{t("guides.frNba.rookieCard")}</Label>
-            <select
-              id="fr-nba-rookie"
-              value={form.rookieCard === null ? "" : String(form.rookieCard)}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  rookieCard: parseOptionalBool(e.target.value),
-                })
-              }
+
+        <div className="space-y-2 rounded-lg border border-border p-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-medium">{t("guides.frNba.holdings")}</p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
               disabled={saving}
-              className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
-            >
-              <option value="">{t("guides.frNba.unset")}</option>
-              <option value="true">{t("guides.frNba.yes")}</option>
-              <option value="false">{t("guides.frNba.no")}</option>
-            </select>
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="fr-nba-auto">{t("guides.frNba.auto")}</Label>
-            <select
-              id="fr-nba-auto"
-              value={form.auto ?? ""}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  auto: e.target.value || null,
-                })
+              onClick={() =>
+                setForm((current) => ({
+                  ...current,
+                  holdings: [...current.holdings, createHoldingDraft()],
+                }))
               }
-              disabled={saving}
-              className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             >
-              <option value="">{t("guides.frNba.unset")}</option>
-              <option value="On card">On card</option>
-              <option value="Sticker">Sticker</option>
-            </select>
+              <Plus className="mr-1 h-3.5 w-3.5" />
+              {t("guides.frNba.addHolding")}
+            </Button>
           </div>
+
+          {form.holdings.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {t("guides.frNba.noHoldings")}
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {form.holdings.map((holding) => (
+                <div
+                  key={holding.key}
+                  className="grid gap-2 rounded-md border border-border/80 bg-muted/20 p-3 sm:grid-cols-[1fr_1fr_auto_auto]"
+                >
+                  <div className="space-y-1">
+                    <Label>{t("guides.frNba.holdingTypeLabel")}</Label>
+                    <select
+                      value={holding.type}
+                      onChange={(e) =>
+                        updateHolding(holding.key, {
+                          type: e.target.value as FrNbaHoldingType,
+                        })
+                      }
+                      disabled={saving}
+                      className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                    >
+                      {FR_NBA_HOLDING_TYPES.map((type) => (
+                        <option key={type} value={type}>
+                          {t(`guides.frNba.holdingType.${type}`)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label>{t("guides.frNba.autoStyleLabel")}</Label>
+                    <select
+                      value={holding.autoStyle}
+                      onChange={(e) =>
+                        updateHolding(holding.key, {
+                          autoStyle: e.target.value as FrNbaAutoStyle | "",
+                        })
+                      }
+                      disabled={
+                        saving || !holdingNeedsAutoStyle(holding.type)
+                      }
+                      className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="">{t("guides.frNba.unset")}</option>
+                      {FR_NBA_AUTO_STYLES.map((style) => (
+                        <option key={style} value={style}>
+                          {t(`guides.frNba.autoStyle.${style === "on_card" ? "onCard" : "sticker"}`)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    {holding.type === "rpa" ? (
+                      <div className="flex h-9 items-center text-xs text-muted-foreground">
+                        {t("guides.frNba.rpaIncludesRc")}
+                      </div>
+                    ) : (
+                      <>
+                        <Label>{t("guides.frNba.rookieShort")}</Label>
+                        <select
+                          value={String(holding.rookie)}
+                          onChange={(e) =>
+                            updateHolding(holding.key, {
+                              rookie: e.target.value === "true",
+                            })
+                          }
+                          disabled={saving}
+                          className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                        >
+                          <option value="true">{t("guides.frNba.yes")}</option>
+                          <option value="false">{t("guides.frNba.no")}</option>
+                        </select>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="flex items-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 text-muted-foreground hover:text-destructive"
+                      disabled={saving}
+                      aria-label={t("guides.frNba.removeHolding")}
+                      onClick={() => removeHolding(holding.key)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1">
-            <Label htmlFor="fr-nba-patch">{t("guides.frNba.patch")}</Label>
-            <select
-              id="fr-nba-patch"
-              value={form.patch === null ? "" : String(form.patch)}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  patch: parseOptionalBool(e.target.value),
-                })
-              }
-              disabled={saving}
-              className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
-            >
-              <option value="">{t("guides.frNba.unset")}</option>
-              <option value="true">{t("guides.frNba.yes")}</option>
-              <option value="false">{t("guides.frNba.no")}</option>
-            </select>
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="fr-nba-immaculate">{t("guides.frNba.immaculate")}</Label>
-            <select
-              id="fr-nba-immaculate"
-              value={form.immaculate === null ? "" : String(form.immaculate)}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  immaculate: parseOptionalBool(e.target.value),
-                })
-              }
-              disabled={saving}
-              className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
-            >
-              <option value="">{t("guides.frNba.unset")}</option>
-              <option value="true">{t("guides.frNba.yes")}</option>
-              <option value="false">{t("guides.frNba.no")}</option>
-            </select>
-          </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="fr-nba-rpa">{t("guides.frNba.rpaObjective")}</Label>
+          <select
+            id="fr-nba-rpa"
+            value={form.rpa === null ? "" : String(form.rpa)}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                rpa: parseOptionalBool(e.target.value),
+              })
+            }
+            disabled={saving}
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+          >
+            <option value="">{t("guides.frNba.unset")}</option>
+            <option value="true">{t("guides.frNba.yes")}</option>
+            <option value="false">{t("guides.frNba.no")}</option>
+          </select>
+          <p className="text-xs text-muted-foreground">
+            {t("guides.frNba.rpaObjectiveHint")}
+          </p>
         </div>
+
         {error ? (
           <p className="text-sm text-destructive" role="alert">
             {error}
@@ -222,7 +369,7 @@ export function FrNbaPlayerForm({
 
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
             {player ? t("guides.frNba.editTitle") : t("guides.frNba.addTitle")}
