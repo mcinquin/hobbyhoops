@@ -28,6 +28,7 @@ import {
   peekRateLimit,
   resetRateLimit,
 } from "@/lib/rate-limit";
+import { auditLog } from "@/lib/audit-log";
 
 export async function PUT(request: NextRequest) {
   const session = getSessionFromRequest(request);
@@ -163,6 +164,17 @@ export async function PUT(request: NextRequest) {
   await saveUsers(updated);
 
   await deleteAllStoredSessionsForUser(user.id);
+
+  if (nextUsername !== user.username) {
+    auditLog("auth.profile", {
+      user: user.username,
+      newUsername: nextUsername,
+      ip,
+    });
+  }
+  if (newPassword) {
+    auditLog("auth.password", { user: nextUsername, ip });
+  }
 
   const token = await createSessionToken(user.id, nextUsername);
   const res = NextResponse.json({ ok: true, username: nextUsername });

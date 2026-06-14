@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-api";
 import { rejectReadRateLimit } from "@/lib/api-read-rate-limit";
 import { createDatabaseBackupFile } from "@/lib/db";
+import { auditLog } from "@/lib/audit-log";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,10 @@ export async function GET(request: NextRequest) {
   try {
     await createDatabaseBackupFile(tmpPath);
     const buffer = fs.readFileSync(tmpPath);
+    auditLog("admin.backup", {
+      user: gate.username,
+      bytes: buffer.byteLength,
+    });
     const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 
     return new NextResponse(buffer, {

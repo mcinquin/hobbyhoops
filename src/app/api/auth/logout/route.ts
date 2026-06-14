@@ -3,6 +3,8 @@ import { SESSION_COOKIE_NAME, isCookieSecure } from "@/lib/auth-secret";
 import { verifySessionToken } from "@/lib/auth-session";
 import { deleteStoredSession } from "@/lib/session-store";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
+import { auditLog } from "@/lib/audit-log";
+import { getClientIp } from "@/lib/rate-limit";
 
 function clearSessionCookie(request: NextRequest): NextResponse {
   const res = NextResponse.redirect(new URL("/", request.url));
@@ -22,6 +24,7 @@ export async function GET(request: NextRequest) {
   const session = verifySessionToken(token);
   if (session) {
     await deleteStoredSession(session.sid);
+    auditLog("auth.logout", { user: session.username, ip: getClientIp(request) });
   }
   return clearSessionCookie(request);
 }
@@ -36,6 +39,7 @@ export async function POST(request: NextRequest) {
   const session = verifySessionToken(token);
   if (session) {
     await deleteStoredSession(session.sid);
+    auditLog("auth.logout", { user: session.username, ip: getClientIp(request) });
   }
 
   const res = NextResponse.json({ ok: true });

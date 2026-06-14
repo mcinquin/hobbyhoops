@@ -45,6 +45,8 @@ import {
   readReferencesState,
   readTopPlayerCounts,
   readWantedBlocks,
+  readWantedEntryById,
+  readShipmentById,
   deleteWantedEntry,
   deleteShipment,
   insertFrNbaPlayer,
@@ -394,6 +396,18 @@ export function createWantedEntry(input: {
 
 export function removeWantedEntry(id: number): boolean {
   return deleteWantedEntry(id);
+}
+
+export function readWantedEntry(id: number) {
+  return readWantedEntryById(id);
+}
+
+export function readShipment(id: string) {
+  return readShipmentById(id);
+}
+
+export function readCard(id: string) {
+  return readCardById(id);
 }
 
 export function getShipments(includeReceived = false) {

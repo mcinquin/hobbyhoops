@@ -611,6 +611,34 @@ export function readWantedBlocks(): WantedBlock[] {
   return wantedBlocksFromRows(rows);
 }
 
+export function readWantedEntryById(
+  id: number
+): (WantedEntry & { set: string }) | null {
+  const row = getDb()
+    .prepare(
+      `SELECT id, set_name, variation, slot, player
+       FROM wanted_entries
+       WHERE id = ?`
+    )
+    .get(id) as
+    | {
+        id: number;
+        set_name: string;
+        variation: string;
+        slot: number | null;
+        player: string;
+      }
+    | undefined;
+  if (!row) return null;
+  return {
+    id: row.id,
+    set: row.set_name,
+    variation: row.variation,
+    slot: row.slot,
+    player: row.player,
+  };
+}
+
 export function readFrNbaPlayers(): FrNbaPlayer[] {
   const db = getDb();
   const rows = db

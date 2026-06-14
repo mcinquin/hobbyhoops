@@ -19,6 +19,7 @@ import { bootstrapFirstUser, countUsers, type UserRecord } from "@/lib/users-sto
 import { authMisconfiguredResponse } from "@/lib/auth-config";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
+import { auditLog } from "@/lib/audit-log";
 
 export async function POST(request: NextRequest) {
   const misconfigured = authMisconfiguredResponse(request);
@@ -102,6 +103,7 @@ export async function POST(request: NextRequest) {
   }
 
   const token = await createSessionToken(newUser.id, newUser.username);
+  auditLog("auth.bootstrap", { user: newUser.username, ip });
   const res = NextResponse.json({ ok: true, username: newUser.username });
   res.cookies.set(
     SESSION_COOKIE_NAME,

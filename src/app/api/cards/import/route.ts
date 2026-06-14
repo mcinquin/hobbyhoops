@@ -7,6 +7,7 @@ import { getRequestTranslator } from "@/i18n/request";
 import { parseJsonBody } from "@/lib/parse-json-body";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
 import { rejectWriteRateLimit } from "@/lib/api-write-rate-limit";
+import { auditLog } from "@/lib/audit-log";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +61,16 @@ export async function POST(request: NextRequest) {
 
   const result = importCardsCsv(parsed.data.csv, parsed.data.mode, t);
   const hasChanges = result.created > 0 || result.updated > 0;
+
+  if (hasChanges || result.errors.length === 0) {
+    auditLog("card.import", {
+      user: gate.username,
+      mode: parsed.data.mode,
+      created: result.created,
+      updated: result.updated,
+      errors: result.errors.length,
+    });
+  }
 
   return NextResponse.json(result, {
     status: hasChanges || result.errors.length === 0 ? 200 : 422,
