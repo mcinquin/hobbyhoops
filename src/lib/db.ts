@@ -39,6 +39,7 @@ import {
   syncReferencesFromCard,
 } from "./reference-mutations";
 import { normalizeVariationLabel } from "./variation-label";
+import { getLogger } from "./logger";
 
 const PLAYER_CARD_STATS_AGG_SQL = `
   MIN(team) as team,
@@ -50,6 +51,8 @@ const PLAYER_CARD_STATS_AGG_SQL = `
 `.trim();
 import { createDatabase, runInTransaction, type AppDatabase } from "./sqlite";
 
+const dbLogger = getLogger("db");
+
 const ALLOWED_SORT_COLUMNS = new Set(Object.values(COLLECTION_SORT_SQL));
 
 type SqlInputValue = string | number | bigint | Buffer | null;
@@ -59,15 +62,12 @@ const SCHEMA_VERSION = 16;
 /** Version de schéma attendue par le code déployé (migrations SQLite). */
 export const EXPECTED_SCHEMA_VERSION = SCHEMA_VERSION;
 
-const DB_MIGRATE_LOG_PREFIX = "[hobbyhoops:db:migrate]";
-
 function logDbMigration(message: string): void {
-  console.info(`${DB_MIGRATE_LOG_PREFIX} ${message}`);
+  dbLogger.info({ msg: message });
 }
 
 function logDbMigrationError(message: string, error: unknown): void {
-  const detail = error instanceof Error ? error.message : String(error);
-  console.error(`${DB_MIGRATE_LOG_PREFIX} ${message} ${detail}`);
+  dbLogger.error({ msg: message, err: error });
 }
 
 const CARD_LIST_COLUMNS = `

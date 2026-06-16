@@ -6,7 +6,9 @@
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { getLogger } from "./lib/logger.mjs";
 
+const log = getLogger("docker-ensure-db");
 const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 process.chdir(appRoot);
 
@@ -17,9 +19,10 @@ let register;
 try {
   ({ register } = require(instrumentationPath));
 } catch {
-  console.error(
-    "[hobbyhoops:db:migrate] Startup aborted: instrumentation module not found"
-  );
+  log.error({
+    msg: "Startup aborted",
+    detail: "instrumentation module not found",
+  });
   process.exit(1);
 }
 
@@ -27,6 +30,6 @@ try {
   await register();
 } catch (error) {
   const detail = error instanceof Error ? error.message : String(error);
-  console.error(`[hobbyhoops:db:migrate] Startup aborted: ${detail}`);
+  log.error({ msg: "Startup aborted", detail, err: error });
   process.exit(1);
 }

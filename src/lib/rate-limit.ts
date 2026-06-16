@@ -1,6 +1,9 @@
 import { createHash } from "crypto";
 import { getDb } from "./db";
+import { getLogger } from "./logger";
 import { runInTransaction } from "./sqlite";
+
+const rateLimitLogger = getLogger("rate-limit");
 
 let warnedDirectRateLimit = false;
 
@@ -48,9 +51,9 @@ export function getClientIp(request: Request): string {
     !warnedDirectRateLimit
   ) {
     warnedDirectRateLimit = true;
-    console.warn(
-      "[hobbyhoops] TRUST_PROXY=false en production : les limites de débit partagent une clé unique. Activez TRUST_PROXY derrière un reverse proxy qui réécrit X-Forwarded-For."
-    );
+    rateLimitLogger.warn({
+      msg: "TRUST_PROXY=false en production : les limites de débit partagent une clé unique. Activez TRUST_PROXY derrière un reverse proxy qui réécrit X-Forwarded-For.",
+    });
   }
 
   return "direct";

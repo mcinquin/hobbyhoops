@@ -7,12 +7,14 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { getLogger } from "./lib/logger.mjs";
 
+const log = getLogger("migrate-db");
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dbPath = path.resolve(root, process.argv[2] ?? path.join("data", "hobbyhoops.db"));
 
 if (!fs.existsSync(dbPath)) {
-  console.error(`Base introuvable : ${dbPath}`);
+  log.error({ msg: "Base introuvable", dbPath });
   process.exit(1);
 }
 
@@ -45,4 +47,9 @@ const holdings = db
   .get().n;
 db.close();
 
-console.log(`Migration OK — schema v${version}, ${players} joueurs Fr NBA, ${holdings} cartes détenues.`);
+log.info({
+  msg: "Migration OK",
+  schemaVersion: version,
+  frNbaPlayers: players,
+  frNbaHoldings: holdings,
+});

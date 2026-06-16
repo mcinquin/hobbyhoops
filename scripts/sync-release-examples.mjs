@@ -1,14 +1,16 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { getLogger } from "./lib/logger.mjs";
 
+const log = getLogger("sync-release-examples");
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const version = JSON.parse(
   fs.readFileSync(path.join(root, "package.json"), "utf8")
 ).version;
 
 if (!/^\d+\.\d+\.\d+/.test(version)) {
-  console.error(`sync-release-examples: invalid semver in package.json: ${version}`);
+  log.error({ msg: "Semver invalide dans package.json", version });
   process.exit(1);
 }
 
@@ -39,14 +41,16 @@ for (const { file, sync } of targets) {
   const after = sync(before);
 
   if (!after.includes(version)) {
-    console.error(
-      `sync-release-examples: ${file} does not contain version ${version} after sync`
-    );
+    log.error({
+      msg: "Version absente du fichier après synchronisation",
+      file,
+      version,
+    });
     process.exit(1);
   }
 
   if (before !== after) {
     fs.writeFileSync(absPath, after);
-    console.log(`sync-release-examples: updated ${file} → ${version}`);
+    log.info({ msg: "Fichier mis à jour", file, version });
   }
 }

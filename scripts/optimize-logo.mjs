@@ -1,7 +1,9 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { getLogger } from "./lib/logger.mjs";
 
+const log = getLogger("optimize-logo");
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const logoPath = join(root, "public/brand/logo.svg");
 
@@ -26,4 +28,10 @@ svg = svg.replace(/\bd="([^"]*)"/g, (attrMatch, pathData) => {
 
 writeFileSync(logoPath, `${svg}\n`, "utf8");
 const after = Buffer.byteLength(svg, "utf8");
-console.log(`logo.svg: ${before} → ${after} bytes (${Math.round((1 - after / before) * 100)}% smaller)`);
+log.info({
+  msg: "logo.svg optimisé",
+  file: "public/brand/logo.svg",
+  bytesBefore: before,
+  bytesAfter: after,
+  reductionPercent: Math.round((1 - after / before) * 100),
+});
