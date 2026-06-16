@@ -1,4 +1,7 @@
 import { getAuthSecret } from "@/lib/auth-secret";
+import { getLogger } from "@/lib/logger";
+
+const dbLogger = getLogger("db");
 
 export async function register(): Promise<void> {
   if (process.env.NODE_ENV !== "production") return;
@@ -9,7 +12,7 @@ export async function register(): Promise<void> {
     getDb();
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    console.error(`[hobbyhoops:db:migrate] Startup aborted: ${detail}`);
+    dbLogger.error({ msg: "Startup aborted", detail, err: error });
     process.exit(1);
   }
 }

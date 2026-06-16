@@ -13,7 +13,9 @@ import sharp from "sharp";
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { getLogger } from "./lib/logger.mjs";
 
+const log = getLogger("generate-pwa-icons");
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const iconSvg = join(root, "src/app/icon.svg");
 const outputDir = join(root, "public/icons");
@@ -57,7 +59,7 @@ async function renderMaskable(size) {
 
 async function write(filename, buffer) {
   await sharp(buffer).toFile(join(outputDir, filename));
-  console.log(`✓ public/icons/${filename}`);
+  log.info({ msg: "Icône PWA générée", file: `public/icons/${filename}` });
 }
 
 await write("icon-192x192.png", await render(192));
@@ -65,4 +67,4 @@ await write("icon-512x512.png", await render(512));
 await write("icon-maskable-512x512.png", await renderMaskable(512));
 await write("apple-touch-icon.png", await render(180));
 
-console.log("PWA icons generated.");
+log.info({ msg: "Icônes PWA générées" });

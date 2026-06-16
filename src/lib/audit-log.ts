@@ -8,36 +8,36 @@ import {
   uniqueStrings,
   uniqueYears,
 } from "./reference-mutations";
+import { getLogger } from "./logger";
 
-const AUDIT_LOG_PREFIX = "[hobbyhoops:audit]";
+const auditLogger = getLogger("audit");
 const MAX_VALUE_LENGTH = 80;
 
-function escapeAuditValue(value: string): string {
-  const trimmed = value.slice(0, MAX_VALUE_LENGTH);
-  if (/[\s="]/.test(trimmed)) {
-    return `"${trimmed.replace(/"/g, '\\"')}"`;
-  }
-  return trimmed;
-}
+function normalizeAuditFields(
+  fields: Record<string, string | number | boolean | null | undefined>
+): Record<string, string | number | boolean> {
+  const normalized: Record<string, string | number | boolean> = {};
 
-function formatAuditField(
-  key: string,
-  value: string | number | boolean | null | undefined
-): string | null {
-  if (value === undefined || value === null || value === "") return null;
-  if (typeof value === "boolean") return `${key}=${value}`;
-  if (typeof value === "number") return `${key}=${value}`;
-  return `${key}=${escapeAuditValue(String(value))}`;
+  for (const [key, value] of Object.entries(fields)) {
+    if (value === undefined || value === null || value === "") continue;
+    if (typeof value === "string") {
+      normalized[key] =
+        value.length > MAX_VALUE_LENGTH
+          ? value.slice(0, MAX_VALUE_LENGTH)
+          : value;
+      continue;
+    }
+    normalized[key] = value;
+  }
+
+  return normalized;
 }
 
 export function auditLog(
   action: string,
   fields: Record<string, string | number | boolean | null | undefined>
 ): void {
-  const parts = Object.entries(fields)
-    .map(([key, value]) => formatAuditField(key, value))
-    .filter((part): part is string => part !== null);
-  console.info(`${AUDIT_LOG_PREFIX} ${action} ${parts.join(" ")}`);
+  auditLogger.info({ msg: action, ...normalizeAuditFields(fields) });
 }
 
 export function auditCardFields(

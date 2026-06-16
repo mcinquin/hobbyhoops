@@ -4,14 +4,19 @@
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, rmSync } from "node:fs";
+import { getLogger } from "./lib/logger.mjs";
 
+const log = getLogger("ci");
 const includeAudit = process.argv.includes("--with-audit");
 
 /** Types Next générés obsolètes (routes supprimées/ajoutées) font échouer `tsc`. */
 function removeStaleNextBuildArtifacts() {
   if (!existsSync(".next")) return;
   rmSync(".next", { recursive: true, force: true });
-  console.log("Nettoyage .next (types de routes potentiellement obsolètes).");
+  log.info({
+    msg: "Nettoyage .next",
+    reason: "types de routes potentiellement obsolètes",
+  });
 }
 
 const steps = [
@@ -32,13 +37,13 @@ if (includeAudit) {
 }
 
 function runStep({ name, command, args }) {
-  console.log(`\n▶ ${name}`);
+  log.info({ msg: "Étape CI", step: name });
   const result = spawnSync(command, args, {
     stdio: "inherit",
     env: process.env,
   });
   if (result.error) {
-    console.error(result.error.message);
+    log.error({ msg: "Étape CI en échec", step: name, err: result.error });
     return 1;
   }
   return result.status ?? 1;
@@ -56,8 +61,8 @@ for (const step of steps) {
 }
 
 if (failed) {
-  console.error("\n✗ Contrôles CI échoués.");
+  log.error({ msg: "Contrôles CI échoués" });
   process.exit(1);
 }
 
-console.log("\n✓ Tous les contrôles CI sont passés.");
+log.info({ msg: "Tous les contrôles CI sont passés" });
