@@ -1,3 +1,10 @@
+# [1.26.0](https://github.com/mcinquin/hobbyhoops/compare/v1.25.0...v1.26.0) (2026-06-16)
+
+
+### Features
+
+* **incoming:** change ebay warranty and add vinted ([9c5a865](https://github.com/mcinquin/hobbyhoops/commit/9c5a8651590f946dd1fd0eafe1815d919beb20f2))
+
 # [1.25.0](https://github.com/mcinquin/hobbyhoops/compare/v1.24.1...v1.25.0) (2026-06-14)
 
 
