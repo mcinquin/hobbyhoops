@@ -1,3 +1,10 @@
+# [1.27.0](https://github.com/mcinquin/hobbyhoops/compare/v1.26.0...v1.27.0) (2026-06-16)
+
+
+### Features
+
+* **logs:** move to pino ([a8ea158](https://github.com/mcinquin/hobbyhoops/commit/a8ea158204e14114dcefc401f92db8788b1d772d))
+
 # [1.26.0](https://github.com/mcinquin/hobbyhoops/compare/v1.25.0...v1.26.0) (2026-06-16)
 
 
