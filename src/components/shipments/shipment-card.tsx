@@ -2,10 +2,10 @@
 
 import type { Shipment, ShipmentStatus } from "@/lib/types";
 import {
-  buildEbayDisputeUrl,
-  buildEbayOrderUrl,
+  buildPlatformDisputeUrl,
+  buildPlatformOrderUrl,
   buildTrackingUrl,
-  computeEbayProtection,
+  getShipmentProtection,
   detectCarrier,
   formatPriceLabel,
   formatShipmentDateLabel,
@@ -48,15 +48,15 @@ export function ShipmentCard({
 }: ShipmentCardProps) {
   const t = useTranslations();
   const { locale } = useI18n();
-  const protection =
-    shipment.platform === "ebay"
-      ? computeEbayProtection(shipment.orderedAt, shipment.status)
-      : null;
+  const protection = getShipmentProtection(shipment);
   const trackingUrl = shipment.trackingNumber
     ? buildTrackingUrl(shipment.trackingNumber, shipment.carrier)
     : null;
-  const ebayOrderUrl = buildEbayOrderUrl(shipment.platform, shipment.orderId);
-  const ebayDisputeUrl = buildEbayDisputeUrl(shipment.platform);
+  const platformOrderUrl = buildPlatformOrderUrl(
+    shipment.platform,
+    shipment.orderId
+  );
+  const platformDisputeUrl = buildPlatformDisputeUrl(shipment.platform);
   const priceLabel = formatPriceLabel(
     shipment.priceCents,
     shipment.currency,
@@ -212,16 +212,37 @@ export function ShipmentCard({
         <div className="mt-4">
           <ProtectionBar
             protection={protection}
-            labels={{
-              title: t("shipments.protection.title"),
-              daysRemaining: t("shipments.protection.daysRemaining", {
-                count: protection.daysRemaining,
-              }),
-              daysRemainingOne: t("shipments.protection.daysRemainingOne"),
-              expired: t("shipments.protection.expired"),
-              critical: t("shipments.protection.critical"),
-              warning: t("shipments.protection.warning"),
-            }}
+            labels={
+              protection.platform === "vinted"
+                ? {
+                    title: t("shipments.protection.vinted.title"),
+                    awaitingDelivery: t(
+                      "shipments.protection.vinted.awaitingDelivery"
+                    ),
+                    daysRemaining: t(
+                      "shipments.protection.vinted.daysRemaining",
+                      { count: protection.daysRemaining }
+                    ),
+                    daysRemainingOne: t(
+                      "shipments.protection.vinted.daysRemainingOne"
+                    ),
+                    expired: t("shipments.protection.vinted.expired"),
+                    critical: t("shipments.protection.vinted.critical"),
+                    warning: t("shipments.protection.vinted.warning"),
+                  }
+                : {
+                    title: t("shipments.protection.ebay.title"),
+                    daysRemaining: t("shipments.protection.ebay.daysRemaining", {
+                      count: protection.daysRemaining,
+                    }),
+                    daysRemainingOne: t(
+                      "shipments.protection.ebay.daysRemainingOne"
+                    ),
+                    expired: t("shipments.protection.ebay.expired"),
+                    critical: t("shipments.protection.ebay.critical"),
+                    warning: t("shipments.protection.ebay.warning"),
+                  }
+            }
           />
         </div>
       ) : null}
@@ -238,30 +259,34 @@ export function ShipmentCard({
             {t("shipments.trackPackage")}
           </a>
         ) : null}
-        {ebayOrderUrl ? (
+        {platformOrderUrl ? (
           <a
-            href={ebayOrderUrl}
+            href={platformOrderUrl}
             target="_blank"
             rel="noopener noreferrer"
             className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
           >
             <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
-            {t("shipments.openEbay")}
+            {shipment.platform === "vinted"
+              ? t("shipments.openVinted")
+              : t("shipments.openEbay")}
           </a>
         ) : null}
-        {ebayDisputeUrl &&
+        {platformDisputeUrl &&
         protection &&
         (protection.urgency === "warning" ||
           protection.urgency === "critical" ||
           protection.urgency === "expired") ? (
           <a
-            href={ebayDisputeUrl}
+            href={platformDisputeUrl}
             target="_blank"
             rel="noopener noreferrer"
             className={cn(buttonVariants({ variant: "outline", size: "sm" }), "text-red-500 hover:text-red-500")}
           >
             <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
-            {t("shipments.openDispute")}
+            {shipment.platform === "vinted"
+              ? t("shipments.openVintedHelp")
+              : t("shipments.openDispute")}
           </a>
         ) : null}
         {nextActions.map((action) => (

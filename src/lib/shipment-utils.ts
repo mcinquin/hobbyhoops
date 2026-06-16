@@ -10,6 +10,7 @@ import {
 } from "./locale-date";
 
 export const EBAY_PROTECTION_DAYS = 30;
+export const VINTED_PROTECTION_DAYS = 2;
 
 export const SHIPMENT_STATUSES: ShipmentStatus[] = [
   "pending",
@@ -22,6 +23,7 @@ export const SHIPMENT_STATUSES: ShipmentStatus[] = [
 
 export const SHIPMENT_PLATFORMS: ShipmentPlatform[] = [
   "ebay",
+  "vinted",
   "comc",
   "private",
   "other",
@@ -76,63 +78,173 @@ export { formatTodayIsoDate };
 
 export type ProtectionUrgency = "safe" | "warning" | "critical" | "expired";
 
-export interface EbayProtectionInfo {
-  orderedAt: string;
+export type ShipmentProtectionPhase = "awaiting_delivery" | "claim_window";
+
+export interface ShipmentProtectionInfo {
+  platform: "ebay" | "vinted";
+  /** Date de début de la fenêtre de litige (ou livraison estimée si en attente). */
+  protectionStartAt: string;
+  totalDays: number;
   daysElapsed: number;
   daysRemaining: number;
   progressPercent: number;
   urgency: ProtectionUrgency;
   isActive: boolean;
+  phase: ShipmentProtectionPhase;
 }
+
+/** @deprecated Alias conservé pour la compatibilité interne. */
+export type EbayProtectionInfo = ShipmentProtectionInfo;
 
 function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-export function computeEbayProtection(
-  orderedAt: string,
-  status: ShipmentStatus
-): EbayProtectionInfo | null {
-  const parsed = parseIsoDate(orderedAt);
-  if (!parsed) return null;
+function toIsoDate(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
 
-  if (status === "received" || status === "dispute") {
-    return {
-      orderedAt,
-      daysElapsed: EBAY_PROTECTION_DAYS,
-      daysRemaining: 0,
-      progressPercent: 100,
-      urgency: "expired",
-      isActive: false,
-    };
+function inactiveProtection(
+  platform: "ebay" | "vinted",
+  protectionStartAt: string,
+  totalDays: number
+): ShipmentProtectionInfo {
+  return {
+    platform,
+    protectionStartAt,
+    totalDays,
+    daysElapsed: totalDays,
+    daysRemaining: 0,
+    progressPercent: 100,
+    urgency: "expired",
+    isActive: false,
+    phase: "claim_window",
+  };
+}
+
+function resolveProtectionUrgency(
+  daysRemaining: number,
+  platform: "ebay" | "vinted"
+): ProtectionUrgency {
+  if (daysRemaining === 0) return "expired";
+  if (platform === "vinted") {
+    if (daysRemaining === 1) return "critical";
+    return "warning";
   }
+  if (daysRemaining <= 3) return "critical";
+  if (daysRemaining <= 7) return "warning";
+  return "safe";
+}
 
-  const today = startOfDay(new Date());
-  const ordered = startOfDay(parsed);
-  const msPerDay = 86_400_000;
-  const daysElapsed = Math.max(
-    0,
-    Math.floor((today.getTime() - ordered.getTime()) / msPerDay)
-  );
-  const daysRemaining = Math.max(0, EBAY_PROTECTION_DAYS - daysElapsed);
+function buildActiveProtection(
+  platform: "ebay" | "vinted",
+  protectionStartAt: string,
+  totalDays: number,
+  daysElapsed: number,
+  phase: ShipmentProtectionPhase
+): ShipmentProtectionInfo {
+  const daysRemaining = Math.max(0, totalDays - daysElapsed);
   const progressPercent = Math.min(
     100,
-    Math.round((daysElapsed / EBAY_PROTECTION_DAYS) * 100)
+    Math.round((daysElapsed / totalDays) * 100)
   );
 
-  let urgency: ProtectionUrgency = "safe";
-  if (daysRemaining === 0) urgency = "expired";
-  else if (daysRemaining <= 3) urgency = "critical";
-  else if (daysRemaining <= 7) urgency = "warning";
-
   return {
-    orderedAt,
+    platform,
+    protectionStartAt,
+    totalDays,
     daysElapsed,
     daysRemaining,
     progressPercent,
-    urgency,
+    urgency: resolveProtectionUrgency(daysRemaining, platform),
     isActive: true,
+    phase,
   };
+}
+
+export function computeEbayProtection(
+  expectedDelivery: string | null,
+  status: ShipmentStatus
+): ShipmentProtectionInfo | null {
+  if (!expectedDelivery) return null;
+
+  const parsed = parseIsoDate(expectedDelivery);
+  if (!parsed) return null;
+
+  if (status === "received" || status === "dispute") {
+    return inactiveProtection("ebay", expectedDelivery, EBAY_PROTECTION_DAYS);
+  }
+
+  const today = startOfDay(new Date());
+  const delivery = startOfDay(parsed);
+  const msPerDay = 86_400_000;
+  const daysElapsed = Math.max(
+    0,
+    Math.floor((today.getTime() - delivery.getTime()) / msPerDay)
+  );
+
+  return buildActiveProtection(
+    "ebay",
+    expectedDelivery,
+    EBAY_PROTECTION_DAYS,
+    daysElapsed,
+    "claim_window"
+  );
+}
+
+function vintedClaimStart(
+  expectedDelivery: string,
+  status: ShipmentStatus
+): Date {
+  const delivery = startOfDay(parseIsoDate(expectedDelivery)!);
+  const today = startOfDay(new Date());
+  if (status === "delivered") {
+    return today.getTime() >= delivery.getTime() ? today : delivery;
+  }
+  return delivery;
+}
+
+export function computeVintedProtection(
+  expectedDelivery: string | null,
+  status: ShipmentStatus
+): ShipmentProtectionInfo | null {
+  if (!expectedDelivery) return null;
+
+  const parsed = parseIsoDate(expectedDelivery);
+  if (!parsed) return null;
+
+  if (status === "received" || status === "dispute") {
+    return inactiveProtection("vinted", expectedDelivery, VINTED_PROTECTION_DAYS);
+  }
+
+  const today = startOfDay(new Date());
+  const claimStart = vintedClaimStart(expectedDelivery, status);
+
+  if (today.getTime() < claimStart.getTime() && status !== "delivered") {
+    return buildActiveProtection(
+      "vinted",
+      expectedDelivery,
+      VINTED_PROTECTION_DAYS,
+      0,
+      "awaiting_delivery"
+    );
+  }
+
+  const msPerDay = 86_400_000;
+  const daysElapsed = Math.max(
+    0,
+    Math.floor((today.getTime() - claimStart.getTime()) / msPerDay)
+  );
+
+  return buildActiveProtection(
+    "vinted",
+    toIsoDate(claimStart),
+    VINTED_PROTECTION_DAYS,
+    daysElapsed,
+    "claim_window"
+  );
 }
 
 export type DetectedCarrier =
@@ -208,6 +320,29 @@ export function buildEbayDisputeUrl(platform: ShipmentPlatform): string | null {
   return "https://www.ebay.fr/res/ItemNotReceived";
 }
 
+export function buildVintedOrderUrl(platform: ShipmentPlatform): string | null {
+  if (platform !== "vinted") return null;
+  return "https://www.vinted.fr/inbox";
+}
+
+export function buildVintedDisputeUrl(platform: ShipmentPlatform): string | null {
+  if (platform !== "vinted") return null;
+  return "https://www.vinted.fr/help/912";
+}
+
+export function buildPlatformOrderUrl(
+  platform: ShipmentPlatform,
+  orderId: string | null
+): string | null {
+  return buildEbayOrderUrl(platform, orderId) ?? buildVintedOrderUrl(platform);
+}
+
+export function buildPlatformDisputeUrl(
+  platform: ShipmentPlatform
+): string | null {
+  return buildEbayDisputeUrl(platform) ?? buildVintedDisputeUrl(platform);
+}
+
 export function isActiveShipment(status: ShipmentStatus): boolean {
   return status !== "received";
 }
@@ -232,12 +367,20 @@ export function statusSortWeight(status: ShipmentStatus): number {
 }
 
 export function compareShipmentsByUrgency(a: Shipment, b: Shipment): number {
-  const protectionA = computeEbayProtection(a.orderedAt, a.status);
-  const protectionB = computeEbayProtection(b.orderedAt, b.status);
+  const protectionA = getShipmentProtection(a);
+  const protectionB = getShipmentProtection(b);
 
   const remainingA = protectionA?.isActive ? protectionA.daysRemaining : 999;
   const remainingB = protectionB?.isActive ? protectionB.daysRemaining : 999;
   if (remainingA !== remainingB) return remainingA - remainingB;
+
+  const phaseWeight = (protection: ShipmentProtectionInfo | null) => {
+    if (protection?.phase === "claim_window") return 0;
+    if (protection?.phase === "awaiting_delivery") return 1;
+    return 2;
+  };
+  const phaseDiff = phaseWeight(protectionA) - phaseWeight(protectionB);
+  if (phaseDiff !== 0) return phaseDiff;
 
   const statusDiff = statusSortWeight(a.status) - statusSortWeight(b.status);
   if (statusDiff !== 0) return statusDiff;
@@ -278,7 +421,7 @@ export function timelineStepIndex(status: ShipmentStatus): number {
 
 export interface ShipmentAlertItem {
   shipment: Shipment;
-  protection: EbayProtectionInfo | null;
+  protection: ShipmentProtectionInfo | null;
 }
 
 export interface ShipmentAlertSummary {
@@ -288,17 +431,25 @@ export interface ShipmentAlertSummary {
   preview: ShipmentAlertItem[];
 }
 
-export function isUrgentProtection(urgency: ProtectionUrgency): boolean {
+export function isUrgentProtection(protection: ShipmentProtectionInfo): boolean {
+  if (protection.phase === "awaiting_delivery") return false;
   return (
-    urgency === "warning" || urgency === "critical" || urgency === "expired"
+    protection.urgency === "warning" ||
+    protection.urgency === "critical" ||
+    protection.urgency === "expired"
   );
 }
 
 export function getShipmentProtection(
   shipment: Shipment
-): EbayProtectionInfo | null {
-  if (shipment.platform !== "ebay") return null;
-  return computeEbayProtection(shipment.orderedAt, shipment.status);
+): ShipmentProtectionInfo | null {
+  if (shipment.platform === "ebay") {
+    return computeEbayProtection(shipment.expectedDelivery, shipment.status);
+  }
+  if (shipment.platform === "vinted") {
+    return computeVintedProtection(shipment.expectedDelivery, shipment.status);
+  }
+  return null;
 }
 
 export function buildShipmentAlertSummary(
@@ -310,7 +461,7 @@ export function buildShipmentAlertSummary(
 
   for (const shipment of active) {
     const protection = getShipmentProtection(shipment);
-    if (protection?.isActive && isUrgentProtection(protection.urgency)) {
+    if (protection?.isActive && isUrgentProtection(protection)) {
       alerts.push({ shipment, protection });
     }
   }

@@ -23,6 +23,7 @@ interface IncomingShipmentsWidgetProps {
     protectionDays: string;
     protectionDay: string;
     protectionExpired: string;
+    protectionAwaiting: string;
   };
 }
 
@@ -78,7 +79,7 @@ export function IncomingShipmentsWidget({
             {" · "}
             {topAlert.shipment.description}
             {" · "}
-            {protectionLabel(topAlert.protection.daysRemaining, labels)}
+            {protectionLabel(topAlert.protection, labels)}
           </p>
         </div>
       ) : null}
@@ -86,7 +87,7 @@ export function IncomingShipmentsWidget({
       <div className="space-y-2">
         {summary.preview.map(({ shipment, protection }) => {
           const isUrgent =
-            protection?.isActive && isUrgentProtection(protection.urgency);
+            protection?.isActive && isUrgentProtection(protection);
 
           return (
             <Link
@@ -114,7 +115,7 @@ export function IncomingShipmentsWidget({
                       isUrgent ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"
                     )}
                   >
-                    {protectionLabel(protection.daysRemaining, labels)}
+                    {protectionLabel(protection, labels)}
                   </p>
                 ) : (
                   <p className="text-xs text-muted-foreground">—</p>
@@ -129,10 +130,18 @@ export function IncomingShipmentsWidget({
 }
 
 function protectionLabel(
-  daysRemaining: number,
+  protection: NonNullable<
+    ReturnType<typeof buildShipmentAlertSummary>["preview"][number]["protection"]
+  >,
   labels: IncomingShipmentsWidgetProps["labels"]
 ): string {
-  if (daysRemaining <= 0) return labels.protectionExpired;
-  if (daysRemaining === 1) return labels.protectionDay;
-  return labels.protectionDays.replace("{count}", String(daysRemaining));
+  if (protection.phase === "awaiting_delivery") {
+    return labels.protectionAwaiting;
+  }
+  if (protection.daysRemaining <= 0) return labels.protectionExpired;
+  if (protection.daysRemaining === 1) return labels.protectionDay;
+  return labels.protectionDays.replace(
+    "{count}",
+    String(protection.daysRemaining)
+  );
 }

@@ -116,12 +116,13 @@
       "title": "En route",
       "activeCount": "{count} colis en cours",
       "viewAll": "Voir tout",
-      "alertOne": "1 alerte protection eBay",
-      "alertMany": "{count} alertes protection eBay",
+      "alertOne": "1 alerte protection acheteur",
+      "alertMany": "{count} alertes protection acheteur",
       "empty": "Aucun colis en cours.",
       "protectionDays": "{count} j restants",
       "protectionDay": "1 j restant",
-      "protectionExpired": "Protection expirée"
+      "protectionExpired": "Protection expirée",
+      "protectionAwaiting": "Après livraison est."
     }
   },
   "collection": {
@@ -131,7 +132,7 @@
   "shipments": {
     "title": "En route",
     "subtitle": "Suivez vos achats eBay et autres plateformes avant qu'ils arrivent dans votre collection.",
-    "intro": "Ajoutez un achat dès la commande pour suivre l'expédition et ne pas manquer la fenêtre de protection eBay (30 jours).",
+    "intro": "Ajoutez un achat dès la commande pour suivre l'expédition et les fenêtres de protection (eBay : 30 j après livraison estimée · Vinted : 2 j après notification de livraison, approximée ici par la date estimée).",
     "stats": {
       "active": "Colis en cours"
     },
@@ -146,10 +147,13 @@
     "priceInvalid": "Prix invalide.",
     "orderId": "N° commande",
     "orderIdPlaceholder": "ex. 12-34567-89012",
+    "orderIdRequired": "Le n° de commande est obligatoire.",
     "sellerLabel": "Vendeur",
     "trackingNumber": "N° de suivi",
     "trackingPlaceholder": "Colissimo, La Poste, USPS…",
+    "trackingNumberRequired": "Le n° de suivi est obligatoire.",
     "expectedDeliveryLabel": "Livraison estimée",
+    "expectedDeliveryRequired": "La livraison estimée est obligatoire.",
     "fieldsRequired": "La description est obligatoire.",
     "added": "Achat ajouté.",
     "updated": "Statut mis à jour.",
@@ -165,10 +169,13 @@
     "noTrackingYet": "En attente du numéro de suivi",
     "trackPackage": "Suivre le colis",
     "openEbay": "Voir sur eBay",
+    "openVinted": "Voir sur Vinted",
     "openDispute": "Litige eBay",
+    "openVintedHelp": "Aide Vinted (colis)",
     "deleteEntry": "Supprimer {description}",
     "platform": {
       "ebay": "eBay",
+      "vinted": "Vinted",
       "comc": "COMC",
       "private": "Privé",
       "other": "Autre"
@@ -199,12 +206,23 @@
       "unknown": "Transporteur"
     },
     "protection": {
-      "title": "Protection eBay (30 j)",
-      "daysRemaining": "{count} jours restants",
-      "daysRemainingOne": "1 jour restant",
-      "expired": "Fenêtre dépassée — agissez maintenant",
-      "critical": "Urgent : moins de 3 jours",
-      "warning": "Attention : moins de 7 jours"
+      "ebay": {
+        "title": "Protection eBay (30 j)",
+        "daysRemaining": "{count} jours restants",
+        "daysRemainingOne": "1 jour restant",
+        "expired": "Fenêtre dépassée — agissez maintenant",
+        "critical": "Urgent : moins de 3 jours",
+        "warning": "Attention : moins de 7 jours"
+      },
+      "vinted": {
+        "title": "Protection Vinted (2 j)",
+        "awaitingDelivery": "Paiement séquestré — signalez un problème dans les 2 jours après la livraison estimée (ou dès « Marquer livré »).",
+        "daysRemaining": "{count} jours pour signaler",
+        "daysRemainingOne": "1 jour pour signaler",
+        "expired": "Délai dépassé — la transaction peut être finalisée",
+        "critical": "Urgent : dernier jour pour « J'ai un problème »",
+        "warning": "Signalez un problème via Vinted maintenant"
+      }
     },
     "actions": {
       "markShipped": "Marquer expédié",

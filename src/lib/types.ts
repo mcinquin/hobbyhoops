@@ -133,7 +133,7 @@ export interface DashboardChartData {
   acquisitionData: ChartCountRow[];
 }
 
-export type ShipmentPlatform = "ebay" | "comc" | "private" | "other";
+export type ShipmentPlatform = "ebay" | "vinted" | "comc" | "private" | "other";
 
 export type ShipmentStatus =
   | "pending"

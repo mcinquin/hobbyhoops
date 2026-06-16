@@ -116,12 +116,13 @@
       "title": "Incoming",
       "activeCount": "{count} active shipment(s)",
       "viewAll": "View all",
-      "alertOne": "1 eBay protection alert",
-      "alertMany": "{count} eBay protection alerts",
+      "alertOne": "1 buyer protection alert",
+      "alertMany": "{count} buyer protection alerts",
       "empty": "No active shipments.",
       "protectionDays": "{count} d left",
       "protectionDay": "1 d left",
-      "protectionExpired": "Protection expired"
+      "protectionExpired": "Protection expired",
+      "protectionAwaiting": "After est. delivery"
     }
   },
   "collection": {
@@ -131,7 +132,7 @@
   "shipments": {
     "title": "Incoming",
     "subtitle": "Track eBay and other purchases before they join your collection.",
-    "intro": "Add a purchase as soon as you order to track shipping and avoid missing eBay buyer protection (30 days).",
+    "intro": "Add a purchase as soon as you order to track shipping and protection windows (eBay: 30 d after estimated delivery · Vinted: 2 d after delivery notification, approximated here by the estimated date).",
     "stats": {
       "active": "Active shipments"
     },
@@ -146,10 +147,13 @@
     "priceInvalid": "Invalid price.",
     "orderId": "Order #",
     "orderIdPlaceholder": "e.g. 12-34567-89012",
+    "orderIdRequired": "Order number is required.",
     "sellerLabel": "Seller",
     "trackingNumber": "Tracking #",
     "trackingPlaceholder": "USPS, UPS, La Poste…",
+    "trackingNumberRequired": "Tracking number is required.",
     "expectedDeliveryLabel": "Estimated delivery",
+    "expectedDeliveryRequired": "Estimated delivery date is required.",
     "fieldsRequired": "Description is required.",
     "added": "Purchase added.",
     "updated": "Status updated.",
@@ -165,10 +169,13 @@
     "noTrackingYet": "Waiting for tracking number",
     "trackPackage": "Track package",
     "openEbay": "View on eBay",
+    "openVinted": "View on Vinted",
     "openDispute": "eBay dispute",
+    "openVintedHelp": "Vinted help (parcel)",
     "deleteEntry": "Remove {description}",
     "platform": {
       "ebay": "eBay",
+      "vinted": "Vinted",
       "comc": "COMC",
       "private": "Private",
       "other": "Other"
@@ -199,12 +206,23 @@
       "unknown": "Carrier"
     },
     "protection": {
-      "title": "eBay protection (30 d)",
-      "daysRemaining": "{count} days left",
-      "daysRemainingOne": "1 day left",
-      "expired": "Window passed — act now",
-      "critical": "Urgent: less than 3 days",
-      "warning": "Warning: less than 7 days"
+      "ebay": {
+        "title": "eBay protection (30 d)",
+        "daysRemaining": "{count} days left",
+        "daysRemainingOne": "1 day left",
+        "expired": "Window passed — act now",
+        "critical": "Urgent: less than 3 days",
+        "warning": "Warning: less than 7 days"
+      },
+      "vinted": {
+        "title": "Vinted protection (2 d)",
+        "awaitingDelivery": "Payment in escrow — report an issue within 2 days after estimated delivery (or once marked delivered).",
+        "daysRemaining": "{count} days to report",
+        "daysRemainingOne": "1 day to report",
+        "expired": "Deadline passed — sale may finalize",
+        "critical": "Urgent: last day for “I have an issue”",
+        "warning": "Report an issue on Vinted now"
+      }
     },
     "actions": {
       "markShipped": "Mark shipped",

@@ -49,15 +49,15 @@ const priceCents = z
 export const shipmentCreateSchema = z
   .object({
     platform: z.enum(SHIPMENT_PLATFORMS).default("ebay"),
-    orderId: nullableLabel,
+    orderId: label,
     seller: nullableLabel,
     description: label,
     priceCents,
     currency: z.string().trim().max(8).optional().default("EUR"),
     orderedAt: shipmentDate,
-    trackingNumber: nullableLabel,
+    trackingNumber: label,
     carrier: nullableLabel,
-    expectedDelivery: optionalShipmentDate,
+    expectedDelivery: shipmentDate,
     notes: optionalLabel,
   })
   .strict();
@@ -66,16 +66,16 @@ export const shipmentUpdateSchema = z
   .object({
     id: z.string().trim().min(1).max(64),
     platform: z.enum(SHIPMENT_PLATFORMS).optional(),
-    orderId: nullableLabel.optional(),
+    orderId: label.optional(),
     seller: nullableLabel.optional(),
     description: label.optional(),
     priceCents: priceCents.optional(),
     currency: z.string().trim().max(8).optional(),
     orderedAt: shipmentDate.optional(),
     shippedAt: optionalShipmentDate.optional(),
-    trackingNumber: nullableLabel.optional(),
+    trackingNumber: label.optional(),
     carrier: nullableLabel.optional(),
-    expectedDelivery: optionalShipmentDate.optional(),
+    expectedDelivery: shipmentDate.optional(),
     status: z.enum(SHIPMENT_STATUSES).optional(),
     cardId: nullableLabel.optional(),
     notes: optionalLabel.optional(),

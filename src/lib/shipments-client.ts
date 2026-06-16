@@ -14,15 +14,15 @@ export async function fetchShipments(includeReceived = false): Promise<Shipment[
 
 export async function createShipment(body: {
   platform?: Shipment["platform"];
-  orderId?: string | null;
+  orderId: string;
   seller?: string | null;
   description: string;
   priceCents?: number | null;
   currency?: string;
   orderedAt: string;
-  trackingNumber?: string | null;
+  trackingNumber: string;
   carrier?: string | null;
-  expectedDelivery?: string | null;
+  expectedDelivery: string;
   notes?: string;
 }): Promise<Shipment> {
   const res = await fetch("/api/shipments", {
