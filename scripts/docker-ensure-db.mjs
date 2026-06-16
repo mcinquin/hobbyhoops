@@ -29,7 +29,6 @@ try {
 try {
   await register();
 } catch (error) {
-  const detail = error instanceof Error ? error.message : String(error);
-  log.error({ msg: "Startup aborted", detail, err: error });
+  log.error({ msg: "Startup aborted", err: error });
   process.exit(1);
 }

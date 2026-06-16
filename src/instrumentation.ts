@@ -11,8 +11,7 @@ export async function register(): Promise<void> {
     const { getDb } = await import("@/lib/db");
     getDb();
   } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
-    dbLogger.error({ msg: "Startup aborted", detail, err: error });
+    dbLogger.error({ msg: "Startup aborted", err: error });
     process.exit(1);
   }
 }

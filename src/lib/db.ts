@@ -62,14 +62,6 @@ const SCHEMA_VERSION = 16;
 /** Version de schéma attendue par le code déployé (migrations SQLite). */
 export const EXPECTED_SCHEMA_VERSION = SCHEMA_VERSION;
 
-function logDbMigration(message: string): void {
-  dbLogger.info({ msg: message });
-}
-
-function logDbMigrationError(message: string, error: unknown): void {
-  dbLogger.error({ msg: message, err: error });
-}
-
 const CARD_LIST_COLUMNS = `
   id, player, team, year, brand, set_name, variation,
   autograph, memorabilia, serial_number, serial_current, serial_total,
@@ -988,23 +980,23 @@ function runSchemaMigrations(db: AppDatabase): void {
     return;
   }
 
-  logDbMigration(
-    `Starting migration v${version} → v${SCHEMA_VERSION} (${getDatabaseDisplayPath()})`
-  );
+  dbLogger.info({
+    msg: `Starting migration v${version} → v${SCHEMA_VERSION} (${getDatabaseDisplayPath()})`,
+  });
 
   try {
     if (version < 2) {
-      logDbMigration("Applying v2: normalize opening dates");
+      dbLogger.info({ msg: "Applying v2: normalize opening dates" });
       migrateOpeningDatesToFrench(db);
     }
 
     if (version < 3) {
-      logDbMigration("Applying v3: drop legacy french_players table");
+      dbLogger.info({ msg: "Applying v3: drop legacy french_players table" });
       db.exec("DROP TABLE IF EXISTS french_players");
     }
 
     if (version < 6) {
-      logDbMigration("Applying v6: guides tables (wanted, fr_nba)");
+      dbLogger.info({ msg: "Applying v6: guides tables (wanted, fr_nba)" });
       if (version < 5) {
         db.exec(`
         CREATE TABLE IF NOT EXISTS guides_state (
@@ -1040,7 +1032,7 @@ function runSchemaMigrations(db: AppDatabase): void {
     }
 
     if (version < 7) {
-      logDbMigration("Applying v7: card indexes");
+      dbLogger.info({ msg: "Applying v7: card indexes" });
       db.exec(`
       CREATE INDEX IF NOT EXISTS idx_cards_player ON cards(player);
       CREATE INDEX IF NOT EXISTS idx_cards_year ON cards(year);
@@ -1053,7 +1045,7 @@ function runSchemaMigrations(db: AppDatabase): void {
     }
 
     if (version < 8) {
-      logDbMigration("Applying v8: derived card columns and indexes");
+      dbLogger.info({ msg: "Applying v8: derived card columns and indexes" });
       if (!cardsTableHasColumn(db, "opening_date_sort")) {
         db.exec("ALTER TABLE cards ADD COLUMN opening_date_sort INTEGER");
       }
@@ -1070,24 +1062,24 @@ function runSchemaMigrations(db: AppDatabase): void {
     }
 
     if (version < 9) {
-      logDbMigration("Applying v9: FTS5 full-text search");
+      dbLogger.info({ msg: "Applying v9: FTS5 full-text search" });
       migrateToFts5(db);
     }
 
     if (version < 10) {
-      logDbMigration("Applying v10: card notes column");
+      dbLogger.info({ msg: "Applying v10: card notes column" });
       if (!cardsTableHasColumn(db, "notes")) {
         db.exec("ALTER TABLE cards ADD COLUMN notes TEXT NOT NULL DEFAULT ''");
       }
     }
 
     if (version < 11) {
-      logDbMigration("Applying v11: fix silver variation typo");
+      dbLogger.info({ msg: "Applying v11: fix silver variation typo" });
       migrateFixSilverVariationTypo(db);
     }
 
     if (version < 12) {
-      logDbMigration("Applying v12: shipments table");
+      dbLogger.info({ msg: "Applying v12: shipments table" });
       db.exec(`
       CREATE TABLE IF NOT EXISTS shipments (
         id TEXT PRIMARY KEY,
@@ -1113,29 +1105,29 @@ function runSchemaMigrations(db: AppDatabase): void {
     }
 
     if (version < 13) {
-      logDbMigration("Applying v13: backfill card attribute references");
+      dbLogger.info({ msg: "Applying v13: backfill card attribute references" });
       migrateBackfillCardAttributeReferences(db);
     }
 
     if (version < 14) {
-      logDbMigration("Applying v14: attribute references table");
+      dbLogger.info({ msg: "Applying v14: attribute references table" });
       migrateAttributeReferencesToTable();
     }
 
     if (version < 15) {
-      logDbMigration("Applying v15: unify references storage");
+      dbLogger.info({ msg: "Applying v15: unify references storage" });
       migrateUnifyReferencesStorage(db);
     }
 
     if (version < 16) {
-      logDbMigration("Applying v16: Fr NBA holdings model");
+      dbLogger.info({ msg: "Applying v16: Fr NBA holdings model" });
       migrateFrNbaHoldingsModel(db);
     }
 
     setSchemaVersion(db, SCHEMA_VERSION);
-    logDbMigration(`Migration complete (v${SCHEMA_VERSION})`);
+    dbLogger.info({ msg: `Migration complete (v${SCHEMA_VERSION})` });
   } catch (error) {
-    logDbMigrationError("Migration failed:", error);
+    dbLogger.error({ msg: "Migration failed", err: error });
     throw error;
   }
 }
