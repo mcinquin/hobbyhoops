@@ -1,12 +1,12 @@
 import { cn } from "@/lib/utils";
-import type { EbayProtectionInfo } from "@/lib/shipment-utils";
-import { EBAY_PROTECTION_DAYS } from "@/lib/shipment-utils";
+import type { ShipmentProtectionInfo } from "@/lib/shipment-utils";
 import { AlertTriangle } from "lucide-react";
 
 interface ProtectionBarProps {
-  protection: EbayProtectionInfo;
+  protection: ShipmentProtectionInfo;
   labels: {
     title: string;
+    awaitingDelivery?: string;
     daysRemaining: string;
     daysRemainingOne: string;
     expired: string;
@@ -17,6 +17,17 @@ interface ProtectionBarProps {
 
 export function ProtectionBar({ protection, labels }: ProtectionBarProps) {
   if (!protection.isActive) return null;
+
+  if (protection.phase === "awaiting_delivery" && labels.awaitingDelivery) {
+    return (
+      <div className="rounded-lg border border-border bg-muted/30 p-3">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          {labels.title}
+        </p>
+        <p className="mt-1 text-sm text-foreground">{labels.awaitingDelivery}</p>
+      </div>
+    );
+  }
 
   const barColor =
     protection.urgency === "critical" || protection.urgency === "expired"
@@ -85,13 +96,13 @@ export function ProtectionBar({ protection, labels }: ProtectionBarProps) {
           style={{ width: `${protection.progressPercent}%` }}
           role="progressbar"
           aria-valuemin={0}
-          aria-valuemax={EBAY_PROTECTION_DAYS}
+          aria-valuemax={protection.totalDays}
           aria-valuenow={protection.daysElapsed}
           aria-label={labels.title}
         />
       </div>
       <p className="mt-1.5 text-[11px] text-muted-foreground">
-        {protection.daysElapsed} / {EBAY_PROTECTION_DAYS}
+        {protection.daysElapsed} / {protection.totalDays}
       </p>
     </div>
   );

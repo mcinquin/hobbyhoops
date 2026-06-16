@@ -62,6 +62,7 @@ export default async function DashboardPage() {
           protectionDays: t("dashboard.incoming.protectionDays"),
           protectionDay: t("dashboard.incoming.protectionDay"),
           protectionExpired: t("dashboard.incoming.protectionExpired"),
+          protectionAwaiting: t("dashboard.incoming.protectionAwaiting"),
         }}
       />
       <DashboardCharts

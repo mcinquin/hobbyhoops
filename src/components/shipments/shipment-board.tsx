@@ -83,6 +83,20 @@ export function ShipmentBoard({ initialShipments, references }: ShipmentBoardPro
       setFormError(t("shipments.orderedAtRequired"));
       return;
     }
+    if (!expectedDelivery) {
+      setFormError(t("shipments.expectedDeliveryRequired"));
+      return;
+    }
+    const trimmedOrderId = orderId.trim();
+    if (!trimmedOrderId) {
+      setFormError(t("shipments.orderIdRequired"));
+      return;
+    }
+    const tracking = trackingNumber.trim();
+    if (!tracking) {
+      setFormError(t("shipments.trackingNumberRequired"));
+      return;
+    }
 
     const priceCents = parsePriceToCents(price);
     if (price.trim() && priceCents == null) {
@@ -94,12 +108,11 @@ export function ShipmentBoard({ initialShipments, references }: ShipmentBoardPro
     setSuccess(null);
     setLoading(true);
     try {
-      const tracking = trackingNumber.trim() || null;
-      const carrier = tracking ? detectCarrier(tracking) : null;
+      const carrier = detectCarrier(tracking);
       await createShipment({
         platform,
         description: trimmedDescription,
-        orderId: orderId.trim() || null,
+        orderId: trimmedOrderId,
         seller: seller.trim() || null,
         priceCents,
         orderedAt,
