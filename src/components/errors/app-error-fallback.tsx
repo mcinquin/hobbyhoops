@@ -2,7 +2,10 @@
 
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { getClientLogger } from "@/lib/client-logger";
 import { useTranslations } from "@/i18n/client";
+
+const errorLogger = getClientLogger("error-boundary");
 
 interface AppErrorFallbackProps {
   error: Error & { digest?: string };
@@ -18,7 +21,11 @@ export function AppErrorFallback({
   const t = useTranslations();
 
   useEffect(() => {
-    console.error(error);
+    errorLogger.error({
+      msg: "Page error",
+      err: error,
+      ...(error.digest ? { digest: error.digest } : {}),
+    });
   }, [error]);
 
   return (

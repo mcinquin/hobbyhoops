@@ -10,8 +10,9 @@ function resolveLogLevel() {
   return process.env.NODE_ENV === "production" ? "info" : "debug";
 }
 
-export const rootLogger = pino({
+const rootLogger = pino({
   level: resolveLogLevel(),
+  base: undefined,
   timestamp: pino.stdTimeFunctions.isoTime,
   formatters: {
     level: (label) => ({ level: label }),
