@@ -1,3 +1,11 @@
+## [1.27.1](https://github.com/mcinquin/hobbyhoops/compare/v1.27.0...v1.27.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* **logs:** fix issue with new log system ([e21bb47](https://github.com/mcinquin/hobbyhoops/commit/e21bb47054bf75a7911c26aca2b55cc1583194af))
+* **logs:** fix issue with new log system ([9b0855e](https://github.com/mcinquin/hobbyhoops/commit/9b0855e8b48830aa9c29430a6d09d0c9a99d7e15))
+
 # [1.27.0](https://github.com/mcinquin/hobbyhoops/compare/v1.26.0...v1.27.0) (2026-06-16)
 
 
