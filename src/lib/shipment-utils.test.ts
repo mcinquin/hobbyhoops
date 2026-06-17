@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildTrackingUrl,
   computeEbayProtection,
@@ -12,6 +12,9 @@ import {
   parseShipmentDateInput,
 } from "./shipment-utils";
 import type { Shipment } from "./types";
+
+/** Midi local — évite les décalages UTC autour de minuit dans les tests relatifs. */
+const FIXED_NOW = new Date(2026, 5, 17, 12, 0, 0);
 
 describe("normalizeShipmentDate", () => {
   it("accepts ISO dates", () => {
@@ -78,6 +81,15 @@ describe("buildTrackingUrl", () => {
 });
 
 describe("computeEbayProtection", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(FIXED_NOW);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("returns null without an estimated delivery date", () => {
     expect(computeEbayProtection(null, "shipped")).toBeNull();
   });
@@ -88,20 +100,14 @@ describe("computeEbayProtection", () => {
   });
 
   it("computes remaining days from estimated delivery, not purchase date", () => {
-    const expectedDelivery = new Date();
-    expectedDelivery.setDate(expectedDelivery.getDate() - 10);
-    const iso = expectedDelivery.toISOString().slice(0, 10);
-    const info = computeEbayProtection(iso, "shipped");
+    const info = computeEbayProtection("2026-06-07", "shipped");
     expect(info?.isActive).toBe(true);
     expect(info?.daysElapsed).toBe(10);
     expect(info?.daysRemaining).toBe(20);
   });
 
   it("keeps the full window before estimated delivery", () => {
-    const expectedDelivery = new Date();
-    expectedDelivery.setDate(expectedDelivery.getDate() + 5);
-    const iso = expectedDelivery.toISOString().slice(0, 10);
-    const info = computeEbayProtection(iso, "shipped");
+    const info = computeEbayProtection("2026-06-22", "shipped");
     expect(info?.daysElapsed).toBe(0);
     expect(info?.daysRemaining).toBe(30);
     expect(info?.urgency).toBe("safe");
@@ -111,21 +117,24 @@ describe("computeEbayProtection", () => {
 });
 
 describe("computeVintedProtection", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(FIXED_NOW);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("waits until estimated delivery before opening the claim window", () => {
-    const expectedDelivery = new Date();
-    expectedDelivery.setDate(expectedDelivery.getDate() + 3);
-    const iso = expectedDelivery.toISOString().slice(0, 10);
-    const info = computeVintedProtection(iso, "in_transit");
+    const info = computeVintedProtection("2026-06-20", "in_transit");
     expect(info?.phase).toBe("awaiting_delivery");
     expect(info?.daysRemaining).toBe(2);
     expect(isUrgentProtection(info!)).toBe(false);
   });
 
   it("starts the 2-day window from estimated delivery", () => {
-    const expectedDelivery = new Date();
-    expectedDelivery.setDate(expectedDelivery.getDate() - 1);
-    const iso = expectedDelivery.toISOString().slice(0, 10);
-    const info = computeVintedProtection(iso, "in_transit");
+    const info = computeVintedProtection("2026-06-16", "in_transit");
     expect(info?.phase).toBe("claim_window");
     expect(info?.daysElapsed).toBe(1);
     expect(info?.daysRemaining).toBe(1);
@@ -133,10 +142,7 @@ describe("computeVintedProtection", () => {
   });
 
   it("opens the claim window immediately when marked delivered", () => {
-    const expectedDelivery = new Date();
-    expectedDelivery.setDate(expectedDelivery.getDate() + 5);
-    const iso = expectedDelivery.toISOString().slice(0, 10);
-    const info = computeVintedProtection(iso, "delivered");
+    const info = computeVintedProtection("2026-06-22", "delivered");
     expect(info?.phase).toBe("claim_window");
     expect(info?.daysRemaining).toBe(2);
   });
