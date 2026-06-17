@@ -1,3 +1,11 @@
+## [1.27.3](https://github.com/mcinquin/hobbyhoops/compare/v1.27.2...v1.27.3) (2026-06-17)
+
+
+### Bug Fixes
+
+* **auth:** fix issue with cookie session ([3f2047b](https://github.com/mcinquin/hobbyhoops/commit/3f2047bdd572d513d0313599daa6ce10c357b933))
+* **auth:** fix issue with cookie session ([5902f9f](https://github.com/mcinquin/hobbyhoops/commit/5902f9f04b503d11b548d16e1814a9bf43dbd3a2))
+
 ## [1.27.2](https://github.com/mcinquin/hobbyhoops/compare/v1.27.1...v1.27.2) (2026-06-16)
 
 
