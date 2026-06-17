@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { readSessionTokenPayload } from "@/lib/auth-session-crypto";
 import {
   createSessionToken,
+  sessionCookieOptions,
   verifySessionToken,
 } from "@/lib/auth-session";
 import { getDb } from "@/lib/db";
@@ -54,5 +55,9 @@ describe("auth session", () => {
 
     expect(readSessionTokenPayload(token)).not.toBeNull();
     expect(verifySessionToken(token)).toBeNull();
+  });
+
+  it("uses lax sameSite so sessions survive external top-level navigations", () => {
+    expect(sessionCookieOptions(3600).sameSite).toBe("lax");
   });
 });
