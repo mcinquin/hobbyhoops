@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth-validation";
 import { safeInternalRedirectPath } from "@/lib/safe-redirect";
+import { useSessionRecoveryOnLogin } from "@/hooks/use-session-recovery-on-login";
 import { useTranslations } from "@/i18n/client";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { BrandMark } from "@/components/brand-mark";
@@ -21,6 +22,9 @@ function LoginForm() {
   const [password2, setPassword2] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const from = searchParams.get("from");
+
+  useSessionRecoveryOnLogin(from);
 
   useEffect(() => {
     fetch("/api/auth/needs-bootstrap", { credentials: "include" })
@@ -28,23 +32,6 @@ function LoginForm() {
       .then((d) => setNeedsBootstrap(!!d.needsBootstrap))
       .catch(() => setNeedsBootstrap(false));
   }, []);
-
-  // Session valide mais absente de la requête HTML initiale (SameSite, PWA…) :
-  // une sous-requête same-site renvoie le cookie et permet de quitter l’écran login.
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((r) => {
-        if (cancelled || !r.ok) return;
-        const from = searchParams.get("from");
-        router.replace(safeInternalRedirectPath(from));
-        router.refresh();
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [router, searchParams]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -68,8 +55,8 @@ function LoginForm() {
         );
         return;
       }
-      const from = searchParams.get("from");
-      router.push(safeInternalRedirectPath(from));
+      const fromPath = searchParams.get("from");
+      router.push(safeInternalRedirectPath(fromPath));
       router.refresh();
     } finally {
       setLoading(false);
