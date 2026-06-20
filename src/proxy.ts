@@ -16,6 +16,7 @@ const PUBLIC_API_PREFIXES = [
   "/api/auth/login",
   "/api/auth/logout",
   "/api/auth/bootstrap",
+  "/api/auth/me",
   "/api/auth/needs-bootstrap",
   "/api/health",
   "/api/locale",
