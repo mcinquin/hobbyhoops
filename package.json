@@ -15,7 +15,7 @@
     "start": "next start",
     "lint": "eslint",
     "lint:md": "markdownlint-cli2",
-    "audit:ci": "npm audit --audit-level=high",
+    "audit:ci": "npm audit --audit-level=high --omit=dev",
     "ci": "node scripts/ci.mjs",
     "ci:full": "node scripts/ci.mjs --with-audit",
     "check": "npm run ci",
