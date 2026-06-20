@@ -1,3 +1,10 @@
+## [1.27.4](https://github.com/mcinquin/hobbyhoops/compare/v1.27.3...v1.27.4) (2026-06-20)
+
+
+### Bug Fixes
+
+* **auth:** fiwx again issue with auth on pwa ([3a94fb7](https://github.com/mcinquin/hobbyhoops/commit/3a94fb737ecdfd14514d25e2bdae425242f2d8c2))
+
 ## [1.27.3](https://github.com/mcinquin/hobbyhoops/compare/v1.27.2...v1.27.3) (2026-06-17)
 
 
