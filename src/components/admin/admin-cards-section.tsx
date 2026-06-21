@@ -101,8 +101,8 @@ export function AdminCardsSection({
     }
     if (
       filters.set &&
-      !setSuggestions.some((setName) =>
-        setName.toLowerCase().includes(filters.set.toLowerCase())
+      !setSuggestions.some(
+        (setName) => setName.toLowerCase() === filters.set.toLowerCase()
       )
     ) {
       applyAdminFilters({ set: "" }, { immediate: true });
@@ -112,8 +112,9 @@ export function AdminCardsSection({
   useEffect(() => {
     if (
       filters.variation &&
-      !variationSuggestions.some((variation) =>
-        variation.toLowerCase().includes(filters.variation.toLowerCase())
+      !variationSuggestions.some(
+        (variation) =>
+          variation.toLowerCase() === filters.variation.toLowerCase()
       )
     ) {
       applyAdminFilters({ variation: "" }, { immediate: true });
