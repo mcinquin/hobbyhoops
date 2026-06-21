@@ -1,3 +1,10 @@
+# [1.28.0](https://github.com/mcinquin/hobbyhoops/compare/v1.27.6...v1.28.0) (2026-06-21)
+
+
+### Features
+
+* **auth:** change session method ([61a93aa](https://github.com/mcinquin/hobbyhoops/commit/61a93aa1741be3556f6f606dc3bd494b761356a6))
+
 ## [1.27.6](https://github.com/mcinquin/hobbyhoops/compare/v1.27.5...v1.27.6) (2026-06-21)
 
 
