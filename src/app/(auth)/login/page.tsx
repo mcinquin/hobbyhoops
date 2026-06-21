@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth-validation";
 import { safeInternalRedirectPath } from "@/lib/safe-redirect";
-import { useSessionRecoveryOnLogin } from "@/hooks/use-session-recovery-on-login";
 import { useTranslations } from "@/i18n/client";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { BrandMark } from "@/components/brand-mark";
@@ -22,9 +21,6 @@ function LoginForm() {
   const [password2, setPassword2] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const from = searchParams.get("from");
-
-  useSessionRecoveryOnLogin(from);
 
   useEffect(() => {
     fetch("/api/auth/needs-bootstrap", { credentials: "include" })

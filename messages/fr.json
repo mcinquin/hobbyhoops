@@ -92,7 +92,30 @@
     "currentRequired": "Le mot de passe actuel est obligatoire.",
     "changeRequired": "Indiquez un nouveau pseudo ou un nouveau mot de passe.",
     "updateFailed": "Mise à jour impossible.",
-    "updated": "Profil mis à jour."
+    "updated": "Profil mis à jour.",
+    "sessions": {
+      "title": "Appareils connectés",
+      "description": "Sessions actives sur ordinateur, téléphone ou tablette. Vous pouvez révoquer un appareil perdu sans vous déconnecter ailleurs.",
+      "current": "Cet appareil",
+      "lastSeen": "Dernière activité : {date}",
+      "created": "Connecté le {date}",
+      "revoke": "Révoquer",
+      "revokeOthers": "Déconnecter les autres appareils",
+      "revoked": "Session révoquée.",
+      "revokedOthers": "Les autres appareils ont été déconnectés.",
+      "revokeFailed": "Impossible de révoquer la session.",
+      "loadFailed": "Impossible de charger les sessions.",
+      "empty": "Aucune session active.",
+      "device": {
+        "ios": "iPhone / iPad",
+        "android": "Android",
+        "windows": "Windows",
+        "macos": "macOS",
+        "linux": "Linux",
+        "browser": "Navigateur",
+        "unknown": "Appareil inconnu"
+      }
+    }
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -665,6 +688,9 @@
     "profileWrongPassword": "Mot de passe actuel incorrect.",
     "profileChangeRequired": "Indiquez un nouveau pseudo ou un nouveau mot de passe.",
     "profileUsernameTaken": "Ce pseudo est déjà utilisé.",
+    "sessionIdRequired": "Identifiant de session requis.",
+    "sessionNotFound": "Session introuvable.",
+    "sessionRevokeCurrent": "Utilisez « Déconnexion » pour quitter cet appareil.",
     "cardNotFound": "Carte introuvable.",
     "cardIdMissing": "Identifiant manquant.",
     "playerRequired": "Indiquez un joueur.",
