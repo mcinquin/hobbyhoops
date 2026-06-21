@@ -5,6 +5,7 @@ import type { SiteInfo } from "@/lib/site-info-types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
+import { AdminSessionsSection } from "@/components/admin/admin-sessions-section";
 import { useI18n, useTranslations } from "@/i18n/client";
 
 function formatBytes(bytes: number, unitLabels: { b: string; kb: string; mb: string }): string {
@@ -277,6 +278,8 @@ export function AdminSiteInfoSection() {
         <InfoRow label={t("admin.siteInfo.users")} value={info.auth.users} />
         <InfoRow label={t("admin.siteInfo.activeSessions")} value={info.auth.activeSessions} />
       </InfoSection>
+
+      <AdminSessionsSection />
     </div>
   );
 }

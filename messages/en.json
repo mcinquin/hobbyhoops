@@ -92,30 +92,7 @@
     "currentRequired": "Current password is required.",
     "changeRequired": "Enter a new username or a new password.",
     "updateFailed": "Could not update profile.",
-    "updated": "Profile updated.",
-    "sessions": {
-      "title": "Connected devices",
-      "description": "Active sessions on computer, phone, or tablet. Revoke a lost device without signing out elsewhere.",
-      "current": "This device",
-      "lastSeen": "Last activity: {date}",
-      "created": "Signed in: {date}",
-      "revoke": "Revoke",
-      "revokeOthers": "Sign out other devices",
-      "revoked": "Session revoked.",
-      "revokedOthers": "Other devices have been signed out.",
-      "revokeFailed": "Could not revoke session.",
-      "loadFailed": "Could not load sessions.",
-      "empty": "No active sessions.",
-      "device": {
-        "ios": "iPhone / iPad",
-        "android": "Android",
-        "windows": "Windows",
-        "macos": "macOS",
-        "linux": "Linux",
-        "browser": "Browser",
-        "unknown": "Unknown device"
-      }
-    }
+    "updated": "Profile updated."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -500,7 +477,30 @@
       "dbPages": "SQLite pages",
       "foreignKeys": "Foreign keys",
       "users": "Accounts",
-      "activeSessions": "Active sessions"
+      "activeSessions": "Active sessions",
+      "sessions": {
+        "title": "Connected devices",
+        "description": "Active sessions on computer, phone, or tablet. Revoke a lost device without signing out elsewhere.",
+        "current": "This device",
+        "lastSeen": "Last activity: {date}",
+        "created": "Signed in: {date}",
+        "revoke": "Revoke",
+        "revokeOthers": "Sign out other devices",
+        "revoked": "Session revoked.",
+        "revokedOthers": "Other devices have been signed out.",
+        "revokeFailed": "Could not revoke session.",
+        "loadFailed": "Could not load sessions.",
+        "empty": "No active sessions.",
+        "device": {
+          "ios": "iPhone / iPad",
+          "android": "Android",
+          "windows": "Windows",
+          "macos": "macOS",
+          "linux": "Linux",
+          "browser": "Browser",
+          "unknown": "Unknown device"
+        }
+      }
     },
     "tools": {
       "backupTitle": "SQLite backup",
