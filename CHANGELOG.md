@@ -1,3 +1,10 @@
+## [1.27.5](https://github.com/mcinquin/hobbyhoops/compare/v1.27.4...v1.27.5) (2026-06-21)
+
+
+### Bug Fixes
+
+* **auth:** fix issue with redirection ([c3c9967](https://github.com/mcinquin/hobbyhoops/commit/c3c9967b5ff8a251157e22d51a895f8d78ad094a))
+
 ## [1.27.4](https://github.com/mcinquin/hobbyhoops/compare/v1.27.3...v1.27.4) (2026-06-20)
 
 
