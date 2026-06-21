@@ -11,6 +11,7 @@ import {
   buildContentSecurityPolicy,
   createNonce,
 } from "@/lib/csp";
+import { buildPublicRequestUrl } from "@/lib/request-url";
 
 const PUBLIC_API_PREFIXES = [
   "/api/auth/login",
@@ -37,7 +38,7 @@ function copySearchParams(source: URL, target: URL): URL {
 }
 
 function unauthenticatedEntryUrl(request: NextRequest, fromPath: string): URL {
-  const url = new URL("/", request.url);
+  const url = buildPublicRequestUrl(request, "/");
   if (fromPath !== "/") {
     url.searchParams.set("from", fromPath);
   }
@@ -85,7 +86,10 @@ export function proxy(request: NextRequest) {
   if (pageMisconfigured) return pageMisconfigured;
 
   if (pathname === "/login") {
-    const home = copySearchParams(request.nextUrl, new URL("/", request.url));
+    const home = copySearchParams(
+      request.nextUrl,
+      buildPublicRequestUrl(request, "/")
+    );
     return NextResponse.redirect(home, 301);
   }
 
@@ -94,10 +98,8 @@ export function proxy(request: NextRequest) {
 
   if (pathname === "/") {
     if (!isAuthenticated) {
-      const loginUrl = copySearchParams(
-        request.nextUrl,
-        new URL("/login", request.url)
-      );
+      const loginUrl = copySearchParams(request.nextUrl, request.nextUrl.clone());
+      loginUrl.pathname = "/login";
       return NextResponse.rewrite(loginUrl);
     }
     return nextWithCsp(request);
