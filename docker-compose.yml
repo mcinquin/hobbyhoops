@@ -1,6 +1,6 @@
 # Production — image GHCR, reverse proxy Apache en amont (hors Compose).
 # Déploiement : cp .env.example .env, renseigner AUTH_SECRET, puis :
-#   export HOBBYHOOPS_VERSION=1.27.5   # tag publié sur GHCR
+#   export HOBBYHOOPS_VERSION=1.27.6   # tag publié sur GHCR
 #   docker compose pull && docker compose up -d
 #
 # Au démarrage, l'entrypoint exécute la migration SQLite avant le serveur.
@@ -10,7 +10,7 @@
 
 services:
   app:
-    image: ghcr.io/mcinquin/hobbyhoops:${HOBBYHOOPS_VERSION:-1.27.5}
+    image: ghcr.io/mcinquin/hobbyhoops:${HOBBYHOOPS_VERSION:-1.27.6}
     pull_policy: always
     container_name: hobbyhoops
     entrypoint: ["/usr/local/bin/docker-entrypoint.sh"]

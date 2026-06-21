@@ -1,3 +1,10 @@
+## [1.27.6](https://github.com/mcinquin/hobbyhoops/compare/v1.27.5...v1.27.6) (2026-06-21)
+
+
+### Bug Fixes
+
+* **search:** fix sql query with LIKE statement ([3c50926](https://github.com/mcinquin/hobbyhoops/commit/3c50926f133aad8c8f1c6101e36070303884f9bc))
+
 ## [1.27.5](https://github.com/mcinquin/hobbyhoops/compare/v1.27.4...v1.27.5) (2026-06-21)
 
 
