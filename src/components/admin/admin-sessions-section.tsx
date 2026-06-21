@@ -22,7 +22,7 @@ function formatSessionDate(timestamp: number, locale: string): string {
   }).format(new Date(timestamp * 1000));
 }
 
-export function AccountSessionsSection() {
+export function AdminSessionsSection() {
   const { locale } = useI18n();
   const t = useTranslations();
   const [sessions, setSessions] = useState<SessionEntry[]>([]);
@@ -50,7 +50,7 @@ export function AccountSessionsSection() {
           setError(
             typeof data.error === "string"
               ? data.error
-              : t("account.sessions.loadFailed")
+              : t("admin.siteInfo.sessions.loadFailed")
           );
           setSessions([]);
           return;
@@ -60,7 +60,7 @@ export function AccountSessionsSection() {
       })
       .catch(() => {
         if (!active) return;
-        setError(t("account.sessions.loadFailed"));
+        setError(t("admin.siteInfo.sessions.loadFailed"));
         setSessions([]);
       })
       .finally(() => {
@@ -87,14 +87,14 @@ export function AccountSessionsSection() {
         setError(
           typeof data.error === "string"
             ? data.error
-            : t("account.sessions.revokeFailed")
+            : t("admin.siteInfo.sessions.revokeFailed")
         );
         return;
       }
-      setMessage(t("account.sessions.revoked"));
+      setMessage(t("admin.siteInfo.sessions.revoked"));
       reloadSessions();
     } catch {
-      setError(t("account.sessions.revokeFailed"));
+      setError(t("admin.siteInfo.sessions.revokeFailed"));
     } finally {
       setRevokingId(null);
     }
@@ -114,33 +114,33 @@ export function AccountSessionsSection() {
         setError(
           typeof data.error === "string"
             ? data.error
-            : t("account.sessions.revokeFailed")
+            : t("admin.siteInfo.sessions.revokeFailed")
         );
         return;
       }
-      setMessage(t("account.sessions.revokedOthers"));
+      setMessage(t("admin.siteInfo.sessions.revokedOthers"));
       reloadSessions();
     } catch {
-      setError(t("account.sessions.revokeFailed"));
+      setError(t("admin.siteInfo.sessions.revokeFailed"));
     } finally {
       setRevokingId(null);
     }
   }
 
   function deviceLabel(device: string): string {
-    const key = `account.sessions.device.${device}` as const;
+    const key = `admin.siteInfo.sessions.device.${device}` as const;
     const label = t(key);
-    return label === key ? t("account.sessions.device.unknown") : label;
+    return label === key ? t("admin.siteInfo.sessions.device.unknown") : label;
   }
 
   const hasOtherSessions = sessions.some((session) => !session.current);
 
   return (
-    <section className="space-y-4 max-w-md border border-border rounded-lg p-6 bg-card">
+    <section className="rounded-lg border border-border bg-card p-4 sm:p-5 space-y-4">
       <div className="space-y-1">
-        <h2 className="text-lg font-semibold">{t("account.sessions.title")}</h2>
+        <h3 className="text-sm font-medium">{t("admin.siteInfo.sessions.title")}</h3>
         <p className="text-sm text-muted-foreground">
-          {t("account.sessions.description")}
+          {t("admin.siteInfo.sessions.description")}
         </p>
       </div>
 
@@ -148,7 +148,7 @@ export function AccountSessionsSection() {
         <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
       ) : sessions.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          {t("account.sessions.empty")}
+          {t("admin.siteInfo.sessions.empty")}
         </p>
       ) : (
         <ul className="space-y-3">
@@ -163,17 +163,17 @@ export function AccountSessionsSection() {
                     {deviceLabel(session.device)}
                     {session.current ? (
                       <span className="ml-2 text-xs font-normal text-amber-500">
-                        {t("account.sessions.current")}
+                        {t("admin.siteInfo.sessions.current")}
                       </span>
                     ) : null}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {t("account.sessions.lastSeen", {
+                    {t("admin.siteInfo.sessions.lastSeen", {
                       date: formatSessionDate(session.lastSeenAt, locale),
                     })}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {t("account.sessions.created", {
+                    {t("admin.siteInfo.sessions.created", {
                       date: formatSessionDate(session.createdAt, locale),
                     })}
                   </p>
@@ -188,7 +188,7 @@ export function AccountSessionsSection() {
                   >
                     {revokingId === session.id
                       ? t("common.saving")
-                      : t("account.sessions.revoke")}
+                      : t("admin.siteInfo.sessions.revoke")}
                   </Button>
                 ) : null}
               </div>
@@ -206,7 +206,7 @@ export function AccountSessionsSection() {
         >
           {revokingId === "others"
             ? t("common.saving")
-            : t("account.sessions.revokeOthers")}
+            : t("admin.siteInfo.sessions.revokeOthers")}
         </Button>
       ) : null}
 

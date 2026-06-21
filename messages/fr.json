@@ -92,30 +92,7 @@
     "currentRequired": "Le mot de passe actuel est obligatoire.",
     "changeRequired": "Indiquez un nouveau pseudo ou un nouveau mot de passe.",
     "updateFailed": "Mise à jour impossible.",
-    "updated": "Profil mis à jour.",
-    "sessions": {
-      "title": "Appareils connectés",
-      "description": "Sessions actives sur ordinateur, téléphone ou tablette. Vous pouvez révoquer un appareil perdu sans vous déconnecter ailleurs.",
-      "current": "Cet appareil",
-      "lastSeen": "Dernière activité : {date}",
-      "created": "Connecté le {date}",
-      "revoke": "Révoquer",
-      "revokeOthers": "Déconnecter les autres appareils",
-      "revoked": "Session révoquée.",
-      "revokedOthers": "Les autres appareils ont été déconnectés.",
-      "revokeFailed": "Impossible de révoquer la session.",
-      "loadFailed": "Impossible de charger les sessions.",
-      "empty": "Aucune session active.",
-      "device": {
-        "ios": "iPhone / iPad",
-        "android": "Android",
-        "windows": "Windows",
-        "macos": "macOS",
-        "linux": "Linux",
-        "browser": "Navigateur",
-        "unknown": "Appareil inconnu"
-      }
-    }
+    "updated": "Profil mis à jour."
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -500,7 +477,30 @@
       "dbPages": "Pages SQLite",
       "foreignKeys": "Clés étrangères",
       "users": "Comptes",
-      "activeSessions": "Sessions actives"
+      "activeSessions": "Sessions actives",
+      "sessions": {
+        "title": "Appareils connectés",
+        "description": "Sessions actives sur ordinateur, téléphone ou tablette. Révoquez un appareil perdu sans vous déconnecter ailleurs.",
+        "current": "Cet appareil",
+        "lastSeen": "Dernière activité : {date}",
+        "created": "Connecté le {date}",
+        "revoke": "Révoquer",
+        "revokeOthers": "Déconnecter les autres appareils",
+        "revoked": "Session révoquée.",
+        "revokedOthers": "Les autres appareils ont été déconnectés.",
+        "revokeFailed": "Impossible de révoquer la session.",
+        "loadFailed": "Impossible de charger les sessions.",
+        "empty": "Aucune session active.",
+        "device": {
+          "ios": "iPhone / iPad",
+          "android": "Android",
+          "windows": "Windows",
+          "macos": "macOS",
+          "linux": "Linux",
+          "browser": "Navigateur",
+          "unknown": "Appareil inconnu"
+        }
+      }
     },
     "tools": {
       "backupTitle": "Sauvegarde SQLite",
