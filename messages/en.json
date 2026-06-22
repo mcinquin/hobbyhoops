@@ -477,7 +477,30 @@
       "dbPages": "SQLite pages",
       "foreignKeys": "Foreign keys",
       "users": "Accounts",
-      "activeSessions": "Active sessions"
+      "activeSessions": "Active sessions",
+      "sessions": {
+        "title": "Connected devices",
+        "description": "Active sessions on computer, phone, or tablet. Revoke a lost device without signing out elsewhere.",
+        "current": "This device",
+        "lastSeen": "Last activity: {date}",
+        "created": "Signed in: {date}",
+        "revoke": "Revoke",
+        "revokeOthers": "Sign out other devices",
+        "revoked": "Session revoked.",
+        "revokedOthers": "Other devices have been signed out.",
+        "revokeFailed": "Could not revoke session.",
+        "loadFailed": "Could not load sessions.",
+        "empty": "No active sessions.",
+        "device": {
+          "ios": "iPhone / iPad",
+          "android": "Android",
+          "windows": "Windows",
+          "macos": "macOS",
+          "linux": "Linux",
+          "browser": "Browser",
+          "unknown": "Unknown device"
+        }
+      }
     },
     "tools": {
       "backupTitle": "SQLite backup",
@@ -665,6 +688,9 @@
     "profileWrongPassword": "Incorrect current password.",
     "profileChangeRequired": "Enter a new username or a new password.",
     "profileUsernameTaken": "That username is already taken.",
+    "sessionIdRequired": "Session id is required.",
+    "sessionNotFound": "Session not found.",
+    "sessionRevokeCurrent": "Use sign out to leave this device.",
     "cardNotFound": "Card not found.",
     "cardIdMissing": "Missing identifier.",
     "playerRequired": "Enter a player.",

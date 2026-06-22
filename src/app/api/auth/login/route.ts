@@ -16,7 +16,6 @@ import {
   resetRateLimit,
 } from "@/lib/rate-limit";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
-import { deleteAllStoredSessionsForUser } from "@/lib/session-store";
 import { findUserByUsername } from "@/lib/users-store";
 import { authMisconfiguredResponse } from "@/lib/auth-config";
 import { auditLog } from "@/lib/audit-log";
@@ -92,9 +91,8 @@ export async function POST(request: NextRequest) {
   }
 
   resetRateLimit(failureKey);
-  await deleteAllStoredSessionsForUser(user.id);
 
-  const token = await createSessionToken(user.id, user.username);
+  const token = await createSessionToken(user.id, user.username, request);
   auditLog("auth.login", { user: user.username, ip });
   const res = NextResponse.json({ ok: true, username: user.username });
   res.cookies.set(
