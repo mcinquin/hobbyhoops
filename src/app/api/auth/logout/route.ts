@@ -6,8 +6,10 @@ import { rejectCrossSiteMutation } from "@/lib/request-guard";
 import { auditLog } from "@/lib/audit-log";
 import { getClientIp } from "@/lib/rate-limit";
 
+import { buildPublicRequestUrl } from "@/lib/request-url";
+
 function clearSessionCookie(request: NextRequest): NextResponse {
-  const res = NextResponse.redirect(new URL("/", request.url));
+  const res = NextResponse.redirect(buildPublicRequestUrl(request, "/"));
   res.cookies.set(SESSION_COOKIE_NAME, "", {
     ...sessionCookieOptions(0, request),
     maxAge: 0,

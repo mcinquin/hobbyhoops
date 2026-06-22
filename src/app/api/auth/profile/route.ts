@@ -176,7 +176,7 @@ export async function PUT(request: NextRequest) {
     auditLog("auth.password", { user: nextUsername, ip });
   }
 
-  const token = await createSessionToken(user.id, nextUsername);
+  const token = await createSessionToken(user.id, nextUsername, request);
   const res = NextResponse.json({ ok: true, username: nextUsername });
   res.cookies.set(
     SESSION_COOKIE_NAME,

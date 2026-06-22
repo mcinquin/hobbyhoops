@@ -53,4 +53,25 @@ describe("parseCollectionSearchParams", () => {
     expect(whereSql).toContain("cards_fts MATCH ?");
     expect(params).toEqual(['"lebron"* AND "prizm"*']);
   });
+
+  it("matches brand, set and variation exactly (no substring overlap)", () => {
+    const { whereSql, params } = buildCollectionWhereClause({
+      search: "",
+      player: "",
+      team: "",
+      year: "",
+      brand: "Donruss",
+      set: "Donruss",
+      variation: "",
+      tags: [],
+      page: 1,
+      pageSize: 50,
+      sort: "player",
+      sortDesc: false,
+    });
+    expect(whereSql).toContain("LOWER(brand) = ?");
+    expect(whereSql).toContain("LOWER(set_name) = ?");
+    expect(whereSql).not.toContain("LIKE");
+    expect(params).toContain("donruss");
+  });
 });

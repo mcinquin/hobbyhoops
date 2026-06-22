@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const token = await createSessionToken(newUser.id, newUser.username);
+  const token = await createSessionToken(newUser.id, newUser.username, request);
   auditLog("auth.bootstrap", { user: newUser.username, ip });
   const res = NextResponse.json({ ok: true, username: newUser.username });
   res.cookies.set(
