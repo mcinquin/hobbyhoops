@@ -57,7 +57,7 @@ const ALLOWED_SORT_COLUMNS = new Set(Object.values(COLLECTION_SORT_SQL));
 
 type SqlInputValue = string | number | bigint | Buffer | null;
 
-const SCHEMA_VERSION = 16;
+const SCHEMA_VERSION = 17;
 
 /** Version de schéma attendue par le code déployé (migrations SQLite). */
 export const EXPECTED_SCHEMA_VERSION = SCHEMA_VERSION;
@@ -188,7 +188,10 @@ function initSchema(db: AppDatabase): void {
     CREATE TABLE IF NOT EXISTS sessions (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
-      exp INTEGER NOT NULL
+      exp INTEGER NOT NULL,
+      created_at INTEGER NOT NULL DEFAULT 0,
+      last_seen_at INTEGER NOT NULL DEFAULT 0,
+      user_agent TEXT NOT NULL DEFAULT ''
     );
 
     CREATE TABLE IF NOT EXISTS references_state (
@@ -1124,12 +1127,37 @@ function runSchemaMigrations(db: AppDatabase): void {
       migrateFrNbaHoldingsModel(db);
     }
 
+    if (version < 17) {
+      dbLogger.info({ msg: "Applying v17: session metadata columns" });
+      migrateSessionMetadata(db);
+    }
+
     setSchemaVersion(db, SCHEMA_VERSION);
     dbLogger.info({ msg: `Migration complete (v${SCHEMA_VERSION})` });
   } catch (error) {
     dbLogger.error({ msg: "Migration failed", err: error });
     throw error;
   }
+}
+
+function migrateSessionMetadata(db: AppDatabase): void {
+  if (!tableHasColumn(db, "sessions", "created_at")) {
+    db.exec("ALTER TABLE sessions ADD COLUMN created_at INTEGER NOT NULL DEFAULT 0");
+  }
+  if (!tableHasColumn(db, "sessions", "last_seen_at")) {
+    db.exec("ALTER TABLE sessions ADD COLUMN last_seen_at INTEGER NOT NULL DEFAULT 0");
+  }
+  if (!tableHasColumn(db, "sessions", "user_agent")) {
+    db.exec("ALTER TABLE sessions ADD COLUMN user_agent TEXT NOT NULL DEFAULT ''");
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  db.prepare(
+    `UPDATE sessions
+     SET created_at = CASE WHEN created_at = 0 THEN ? ELSE created_at END,
+         last_seen_at = CASE WHEN last_seen_at = 0 THEN ? ELSE last_seen_at END
+     WHERE created_at = 0 OR last_seen_at = 0`
+  ).run(now, now);
 }
 
 function migrateFrNbaHoldingsModel(db: AppDatabase): void {

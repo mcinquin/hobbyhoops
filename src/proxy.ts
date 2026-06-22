@@ -3,19 +3,24 @@ import { NextResponse } from "next/server";
 import { getRequestTranslator } from "@/i18n/request";
 import { authMisconfiguredResponse } from "@/lib/auth-config";
 import { authMisconfiguredPageResponse } from "@/lib/auth-pages";
+import {
+  applySessionRefreshToResponse,
+  verifySessionToken,
+} from "@/lib/auth-session";
 import { SESSION_COOKIE_NAME } from "@/lib/auth-secret";
-import { readSessionTokenPayload } from "@/lib/auth-session-crypto";
 import {
   applyCspRequestHeaders,
   applyCspResponseHeaders,
   buildContentSecurityPolicy,
   createNonce,
 } from "@/lib/csp";
+import { buildPublicRequestUrl } from "@/lib/request-url";
 
 const PUBLIC_API_PREFIXES = [
   "/api/auth/login",
   "/api/auth/logout",
   "/api/auth/bootstrap",
+  "/api/auth/me",
   "/api/auth/needs-bootstrap",
   "/api/health",
   "/api/locale",
@@ -36,7 +41,7 @@ function copySearchParams(source: URL, target: URL): URL {
 }
 
 function unauthenticatedEntryUrl(request: NextRequest, fromPath: string): URL {
-  const url = new URL("/", request.url);
+  const url = buildPublicRequestUrl(request, "/");
   if (fromPath !== "/") {
     url.searchParams.set("from", fromPath);
   }
@@ -56,8 +61,22 @@ function nextWithCsp(request: NextRequest): NextResponse {
   return response;
 }
 
+function withSessionRefresh(
+  request: NextRequest,
+  response: NextResponse,
+  token: string | undefined
+): NextResponse {
+  return applySessionRefreshToResponse(response, request, token);
+}
+
+function isAuthenticated(request: NextRequest): boolean {
+  const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+  return verifySessionToken(token) !== null;
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
 
   if (PUBLIC_STATIC_PATHS.has(pathname)) {
     return NextResponse.next();
@@ -72,41 +91,40 @@ export function proxy(request: NextRequest) {
     const misconfigured = authMisconfiguredResponse(request);
     if (misconfigured) return misconfigured;
 
-    const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-    if (!readSessionTokenPayload(token)) {
+    if (!verifySessionToken(sessionToken)) {
       const t = getRequestTranslator(request);
       return NextResponse.json({ error: t("errors.unauthorized") }, { status: 401 });
     }
-    return NextResponse.next();
+    return withSessionRefresh(request, NextResponse.next(), sessionToken);
   }
 
   const pageMisconfigured = authMisconfiguredPageResponse(request);
   if (pageMisconfigured) return pageMisconfigured;
 
   if (pathname === "/login") {
-    const home = copySearchParams(request.nextUrl, new URL("/", request.url));
+    const home = copySearchParams(
+      request.nextUrl,
+      buildPublicRequestUrl(request, "/")
+    );
     return NextResponse.redirect(home, 301);
   }
 
-  const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-  const isAuthenticated = readSessionTokenPayload(token) !== null;
+  const authenticated = isAuthenticated(request);
 
   if (pathname === "/") {
-    if (!isAuthenticated) {
-      const loginUrl = copySearchParams(
-        request.nextUrl,
-        new URL("/login", request.url)
-      );
+    if (!authenticated) {
+      const loginUrl = copySearchParams(request.nextUrl, request.nextUrl.clone());
+      loginUrl.pathname = "/login";
       return NextResponse.rewrite(loginUrl);
     }
-    return nextWithCsp(request);
+    return withSessionRefresh(request, nextWithCsp(request), sessionToken);
   }
 
-  if (!isAuthenticated) {
+  if (!authenticated) {
     return NextResponse.redirect(unauthenticatedEntryUrl(request, pathname));
   }
 
-  return nextWithCsp(request);
+  return withSessionRefresh(request, nextWithCsp(request), sessionToken);
 }
 
 export const config = {

@@ -1,3 +1,38 @@
+# [1.29.0](https://github.com/mcinquin/hobbyhoops/compare/v1.28.0...v1.29.0) (2026-06-21)
+
+
+### Features
+
+* **auth:** move connected device to admin -> site info ([d7e720c](https://github.com/mcinquin/hobbyhoops/commit/d7e720c9b16b5404c34248e35d9513cfa37ef109))
+
+# [1.28.0](https://github.com/mcinquin/hobbyhoops/compare/v1.27.6...v1.28.0) (2026-06-21)
+
+
+### Features
+
+* **auth:** change session method ([61a93aa](https://github.com/mcinquin/hobbyhoops/commit/61a93aa1741be3556f6f606dc3bd494b761356a6))
+
+## [1.27.6](https://github.com/mcinquin/hobbyhoops/compare/v1.27.5...v1.27.6) (2026-06-21)
+
+
+### Bug Fixes
+
+* **search:** fix sql query with LIKE statement ([3c50926](https://github.com/mcinquin/hobbyhoops/commit/3c50926f133aad8c8f1c6101e36070303884f9bc))
+
+## [1.27.5](https://github.com/mcinquin/hobbyhoops/compare/v1.27.4...v1.27.5) (2026-06-21)
+
+
+### Bug Fixes
+
+* **auth:** fix issue with redirection ([c3c9967](https://github.com/mcinquin/hobbyhoops/commit/c3c9967b5ff8a251157e22d51a895f8d78ad094a))
+
+## [1.27.4](https://github.com/mcinquin/hobbyhoops/compare/v1.27.3...v1.27.4) (2026-06-20)
+
+
+### Bug Fixes
+
+* **auth:** fiwx again issue with auth on pwa ([3a94fb7](https://github.com/mcinquin/hobbyhoops/commit/3a94fb737ecdfd14514d25e2bdae425242f2d8c2))
+
 ## [1.27.3](https://github.com/mcinquin/hobbyhoops/compare/v1.27.2...v1.27.3) (2026-06-17)
 
 

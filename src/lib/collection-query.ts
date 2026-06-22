@@ -162,16 +162,16 @@ export function buildCollectionWhereClause(
     params.push(query.year);
   }
   if (query.brand.trim()) {
-    clauses.push("LOWER(brand) LIKE ? ESCAPE '\\'");
-    params.push(`%${escapeLike(query.brand.trim().toLowerCase())}%`);
+    clauses.push("LOWER(brand) = ?");
+    params.push(query.brand.trim().toLowerCase());
   }
   if (query.set.trim()) {
-    clauses.push("LOWER(set_name) LIKE ? ESCAPE '\\'");
-    params.push(`%${escapeLike(query.set.trim().toLowerCase())}%`);
+    clauses.push("LOWER(set_name) = ?");
+    params.push(query.set.trim().toLowerCase());
   }
   if (query.variation.trim()) {
-    clauses.push("LOWER(variation) LIKE ? ESCAPE '\\'");
-    params.push(`%${escapeLike(query.variation.trim().toLowerCase())}%`);
+    clauses.push("LOWER(variation) = ?");
+    params.push(query.variation.trim().toLowerCase());
   }
 
   for (const tag of query.tags) {

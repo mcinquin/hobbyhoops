@@ -1,28 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRequestTranslator } from "@/i18n/request";
+import { getPublicOrigin } from "@/lib/request-url";
 
 const SAFE_FETCH_SITES = new Set(["same-origin", "none"]);
-
-function trustProxyHeaders(): boolean {
-  return process.env.TRUST_PROXY?.trim().toLowerCase() === "true";
-}
-
-function firstHeaderValue(value: string | null): string | null {
-  return value?.split(",")[0]?.trim() || null;
-}
-
-function getPublicOrigin(request: NextRequest): string {
-  const url = new URL(request.url);
-  if (!trustProxyHeaders()) return url.origin;
-
-  const proto = firstHeaderValue(request.headers.get("x-forwarded-proto"));
-  const host =
-    firstHeaderValue(request.headers.get("x-forwarded-host")) ??
-    firstHeaderValue(request.headers.get("host"));
-
-  if (!proto || !host) return url.origin;
-  return `${proto.toLowerCase()}://${host.toLowerCase()}`;
-}
 
 export function rejectCrossSiteMutation(
   request: NextRequest,
