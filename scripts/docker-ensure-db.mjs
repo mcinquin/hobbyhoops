@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Pre-flight database migration for Docker startup.
+ * Pre-flight checks for Docker startup.
  * Exits with code 1 on failure so Compose does not start the app server.
  *
  * Self-contained: only this file is copied into the production image (see Dockerfile).
@@ -51,5 +51,21 @@ try {
   await register();
 } catch (error) {
   log.error({ msg: "Startup aborted", err: error });
+  process.exit(1);
+}
+
+const dbPath = path.resolve(
+  appRoot,
+  process.env.HOBBYHOOPS_DB_PATH?.trim() || "data/hobbyhoops.db"
+);
+
+try {
+  const Database = (await import("better-sqlite3")).default;
+  const db = new Database(dbPath);
+  db.pragma("journal_mode = WAL");
+  db.prepare("SELECT 1").get();
+  db.close();
+} catch (error) {
+  log.error({ msg: "Startup aborted", detail: "database unavailable", err: error });
   process.exit(1);
 }
