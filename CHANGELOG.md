@@ -1,3 +1,10 @@
+## [1.29.1](https://github.com/mcinquin/hobbyhoops/compare/v1.29.0...v1.29.1) (2026-06-22)
+
+
+### Bug Fixes
+
+* **auth:** fix issue after dependabot MRs ([8aa17d5](https://github.com/mcinquin/hobbyhoops/commit/8aa17d5593dfd77fb9cb3c56d24aca619b328981))
+
 # [1.29.0](https://github.com/mcinquin/hobbyhoops/compare/v1.28.0...v1.29.0) (2026-06-21)
 
 
