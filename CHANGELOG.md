@@ -1,3 +1,10 @@
+# [1.29.0](https://github.com/mcinquin/hobbyhoops/compare/v1.28.0...v1.29.0) (2026-06-21)
+
+
+### Features
+
+* **auth:** move connected device to admin -> site info ([d7e720c](https://github.com/mcinquin/hobbyhoops/commit/d7e720c9b16b5404c34248e35d9513cfa37ef109))
+
 # [1.28.0](https://github.com/mcinquin/hobbyhoops/compare/v1.27.6...v1.28.0) (2026-06-21)
 
 
