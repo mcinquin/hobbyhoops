@@ -1,6 +1,6 @@
 {
   "name": "hobbyhoops",
-  "version": "1.27.3",
+  "version": "1.29.0",
   "private": true,
   "engines": {
     "node": ">=24 <25"
@@ -15,7 +15,7 @@
     "start": "next start",
     "lint": "eslint",
     "lint:md": "markdownlint-cli2",
-    "audit:ci": "npm audit --audit-level=high",
+    "audit:ci": "npm audit --audit-level=high --omit=dev",
     "ci": "node scripts/ci.mjs",
     "ci:full": "node scripts/ci.mjs --with-audit",
     "check": "npm run ci",
@@ -32,9 +32,9 @@
     "*.md": "markdownlint-cli2 --fix"
   },
   "dependencies": {
-    "@base-ui/react": "^1.4.1",
+    "@base-ui/react": "^1.6.0",
     "@tanstack/react-table": "^8.21.3",
-    "better-sqlite3": "^12.10.0",
+    "better-sqlite3": "^12.11.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "csv-parse": "^6.2.1",

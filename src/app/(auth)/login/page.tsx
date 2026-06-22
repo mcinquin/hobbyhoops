@@ -29,23 +29,6 @@ function LoginForm() {
       .catch(() => setNeedsBootstrap(false));
   }, []);
 
-  // Session valide mais absente de la requête HTML initiale (SameSite, PWA…) :
-  // une sous-requête same-site renvoie le cookie et permet de quitter l’écran login.
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((r) => {
-        if (cancelled || !r.ok) return;
-        const from = searchParams.get("from");
-        router.replace(safeInternalRedirectPath(from));
-        router.refresh();
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [router, searchParams]);
-
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -68,8 +51,8 @@ function LoginForm() {
         );
         return;
       }
-      const from = searchParams.get("from");
-      router.push(safeInternalRedirectPath(from));
+      const fromPath = searchParams.get("from");
+      router.push(safeInternalRedirectPath(fromPath));
       router.refresh();
     } finally {
       setLoading(false);
