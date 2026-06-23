@@ -1,3 +1,10 @@
+# [1.30.0](https://github.com/mcinquin/hobbyhoops/compare/v1.29.1...v1.30.0) (2026-06-23)
+
+
+### Features
+
+* **incoming:** add delete entry when arrived ([ecc31ed](https://github.com/mcinquin/hobbyhoops/commit/ecc31edbd0fc05f67889c0ec0ff822a5c2f7ca6f))
+
 ## [1.29.1](https://github.com/mcinquin/hobbyhoops/compare/v1.29.0...v1.29.1) (2026-06-22)
 
 
