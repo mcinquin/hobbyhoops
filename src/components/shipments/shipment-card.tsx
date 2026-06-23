@@ -91,7 +91,7 @@ export function ShipmentCard({
   if (shipment.status === "delivered") {
     nextActions.push({
       status: "received",
-      label: t("shipments.actions.markReceived"),
+      label: t("shipments.actions.addToCollection"),
     });
   }
   if (shipment.status !== "received" && shipment.status !== "dispute") {
