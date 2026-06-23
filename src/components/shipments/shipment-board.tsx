@@ -137,12 +137,16 @@ export function ShipmentBoard({ initialShipments, references }: ShipmentBoardPro
 
   const handleStatusChange = useCallback(
     async (id: string, status: ShipmentStatus) => {
+      setFormError(null);
       setSuccess(null);
       setLoading(true);
       try {
-        await updateShipment({ id, status });
+        const updated = await updateShipment({ id, status });
         await refreshShipments();
         setSuccess(t("shipments.updated"));
+        if (status === "delivered") {
+          setReceiveTarget(updated);
+        }
       } catch {
         setFormError(t("errors.updateFailed"));
       } finally {
@@ -158,7 +162,7 @@ export function ShipmentBoard({ initialShipments, references }: ShipmentBoardPro
   }, []);
 
   const handleReceiveComplete = useCallback(
-    async (messageKey: "addedToCollection" | "markedReceived") => {
+    async (messageKey: "addedToCollection" | "deleted") => {
       setReceiveTarget(null);
       setLoading(true);
       try {

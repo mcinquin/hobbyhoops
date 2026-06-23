@@ -229,15 +229,17 @@
       "markInTransit": "In transit",
       "markDelivered": "Mark delivered",
       "markReceived": "Received ✓",
+      "addToCollection": "Add to collection",
       "openDispute": "Dispute"
     },
     "receive": {
       "title": "Add to collection",
       "submit": "Add and mark received",
-      "skip": "Mark received without adding",
+      "delete": "Delete entry",
       "saveFailed": "Could not save the card.",
+      "deleteFailed": "Could not delete the entry.",
       "addedToCollection": "Card added and shipment marked received.",
-      "markedReceived": "Shipment marked received."
+      "deleted": "Shipment removed."
     },
     "provenance": {
       "platform": "{platform} purchase",

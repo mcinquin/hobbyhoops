@@ -229,15 +229,17 @@
       "markInTransit": "En transit",
       "markDelivered": "Marquer livré",
       "markReceived": "Reçu ✓",
+      "addToCollection": "Ajouter à la collection",
       "openDispute": "Litige"
     },
     "receive": {
       "title": "Ajouter à la collection",
       "submit": "Ajouter et marquer reçu",
-      "skip": "Marquer reçu sans ajouter",
+      "delete": "Supprimer l'entrée",
       "saveFailed": "Impossible d'enregistrer la carte.",
+      "deleteFailed": "Impossible de supprimer l'entrée.",
       "addedToCollection": "Carte ajoutée et colis marqué reçu.",
-      "markedReceived": "Colis marqué reçu."
+      "deleted": "Colis supprimé."
     },
     "provenance": {
       "platform": "Achat {platform}",

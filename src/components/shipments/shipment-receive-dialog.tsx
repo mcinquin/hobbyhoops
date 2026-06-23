@@ -5,7 +5,7 @@ import type { Card, References, Shipment } from "@/lib/types";
 import { buildCardDraftFromShipment } from "@/lib/shipment-to-card";
 import { formatPriceLabel } from "@/lib/shipment-utils";
 import { createCard } from "@/lib/cards-client";
-import { updateShipment } from "@/lib/shipments-client";
+import { deleteShipment, updateShipment } from "@/lib/shipments-client";
 import { CardForm } from "@/components/card-form";
 import { useI18n, useTranslations } from "@/i18n/client";
 
@@ -14,7 +14,7 @@ interface ShipmentReceiveDialogProps {
   references: References;
   open: boolean;
   onClose: () => void;
-  onComplete: (messageKey: "addedToCollection" | "markedReceived") => void;
+  onComplete: (messageKey: "addedToCollection" | "deleted") => void;
 }
 
 function buildProvenanceNote(
@@ -53,7 +53,7 @@ export function ShipmentReceiveDialog({
   const t = useTranslations();
   const { locale } = useI18n();
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [skipping, setSkipping] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const cardDraft = useMemo(() => {
     if (!shipment) return null;
@@ -85,17 +85,17 @@ export function ShipmentReceiveDialog({
     }
   }
 
-  async function handleSkip() {
-    if (!shipment || skipping) return;
+  async function handleDelete() {
+    if (!shipment || deleting) return;
     setSaveError(null);
-    setSkipping(true);
+    setDeleting(true);
     try {
-      await updateShipment({ id: shipment.id, status: "received" });
-      onComplete("markedReceived");
+      await deleteShipment(shipment.id);
+      onComplete("deleted");
     } catch {
-      setSaveError(t("shipments.receive.saveFailed"));
+      setSaveError(t("shipments.receive.deleteFailed"));
     } finally {
-      setSkipping(false);
+      setDeleting(false);
     }
   }
 
@@ -115,9 +115,9 @@ export function ShipmentReceiveDialog({
       dialogTitle={t("shipments.receive.title")}
       submitLabel={t("shipments.receive.submit")}
       secondaryAction={{
-        label: t("shipments.receive.skip"),
-        onClick: handleSkip,
-        disabled: skipping,
+        label: t("shipments.receive.delete"),
+        onClick: handleDelete,
+        disabled: deleting,
       }}
     />
   );
