@@ -48,7 +48,7 @@ export function LocaleDateInput({
     }
 
     const digits = raw.replace(/\D/g, "");
-    const isAdding = digits.length > prevDigitLengthRef.current.length;
+    const isAdding = digits.length > prevDigitLengthRef.current;
     prevDigitLengthRef.current = digits.length;
     const next = autoFormatSlashedDateInput(raw, {
       appendTrailingSlash: isAdding,
