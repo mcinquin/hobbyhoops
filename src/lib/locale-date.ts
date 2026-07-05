@@ -38,6 +38,29 @@ export function formatTodayIsoDate(): string {
   return `${year}-${month}-${day}`;
 }
 
+/** Formate une saisie numérique en jj/mm/aaaa ou mm/dd/yyyy avec séparateurs. */
+export function autoFormatSlashedDateInput(
+  value: string,
+  options?: { appendTrailingSlash?: boolean }
+): string {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+  if (digits.length <= 2) {
+    const segment = digits;
+    if (options?.appendTrailingSlash && digits.length === 2) {
+      return `${segment}/`;
+    }
+    return segment;
+  }
+  if (digits.length <= 4) {
+    const formatted = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    if (options?.appendTrailingSlash && digits.length === 4) {
+      return `${formatted}/`;
+    }
+    return formatted;
+  }
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+}
+
 /** Parse une saisie (ISO ou jj/mm/aaaa | mm/dd/yyyy) vers ISO. */
 export function parseDateInputToIso(
   value: string | null | undefined,
