@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # ── Étape 1 : dépendances ─────────────────────────────────────────────────────
-FROM node:24-alpine@sha256:156b55f92e98ccd5ef49578a8cea0df4679826564bad1c9d4ef04462b9f0ded6 AS deps
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS deps
 WORKDIR /app
 
 RUN --mount=type=cache,target=/var/cache/apk \
@@ -22,7 +22,7 @@ RUN --mount=type=cache,target=/app/.next/cache \
   npm run build
 
 # ── Étape 3 : image de production ─────────────────────────────────────────────
-FROM node:24-alpine@sha256:156b55f92e98ccd5ef49578a8cea0df4679826564bad1c9d4ef04462b9f0ded6 AS runner
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS runner
 WORKDIR /app
 
 RUN --mount=type=cache,target=/var/cache/apk \

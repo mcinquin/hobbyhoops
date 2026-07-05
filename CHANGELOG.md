@@ -1,3 +1,11 @@
+# [1.31.0](https://github.com/mcinquin/hobbyhoops/compare/v1.30.0...v1.31.0) (2026-07-05)
+
+
+### Features
+
+* **incoming:** date completion ([a294f0b](https://github.com/mcinquin/hobbyhoops/commit/a294f0b1939f9ba0d744c27cfeeb612cf506890c))
+* **incoming:** date completion ([d54b00b](https://github.com/mcinquin/hobbyhoops/commit/d54b00b5ca933d37b45f3c3fa5a4b38ea7295db7))
+
 # [1.30.0](https://github.com/mcinquin/hobbyhoops/compare/v1.29.1...v1.30.0) (2026-06-23)
 
 
