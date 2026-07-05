@@ -1,7 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { DateLocale } from "@/lib/locale-date";
+import {
+  autoFormatSlashedDateInput,
+  formatIsoDateForInput,
+  ISO_DATE_REGEX,
+} from "@/lib/locale-date";
 import { useI18n, useTranslations } from "@/i18n/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,6 +35,29 @@ export function LocaleDateInput({
   const formattedValue = formatForInput(value, locale);
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(formattedValue);
+  const prevDigitLengthRef = useRef(formattedValue.replace(/\D/g, "").length);
+
+  function handleDraftChange(raw: string) {
+    const trimmed = raw.trim();
+    if (ISO_DATE_REGEX.test(trimmed)) {
+      const formatted = formatIsoDateForInput(trimmed, locale);
+      prevDigitLengthRef.current = formatted.replace(/\D/g, "").length;
+      setDraft(formatted);
+      onChange(trimmed);
+      return;
+    }
+
+    const digits = raw.replace(/\D/g, "");
+    const isAdding = digits.length > prevDigitLengthRef.current;
+    prevDigitLengthRef.current = digits.length;
+    const next = autoFormatSlashedDateInput(raw, {
+      appendTrailingSlash: isAdding,
+    });
+    setDraft(next);
+    const parsed = parseInput(next, locale);
+    if (parsed) onChange(parsed);
+    else if (!next.trim()) onChange(null);
+  }
 
   return (
     <div className="space-y-1">
@@ -40,14 +68,9 @@ export function LocaleDateInput({
         onFocus={() => {
           setIsEditing(true);
           setDraft(formattedValue);
+          prevDigitLengthRef.current = formattedValue.replace(/\D/g, "").length;
         }}
-        onChange={(e) => {
-          const next = e.target.value;
-          setDraft(next);
-          const parsed = parseInput(next, locale);
-          if (parsed) onChange(parsed);
-          else if (!next.trim()) onChange(null);
-        }}
+        onChange={(e) => handleDraftChange(e.target.value)}
         onBlur={() => {
           setIsEditing(false);
           const parsed = parseInput(draft, locale);
