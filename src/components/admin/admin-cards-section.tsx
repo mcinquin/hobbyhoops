@@ -255,23 +255,32 @@ export function AdminCardsSection({
       <div className="grid gap-2 md:hidden">
         <ColumnFilterCombobox
           value={filters.player}
-          onChange={(value) => applyAdminFilters({ player: value })}
+          onChange={(value) =>
+            applyAdminFilters({ player: value }, { immediate: !value.trim() })
+          }
           placeholder={t("admin.cards.filterPlayerTeam")}
           suggestions={references.players}
+          clearOptionLabel={t("cards.selectNone")}
           className="h-9 text-xs"
         />
         <ColumnFilterCombobox
           value={filters.team}
-          onChange={(value) => applyAdminFilters({ team: value })}
+          onChange={(value) =>
+            applyAdminFilters({ team: value }, { immediate: !value.trim() })
+          }
           placeholder={t("admin.cards.filterTeam")}
           suggestions={references.teams}
+          clearOptionLabel={t("cards.selectNone")}
           className="h-9 text-xs"
         />
         <ColumnFilterCombobox
           value={filters.year}
-          onChange={(value) => applyAdminFilters({ year: value })}
+          onChange={(value) =>
+            applyAdminFilters({ year: value }, { immediate: !value.trim() })
+          }
           placeholder={t("admin.cards.filterYear")}
           suggestions={references.years}
+          clearOptionLabel={t("cards.selectNone")}
           className="h-9 text-xs"
         />
         <div className="flex flex-wrap gap-1">
@@ -286,23 +295,42 @@ export function AdminCardsSection({
         </div>
         <ColumnFilterCombobox
           value={filters.brand}
-          onChange={(value) => applyAdminFilters({ brand: value, set: "" })}
+          onChange={(value) =>
+            applyAdminFilters(
+              value.trim()
+                ? { brand: value, set: "" }
+                : { brand: "", set: "", variation: "" },
+              { immediate: !value.trim() }
+            )
+          }
           placeholder={t("admin.cards.filterBrand")}
           suggestions={references.brands}
+          clearOptionLabel={t("cards.selectNone")}
           className="h-9 text-xs"
         />
         <ColumnFilterCombobox
           value={filters.set}
-          onChange={(value) => applyAdminFilters({ set: value })}
+          onChange={(value) =>
+            applyAdminFilters(
+              value.trim()
+                ? { set: value }
+                : { set: "", variation: "" },
+              { immediate: !value.trim() }
+            )
+          }
           placeholder={t("admin.cards.filterSet")}
           suggestions={setSuggestions}
+          clearOptionLabel={t("cards.selectNone")}
           className="h-9 text-xs"
         />
         <ColumnFilterCombobox
           value={filters.variation}
-          onChange={(value) => applyAdminFilters({ variation: value })}
+          onChange={(value) =>
+            applyAdminFilters({ variation: value }, { immediate: !value.trim() })
+          }
           placeholder={t("admin.cards.filterVariation")}
           suggestions={variationSuggestions}
+          clearOptionLabel={t("cards.selectNone")}
           className="h-9 text-xs"
         />
       </div>
@@ -394,6 +422,7 @@ export function AdminCardsSection({
                   }
                   placeholder={t("admin.cards.filterPlayerTeam")}
                   suggestions={references.players}
+                  clearOptionLabel={t("cards.selectNone")}
                   className="h-8 min-w-44 text-xs font-normal"
                 />
               </TableHead>
@@ -405,6 +434,7 @@ export function AdminCardsSection({
                   }
                   placeholder={t("admin.cards.filterTeam")}
                   suggestions={references.teams}
+                  clearOptionLabel={t("cards.selectNone")}
                   className="h-8 min-w-36 text-xs font-normal"
                 />
               </TableHead>
@@ -416,6 +446,7 @@ export function AdminCardsSection({
                   }
                   placeholder={t("admin.cards.filterYear")}
                   suggestions={references.years}
+                  clearOptionLabel={t("cards.selectNone")}
                   className="h-8 min-w-24 text-xs font-normal"
                 />
               </TableHead>
@@ -430,6 +461,7 @@ export function AdminCardsSection({
                   }
                   placeholder={t("admin.cards.filterBrand")}
                   suggestions={references.brands}
+                  clearOptionLabel={t("cards.selectNone")}
                   className="h-8 min-w-36 text-xs font-normal"
                 />
               </TableHead>
@@ -441,6 +473,7 @@ export function AdminCardsSection({
                   }
                   placeholder={t("admin.cards.filterSet")}
                   suggestions={setSuggestions}
+                  clearOptionLabel={t("cards.selectNone")}
                   className="h-8 min-w-44 text-xs font-normal"
                 />
               </TableHead>
@@ -454,6 +487,7 @@ export function AdminCardsSection({
                   }
                   placeholder={t("admin.cards.filterVariation")}
                   suggestions={variationSuggestions}
+                  clearOptionLabel={t("cards.selectNone")}
                   className="h-8 min-w-40 text-xs font-normal"
                 />
               </TableHead>

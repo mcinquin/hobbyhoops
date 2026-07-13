@@ -50,8 +50,10 @@ export function AutocompleteCombobox({
 
   if (isDebounced && prevValue !== value) {
     setPrevValue(value);
-    if (sentValue !== value) {
+    // Ignore stale URL while the user is mid-edit (pending debounce).
+    if (debounceRef.current === null && sentValue !== value) {
       setInputText(value);
+      setSentValue(value);
     }
   }
 
@@ -94,6 +96,12 @@ export function AutocompleteCombobox({
       setOpen(true);
       setActiveIndex(0);
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      // Flush empty clears immediately so applied filters stay in sync.
+      if (newText.trim() === "") {
+        setSentValue("");
+        onChange("");
+        return;
+      }
       debounceRef.current = setTimeout(() => {
         setSentValue(newText);
         onChange(newText);

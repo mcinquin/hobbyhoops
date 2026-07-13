@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo, useEffect, useId } from "react";
+import { useState, useMemo, useEffect, useId, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { XIcon } from "lucide-react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -46,6 +47,14 @@ const SORT_COLUMN_KEYS = [
   "variation",
 ] as const satisfies readonly CollectionSortKey[];
 
+type ColumnFilterKey = "player" | "team" | "brand" | "set" | "variation";
+
+type ActiveFilterChip = {
+  id: string;
+  label: string;
+  onRemove: () => void;
+};
+
 interface CardTableProps {
   cards: CardListItem[];
   totalCount: number;
@@ -75,6 +84,25 @@ export function CardTable({
   const selectedTags = useMemo(
     () => new Set(urlFilters.tags),
     [urlFilters.tags]
+  );
+
+  const updateColumnFilter = useCallback(
+    (key: ColumnFilterKey, value: string) => {
+      const isClear = !value.trim();
+      if (key === "brand" && isClear) {
+        updateFilters(
+          { brand: "", set: "", variation: "" },
+          { immediate: true }
+        );
+        return;
+      }
+      if (key === "set" && isClear) {
+        updateFilters({ set: "", variation: "" }, { immediate: true });
+        return;
+      }
+      updateFilters({ [key]: value }, { immediate: isClear });
+    },
+    [updateFilters]
   );
 
   function sortState(column: CollectionSortKey): false | "asc" | "desc" {
@@ -227,28 +255,75 @@ export function CardTable({
     }
   }, [urlFilters, pageCount, pathname, router]);
 
-  const activeFilters = useMemo(
-    () =>
-      [
-        urlFilters.search
-          ? t("cards.activeSearch", { value: urlFilters.search })
-          : "",
-        urlFilters.player
-          ? t("cards.activePlayer", { value: urlFilters.player })
-          : "",
-        urlFilters.team ? t("cards.activeTeam", { value: urlFilters.team }) : "",
-        urlFilters.year ? t("cards.activeYear", { value: urlFilters.year }) : "",
-        urlFilters.brand
-          ? t("cards.activeBrand", { value: urlFilters.brand })
-          : "",
-        urlFilters.set ? t("cards.activeSet", { value: urlFilters.set }) : "",
-        urlFilters.variation
-          ? t("cards.activeVariation", { value: urlFilters.variation })
-          : "",
-        ...urlFilters.tags.map((tag) => badgeLabels[tag]),
-      ].filter(Boolean),
-    [badgeLabels, t, urlFilters]
-  );
+  const activeFilters = useMemo((): ActiveFilterChip[] => {
+    const chips: ActiveFilterChip[] = [];
+
+    if (urlFilters.search) {
+      chips.push({
+        id: "search",
+        label: t("cards.activeSearch", { value: urlFilters.search }),
+        onRemove: () => updateFilters({ search: "" }, { immediate: true }),
+      });
+    }
+    if (urlFilters.player) {
+      chips.push({
+        id: "player",
+        label: t("cards.activePlayer", { value: urlFilters.player }),
+        onRemove: () => updateFilters({ player: "" }, { immediate: true }),
+      });
+    }
+    if (urlFilters.team) {
+      chips.push({
+        id: "team",
+        label: t("cards.activeTeam", { value: urlFilters.team }),
+        onRemove: () => updateFilters({ team: "" }, { immediate: true }),
+      });
+    }
+    if (urlFilters.year) {
+      chips.push({
+        id: "year",
+        label: t("cards.activeYear", { value: urlFilters.year }),
+        onRemove: () => updateFilters({ year: "" }, { immediate: true }),
+      });
+    }
+    if (urlFilters.brand) {
+      chips.push({
+        id: "brand",
+        label: t("cards.activeBrand", { value: urlFilters.brand }),
+        onRemove: () =>
+          updateFilters(
+            { brand: "", set: "", variation: "" },
+            { immediate: true }
+          ),
+      });
+    }
+    if (urlFilters.set) {
+      chips.push({
+        id: "set",
+        label: t("cards.activeSet", { value: urlFilters.set }),
+        onRemove: () =>
+          updateFilters({ set: "", variation: "" }, { immediate: true }),
+      });
+    }
+    if (urlFilters.variation) {
+      chips.push({
+        id: "variation",
+        label: t("cards.activeVariation", { value: urlFilters.variation }),
+        onRemove: () => updateFilters({ variation: "" }, { immediate: true }),
+      });
+    }
+    for (const tag of urlFilters.tags) {
+      chips.push({
+        id: `tag-${tag}`,
+        label: badgeLabels[tag],
+        onRemove: () => toggleTag(tag),
+      });
+    }
+
+    return chips;
+  }, [badgeLabels, t, toggleTag, updateFilters, urlFilters]);
+
+  const clearOptionLabel = t("cards.selectNone");
 
   return (
     <div className="space-y-4">
@@ -265,16 +340,18 @@ export function CardTable({
         <div className="grid gap-2 sm:grid-cols-2 lg:flex lg:flex-wrap">
           <ColumnFilterCombobox
             value={urlFilters.player}
-            onChange={(value) => updateFilters({ player: value })}
+            onChange={(value) => updateColumnFilter("player", value)}
             placeholder={t("cards.filterPlayer")}
             suggestions={referenceFilters.players}
+            clearOptionLabel={clearOptionLabel}
             className="h-9 text-xs lg:h-8 lg:w-40"
           />
           <ColumnFilterCombobox
             value={urlFilters.team}
-            onChange={(value) => updateFilters({ team: value })}
+            onChange={(value) => updateColumnFilter("team", value)}
             placeholder={t("cards.filterTeam")}
             suggestions={referenceFilters.teams}
+            clearOptionLabel={clearOptionLabel}
             className="h-9 text-xs lg:h-8 lg:w-36"
           />
           <div className="flex flex-col gap-1">
@@ -299,26 +376,29 @@ export function CardTable({
           </div>
           <ColumnFilterCombobox
             value={urlFilters.brand}
-            onChange={(value) => updateFilters({ brand: value })}
+            onChange={(value) => updateColumnFilter("brand", value)}
             placeholder={t("cards.allBrands")}
             suggestions={referenceFilters.brands}
+            clearOptionLabel={clearOptionLabel}
             className="h-9 text-xs lg:h-8 lg:max-w-[200px]"
           />
           <ColumnFilterCombobox
             value={urlFilters.set}
-            onChange={(value) => updateFilters({ set: value })}
+            onChange={(value) => updateColumnFilter("set", value)}
             placeholder={
               urlFilters.brand ? t("cards.allSets") : t("cards.setNeedsBrand")
             }
             suggestions={setSuggestions}
             disabled={!urlFilters.brand.trim()}
+            clearOptionLabel={clearOptionLabel}
             className="h-9 text-xs disabled:cursor-not-allowed disabled:opacity-50 sm:col-span-2 lg:h-8 lg:min-w-[140px] lg:max-w-[220px]"
           />
           <ColumnFilterCombobox
             value={urlFilters.variation}
-            onChange={(value) => updateFilters({ variation: value })}
+            onChange={(value) => updateColumnFilter("variation", value)}
             placeholder={t("admin.cards.filterVariation")}
             suggestions={variationSuggestions}
+            clearOptionLabel={clearOptionLabel}
             className="h-9 text-xs sm:col-span-2 lg:h-8 lg:min-w-[160px] lg:max-w-[240px]"
           />
           <div className="flex flex-wrap gap-1 sm:col-span-2 lg:col-span-1">
@@ -347,12 +427,16 @@ export function CardTable({
               {t("cards.activeFilters")}
             </span>
             {activeFilters.map((filter) => (
-              <span
-                key={filter}
-                className="rounded-full bg-muted px-2 py-1 text-muted-foreground"
+              <button
+                key={filter.id}
+                type="button"
+                onClick={filter.onRemove}
+                aria-label={t("cards.removeFilter", { filter: filter.label })}
+                className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
               >
-                {filter}
-              </span>
+                <span>{filter.label}</span>
+                <XIcon className="size-3 shrink-0 opacity-70" aria-hidden />
+              </button>
             ))}
             <Link
               href="/collection"
