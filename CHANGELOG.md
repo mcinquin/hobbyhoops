@@ -1,3 +1,11 @@
+# [1.32.0](https://github.com/mcinquin/hobbyhoops/compare/v1.31.0...v1.32.0) (2026-07-13)
+
+
+### Features
+
+* **collection:** add removable filters ([c7ce6ca](https://github.com/mcinquin/hobbyhoops/commit/c7ce6ca449098d03ac33e43453ebcedfffa023c1))
+* **collection:** Add removable filters ([e106b38](https://github.com/mcinquin/hobbyhoops/commit/e106b383ff398d7f5f0d8ea63780bb191db47117))
+
 # [1.31.0](https://github.com/mcinquin/hobbyhoops/compare/v1.30.0...v1.31.0) (2026-07-05)
 
 
