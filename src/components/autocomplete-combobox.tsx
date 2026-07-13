@@ -46,12 +46,13 @@ export function AutocompleteCombobox({
   const [inputText, setInputText] = useState(value);
   const [prevValue, setPrevValue] = useState(value);
   const [sentValue, setSentValue] = useState(value);
+  const [hasPendingDebounce, setHasPendingDebounce] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   if (isDebounced && prevValue !== value) {
     setPrevValue(value);
     // Ignore stale URL while the user is mid-edit (pending debounce).
-    if (debounceRef.current === null && sentValue !== value) {
+    if (!hasPendingDebounce && sentValue !== value) {
       setInputText(value);
       setSentValue(value);
     }
@@ -81,6 +82,7 @@ export function AutocompleteCombobox({
     if (isDebounced) {
       setInputText(nextValue);
       setSentValue(nextValue);
+      setHasPendingDebounce(false);
       if (debounceRef.current) clearTimeout(debounceRef.current);
       onChange(nextValue);
     } else {
@@ -98,12 +100,15 @@ export function AutocompleteCombobox({
       if (debounceRef.current) clearTimeout(debounceRef.current);
       // Flush empty clears immediately so applied filters stay in sync.
       if (newText.trim() === "") {
+        setHasPendingDebounce(false);
         setSentValue("");
         onChange("");
         return;
       }
+      setHasPendingDebounce(true);
       debounceRef.current = setTimeout(() => {
         setSentValue(newText);
+        setHasPendingDebounce(false);
         onChange(newText);
       }, debounceMs);
       return;
