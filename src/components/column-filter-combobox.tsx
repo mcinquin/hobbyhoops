@@ -10,6 +10,7 @@ interface ColumnFilterComboboxProps {
   className?: string;
   disabled?: boolean;
   debounceMs?: number;
+  clearOptionLabel?: string;
 }
 
 export function ColumnFilterCombobox({

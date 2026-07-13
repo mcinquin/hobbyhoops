@@ -419,6 +419,7 @@
     "activeBrand": "Marque = {value}",
     "activeSet": "Set = {value}",
     "activeVariation": "Variation = {value}",
+    "removeFilter": "Retirer le filtre {filter}",
     "resetFilters": "Réinitialiser"
   },
   "admin": {
