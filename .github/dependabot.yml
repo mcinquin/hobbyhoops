@@ -4,11 +4,11 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    # @types/node suit les versions majeures de Node.js.
-    # Les versions impaires (25, 27, 29…) sont non-LTS — on les ignore.
+    # @types/node suit les majors de Node.js (24, 26, 28…).
+    # Tant que le runtime est verrouillé sur Node 24, on n'accepte que les patch/minor 24.x.
     ignore:
       - dependency-name: "@types/node"
-        versions: ["25.*", "27.*", "29.*", "31.*", "33.*"]
+        update-types: ["version-update:semver-major"]
     groups:
       next:
         patterns:
