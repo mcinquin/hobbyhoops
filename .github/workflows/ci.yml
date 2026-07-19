@@ -32,7 +32,7 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
-    needs: quality
+    # Parallèle à quality : wall-clock PR ≈ max(quality, docker).
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
@@ -48,24 +48,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302
-        id: meta
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=ref,event=pr
-            type=sha,prefix=sha-
-
       - uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
         with:
           context: .
-          # Validation Docker pour les PR. Sur main, seul le job release construit
-          # l'image quand semantic-release publie vraiment une version.
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Validation Dockerfile uniquement : pas d'image PR sur GHCR.
+          # Le push productif reste sur le job release.
+          push: false
+          cache-from: |
+            type=registry,ref=ghcr.io/${{ github.repository }}/buildcache:latest
+            type=gha,scope=hobbyhoops
+          cache-to: |
+            type=registry,ref=ghcr.io/${{ github.repository }}/buildcache:latest,mode=max
+            type=gha,mode=max,scope=hobbyhoops
 
   release:
     name: semantic-release
@@ -155,5 +149,9 @@ jobs:
           push: true
           tags: ${{ steps.release-meta.outputs.tags }}
           labels: ${{ steps.release-meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: |
+            type=registry,ref=ghcr.io/${{ github.repository }}/buildcache:latest
+            type=gha,scope=hobbyhoops
+          cache-to: |
+            type=registry,ref=ghcr.io/${{ github.repository }}/buildcache:latest,mode=max
+            type=gha,mode=max,scope=hobbyhoops
