@@ -48,6 +48,16 @@ function listItemToEditableCard(card: CardListItem): Card {
   return { ...card, photo: null };
 }
 
+/** Cascade brand → set/variation when the parent filter changes. */
+function brandFilterPatch(brand: string): Partial<CollectionListQuery> {
+  return { brand, set: "", variation: "" };
+}
+
+/** Cascade set → variation when the set filter is cleared. */
+function setFilterPatch(set: string): Partial<CollectionListQuery> {
+  return set.trim() ? { set } : { set: "", variation: "" };
+}
+
 interface AdminCardsSectionProps {
   references: References;
   onReferencesChange: (references: References) => void;
@@ -94,32 +104,13 @@ export function AdminCardsSection({
     [references, filters.brand, filters.set]
   );
 
+  // Keep URL hygiene only: set requires a brand. Never validate partial
+  // keystrokes against suggestions — that wiped in-progress typing.
   useEffect(() => {
-    if (!filters.brand) {
-      if (filters.set) applyAdminFilters({ set: "" }, { immediate: true });
-      return;
+    if (!filters.brand.trim() && filters.set) {
+      applyAdminFilters({ set: "", variation: "" }, { immediate: true });
     }
-    if (
-      filters.set &&
-      !setSuggestions.some(
-        (setName) => setName.toLowerCase() === filters.set.toLowerCase()
-      )
-    ) {
-      applyAdminFilters({ set: "" }, { immediate: true });
-    }
-  }, [applyAdminFilters, filters.brand, filters.set, setSuggestions]);
-
-  useEffect(() => {
-    if (
-      filters.variation &&
-      !variationSuggestions.some(
-        (variation) =>
-          variation.toLowerCase() === filters.variation.toLowerCase()
-      )
-    ) {
-      applyAdminFilters({ variation: "" }, { immediate: true });
-    }
-  }, [applyAdminFilters, filters.variation, variationSuggestions]);
+  }, [applyAdminFilters, filters.brand, filters.set]);
 
   const displayedCards = pageData?.cards ?? [];
   const selectedTags = useMemo(
@@ -296,12 +287,9 @@ export function AdminCardsSection({
         <ColumnFilterCombobox
           value={filters.brand}
           onChange={(value) =>
-            applyAdminFilters(
-              value.trim()
-                ? { brand: value, set: "" }
-                : { brand: "", set: "", variation: "" },
-              { immediate: !value.trim() }
-            )
+            applyAdminFilters(brandFilterPatch(value), {
+              immediate: !value.trim(),
+            })
           }
           placeholder={t("admin.cards.filterBrand")}
           suggestions={references.brands}
@@ -311,17 +299,19 @@ export function AdminCardsSection({
         <ColumnFilterCombobox
           value={filters.set}
           onChange={(value) =>
-            applyAdminFilters(
-              value.trim()
-                ? { set: value }
-                : { set: "", variation: "" },
-              { immediate: !value.trim() }
-            )
+            applyAdminFilters(setFilterPatch(value), {
+              immediate: !value.trim(),
+            })
           }
-          placeholder={t("admin.cards.filterSet")}
+          placeholder={
+            filters.brand.trim()
+              ? t("admin.cards.filterSet")
+              : t("cards.setNeedsBrand")
+          }
           suggestions={setSuggestions}
+          disabled={!filters.brand.trim()}
           clearOptionLabel={t("cards.selectNone")}
-          className="h-9 text-xs"
+          className="h-9 text-xs disabled:cursor-not-allowed disabled:opacity-50"
         />
         <ColumnFilterCombobox
           value={filters.variation}
@@ -455,8 +445,8 @@ export function AdminCardsSection({
                   value={filters.brand}
                   onChange={(value) =>
                     updateFilters(
-                      { brand: value, set: "", page: 1 },
-                      { immediate: true }
+                      { ...brandFilterPatch(value), page: 1 },
+                      { immediate: !value.trim() }
                     )
                   }
                   placeholder={t("admin.cards.filterBrand")}
@@ -469,21 +459,30 @@ export function AdminCardsSection({
                 <ColumnFilterCombobox
                   value={filters.set}
                   onChange={(value) =>
-                    updateFilters({ set: value, page: 1 }, { immediate: true })
+                    updateFilters(
+                      { ...setFilterPatch(value), page: 1 },
+                      { immediate: !value.trim() }
+                    )
                   }
-                  placeholder={t("admin.cards.filterSet")}
+                  placeholder={
+                    filters.brand.trim()
+                      ? t("admin.cards.filterSet")
+                      : t("cards.setNeedsBrand")
+                  }
                   suggestions={setSuggestions}
+                  disabled={!filters.brand.trim()}
                   clearOptionLabel={t("cards.selectNone")}
-                  className="h-8 min-w-44 text-xs font-normal"
+                  className="h-8 min-w-44 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </TableHead>
               <TableHead>
                 <ColumnFilterCombobox
                   value={filters.variation}
                   onChange={(value) =>
-                    updateFilters({ variation: value, page: 1 }, {
-                      immediate: true,
-                    })
+                    updateFilters(
+                      { variation: value, page: 1 },
+                      { immediate: !value.trim() }
+                    )
                   }
                   placeholder={t("admin.cards.filterVariation")}
                   suggestions={variationSuggestions}
