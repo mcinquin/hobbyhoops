@@ -1,3 +1,10 @@
+## [1.32.1](https://github.com/mcinquin/hobbyhoops/compare/v1.32.0...v1.32.1) (2026-07-19)
+
+
+### Bug Fixes
+
+* **admin:** fix issue in set and variation field in admin section ([db5ca29](https://github.com/mcinquin/hobbyhoops/commit/db5ca296e98133271495b6f58d761b41ae56f35f))
+
 # [1.32.0](https://github.com/mcinquin/hobbyhoops/compare/v1.31.0...v1.32.0) (2026-07-13)
 
 
