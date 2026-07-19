@@ -89,15 +89,18 @@ export function CardTable({
   const updateColumnFilter = useCallback(
     (key: ColumnFilterKey, value: string) => {
       const isClear = !value.trim();
-      if (key === "brand" && isClear) {
+      if (key === "brand") {
         updateFilters(
-          { brand: "", set: "", variation: "" },
-          { immediate: true }
+          { brand: value, set: "", variation: "" },
+          { immediate: isClear }
         );
         return;
       }
-      if (key === "set" && isClear) {
-        updateFilters({ set: "", variation: "" }, { immediate: true });
+      if (key === "set") {
+        updateFilters(
+          isClear ? { set: "", variation: "" } : { set: value },
+          { immediate: isClear }
+        );
         return;
       }
       updateFilters({ [key]: value }, { immediate: isClear });
@@ -214,31 +217,13 @@ export function CardTable({
     [referenceFilters, urlFilters.brand, urlFilters.set]
   );
 
+  // URL hygiene only: set requires a brand. Never wipe partial typing
+  // by exact/substring-matching suggestions (that fought the combobox draft).
   useEffect(() => {
-    if (!urlFilters.brand) {
-      if (urlFilters.set) updateFilters({ set: "" }, { immediate: true });
-      return;
+    if (!urlFilters.brand.trim() && urlFilters.set) {
+      updateFilters({ set: "", variation: "" }, { immediate: true });
     }
-    if (
-      urlFilters.set &&
-      !setSuggestions.some((setName) =>
-        setName.toLowerCase().includes(urlFilters.set.toLowerCase())
-      )
-    ) {
-      updateFilters({ set: "" }, { immediate: true });
-    }
-  }, [urlFilters.brand, urlFilters.set, setSuggestions, updateFilters]);
-
-  useEffect(() => {
-    if (
-      urlFilters.variation &&
-      !variationSuggestions.some((variation) =>
-        variation.toLowerCase().includes(urlFilters.variation.toLowerCase())
-      )
-    ) {
-      updateFilters({ variation: "" }, { immediate: true });
-    }
-  }, [urlFilters.variation, variationSuggestions, updateFilters]);
+  }, [urlFilters.brand, urlFilters.set, updateFilters]);
 
   useEffect(() => {
     const targets: number[] = [];
