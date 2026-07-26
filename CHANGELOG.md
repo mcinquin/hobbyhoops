@@ -1,3 +1,10 @@
+## [1.32.3](https://github.com/mcinquin/hobbyhoops/compare/v1.32.2...v1.32.3) (2026-07-26)
+
+
+### Bug Fixes
+
+* **deps:** align react with react-dom 19.2.8 ([444595b](https://github.com/mcinquin/hobbyhoops/commit/444595b5d7a4e0a4ff280b83101adb753402d57e))
+
 ## [1.32.2](https://github.com/mcinquin/hobbyhoops/compare/v1.32.1...v1.32.2) (2026-07-26)
 
 
