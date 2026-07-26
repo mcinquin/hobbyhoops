@@ -1,10 +1,12 @@
 ---
-description: Never commit or push unless the user explicitly asks
+description: Never commit, push, or ask to do either unless the user explicitly requests it
 alwaysApply: true
 ---
 
 # Git: no auto commit / push
 
 - Never run `git commit` or `git push` unless the user explicitly asks for it in the current message.
+- Never ask, offer, or suggest committing or pushing. Do not end replies with “veux-tu que je committe / pousse ?” or similar.
+- If changes are ready locally, say so factually (files changed, what remains for the user). Do not solicit a commit/push decision.
 - Preparing changes, staging suggestions, and showing a commit message draft is fine when asked — executing commit/push is not.
 - Fixing CI or finishing a PR does not imply permission to commit or push.
