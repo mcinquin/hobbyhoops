@@ -62,6 +62,22 @@ export function playerHasRookieHolding(player: FrNbaPlayer): boolean {
   return player.holdings.some((holding) => holding.rookie);
 }
 
+/** 0 = aucune carte associée, 1 = au moins une. */
+export function frNbaMissingHoldingsPriority(player: FrNbaPlayer): 0 | 1 {
+  return player.holdings.length === 0 ? 0 : 1;
+}
+
+/** Joueurs sans holdings d'abord, puis tri alphabétique du nom. */
+export function compareFrNbaPlayersByMissingHoldings(
+  a: FrNbaPlayer,
+  b: FrNbaPlayer
+): number {
+  const priority =
+    frNbaMissingHoldingsPriority(a) - frNbaMissingHoldingsPriority(b);
+  if (priority !== 0) return priority;
+  return a.player.localeCompare(b.player, undefined, { sensitivity: "base" });
+}
+
 export interface FrNbaCollectionStats {
   total: number;
   rpaAcquired: number;

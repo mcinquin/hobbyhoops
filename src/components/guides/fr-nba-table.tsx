@@ -13,7 +13,9 @@ import {
 } from "@tanstack/react-table";
 import type { FrNbaPlayer } from "@/lib/types";
 import {
+  compareFrNbaPlayersByMissingHoldings,
   computeFrNbaCollectionStats,
+  frNbaMissingHoldingsPriority,
   playerHasAutoStyle,
   playerHasHoldingType,
   playerHasRookieHolding,
@@ -82,6 +84,7 @@ export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
   const [onCardOnly, setOnCardOnly] = useState(false);
   const [stickerOnly, setStickerOnly] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([
+    { id: "missingHoldings", desc: false },
     { id: "player", desc: false },
   ]);
 
@@ -137,6 +140,13 @@ export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
 
   const columns = useMemo<ColumnDef<FrNbaPlayer>[]>(
     () => [
+      {
+        id: "missingHoldings",
+        accessorFn: (row) => frNbaMissingHoldingsPriority(row),
+        enableHiding: true,
+        header: () => null,
+        cell: () => null,
+      },
       {
         accessorKey: "player",
         header: t("guides.frNba.player"),
@@ -200,14 +210,11 @@ export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
   function handlePlayerSaved(saved: FrNbaPlayer) {
     setPlayers((current) => {
       const index = current.findIndex((item) => item.id === saved.id);
-      if (index === -1) {
-        return [...current, saved].sort((a, b) =>
-          a.player.localeCompare(b.player)
-        );
-      }
-      const next = [...current];
-      next[index] = saved;
-      return next;
+      const next =
+        index === -1
+          ? [...current, saved]
+          : current.map((item, i) => (i === index ? saved : item));
+      return next.sort(compareFrNbaPlayersByMissingHoldings);
     });
   }
 
@@ -234,13 +241,23 @@ export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
     data: filteredPlayers,
     columns,
     state: { sorting, pagination: tablePagination.pagination },
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      setSorting((prev) => {
+        const next = typeof updater === "function" ? updater(prev) : updater;
+        const withoutPriority = next.filter((item) => item.id !== "missingHoldings");
+        return [{ id: "missingHoldings", desc: false }, ...withoutPriority];
+      });
+    },
     onPaginationChange: tablePagination.onPaginationChange,
     autoResetPageIndex: tablePagination.autoResetPageIndex,
+    enableMultiSort: true,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      columnVisibility: { missingHoldings: false },
+    },
   });
 
   return (
