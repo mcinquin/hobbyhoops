@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  buildEbayOrderUrl,
   buildTrackingUrl,
   computeEbayProtection,
   computeVintedProtection,
@@ -77,6 +78,24 @@ describe("buildTrackingUrl", () => {
 
   it("falls back to 17track for unknown carriers", () => {
     expect(buildTrackingUrl("XYZ123")).toContain("17track.net");
+  });
+});
+
+describe("buildEbayOrderUrl", () => {
+  it("builds buyer order details URL", () => {
+    expect(buildEbayOrderUrl("ebay", "12-34567-89012")).toBe(
+      "https://www.ebay.fr/vod/FetchOrderDetails?orderId=12-34567-89012"
+    );
+  });
+
+  it("falls back to purchase history without order id", () => {
+    expect(buildEbayOrderUrl("ebay", null)).toBe(
+      "https://www.ebay.fr/mye/myebay/purchase"
+    );
+  });
+
+  it("returns null for non-ebay platforms", () => {
+    expect(buildEbayOrderUrl("vinted", "12-34567-89012")).toBeNull();
   });
 });
 
