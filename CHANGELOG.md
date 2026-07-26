@@ -1,3 +1,11 @@
+# [1.33.0](https://github.com/mcinquin/hobbyhoops/compare/v1.32.3...v1.33.0) (2026-07-26)
+
+
+### Features
+
+* bundle recent dependency updates ([3cc958c](https://github.com/mcinquin/hobbyhoops/commit/3cc958cff0e0c287cd13946455d7e5d6d7aed883))
+* **fr-nba:** sort by missing holdings ([662175e](https://github.com/mcinquin/hobbyhoops/commit/662175eb4ab6fb79f9d94f89a80ef8aec2036f67))
+
 ## [1.32.3](https://github.com/mcinquin/hobbyhoops/compare/v1.32.2...v1.32.3) (2026-07-26)
 
 
