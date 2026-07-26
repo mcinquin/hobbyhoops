@@ -640,7 +640,10 @@ export function readFrNbaPlayers(): FrNbaPlayer[] {
     .prepare(
       `SELECT id, player, draft_year, drafted_by, rpa
        FROM fr_nba_players
-       ORDER BY player COLLATE NOCASE`
+       ORDER BY (
+         SELECT COUNT(*) FROM fr_nba_holdings h WHERE h.player_id = fr_nba_players.id
+       ) ASC,
+       player COLLATE NOCASE`
     )
     .all() as Record<string, unknown>[];
   const holdingsByPlayer = readFrNbaHoldingsByPlayerIds(

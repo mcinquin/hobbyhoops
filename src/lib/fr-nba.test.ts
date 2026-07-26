@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   computeFrNbaCollectionStats,
+  compareFrNbaPlayersByMissingHoldings,
   deriveRpaObjectiveFromLegacy,
   formatFrNbaHoldingLabel,
   legacyFrNbaRowToHoldings,
@@ -34,6 +35,32 @@ function samplePlayer(overrides: Partial<FrNbaPlayer> = {}): FrNbaPlayer {
     ...overrides,
   };
 }
+
+describe("compareFrNbaPlayersByMissingHoldings", () => {
+  it("lists players without holdings before players with holdings", () => {
+    const withHolding = samplePlayer({
+      id: 1,
+      player: "Aaron",
+      holdings: [{ id: 1, type: "auto", autoStyle: "on_card", rookie: false }],
+    });
+    const withoutHolding = samplePlayer({
+      id: 2,
+      player: "Zach",
+      holdings: [],
+    });
+
+    expect(
+      [withHolding, withoutHolding].sort(compareFrNbaPlayersByMissingHoldings)
+    ).toEqual([withoutHolding, withHolding]);
+  });
+
+  it("sorts alphabetically within the same holdings priority", () => {
+    const b = samplePlayer({ id: 1, player: "Benoit", holdings: [] });
+    const a = samplePlayer({ id: 2, player: "Alice", holdings: [] });
+
+    expect([b, a].sort(compareFrNbaPlayersByMissingHoldings)).toEqual([a, b]);
+  });
+});
 
 describe("legacyFrNbaRowToHoldings", () => {
   it("creates an RPA holding when rookie, patch and auto are all set", () => {
