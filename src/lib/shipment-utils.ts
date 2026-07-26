@@ -310,7 +310,7 @@ export function buildEbayOrderUrl(
 ): string | null {
   if (platform !== "ebay") return null;
   if (orderId?.trim()) {
-    return `https://www.ebay.fr/sh/ord/details?orderid=${encodeURIComponent(orderId.trim())}`;
+    return `https://www.ebay.fr/vod/FetchOrderDetails?orderId=${encodeURIComponent(orderId.trim())}`;
   }
   return "https://www.ebay.fr/mye/myebay/purchase";
 }
