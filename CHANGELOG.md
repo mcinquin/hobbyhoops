@@ -1,3 +1,10 @@
+## [1.32.2](https://github.com/mcinquin/hobbyhoops/compare/v1.32.1...v1.32.2) (2026-07-26)
+
+
+### Bug Fixes
+
+* **incoming:** fix ebay url for order ([85c1c09](https://github.com/mcinquin/hobbyhoops/commit/85c1c09e92fc7132583e1b922c1a62d7af1eb664))
+
 ## [1.32.1](https://github.com/mcinquin/hobbyhoops/compare/v1.32.0...v1.32.1) (2026-07-19)
 
 
