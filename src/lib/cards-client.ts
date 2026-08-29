@@ -9,6 +9,14 @@ import type {
 } from "@/lib/card-csv";
 import type { Card, CardsPageResult, References } from "@/lib/types";
 
+/** Levée quand une requête protégée renvoie 401 (session expirée/invalide). */
+export class UnauthorizedError extends Error {
+  constructor() {
+    super("Unauthorized");
+    this.name = "UnauthorizedError";
+  }
+}
+
 export function collectionQueryToSearchParams(
   query: CollectionListQuery,
   options?: { persistPageSize?: boolean }
@@ -93,8 +101,7 @@ export async function deleteCard(id: string): Promise<void> {
 export async function fetchAdminSnapshot(): Promise<AdminSnapshot> {
   const res = await fetch("/api/admin/data", API_FETCH_OPTS);
   if (res.status === 401) {
-    window.location.href = "/";
-    throw new Error("Unauthorized");
+    throw new UnauthorizedError();
   }
   if (!res.ok) {
     throw new Error("Failed to load admin data");

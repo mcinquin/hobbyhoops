@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
   LayoutDashboard,
@@ -29,6 +29,7 @@ interface SidebarProps {
 
 export function Sidebar({ username, onNavigate, className }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
   const t = useTranslations();
 
@@ -50,7 +51,8 @@ export function Sidebar({ username, onNavigate, className }: SidebarProps) {
     setLoggingOut(true);
     try {
       await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-      window.location.href = "/";
+      router.push("/");
+      router.refresh();
     } finally {
       setLoggingOut(false);
     }
