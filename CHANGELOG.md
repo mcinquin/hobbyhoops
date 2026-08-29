@@ -1,3 +1,10 @@
+## [1.33.2](https://github.com/mcinquin/hobbyhoops/compare/v1.33.1...v1.33.2) (2026-08-29)
+
+
+### Bug Fixes
+
+* **warning:** fix somme warning ([8e7cb2b](https://github.com/mcinquin/hobbyhoops/commit/8e7cb2bdbf70786de90ca1d9a407023312fde54d))
+
 ## [1.33.1](https://github.com/mcinquin/hobbyhoops/compare/v1.33.0...v1.33.1) (2026-08-29)
 
 
