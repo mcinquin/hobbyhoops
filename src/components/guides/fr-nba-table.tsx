@@ -2,15 +2,15 @@
 
 import { useMemo, useState } from "react";
 import {
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
+  useTable,
   flexRender,
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
+import {
+  interactiveTableFeatures,
+  type InteractiveTableFeatures,
+} from "@/components/data-table/table-features";
 import type { FrNbaPlayer } from "@/lib/types";
 import {
   compareFrNbaPlayersByMissingHoldings,
@@ -138,7 +138,7 @@ export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
     stickerOnly,
   ]);
 
-  const columns = useMemo<ColumnDef<FrNbaPlayer>[]>(
+  const columns = useMemo<ColumnDef<InteractiveTableFeatures, FrNbaPlayer>[]>(
     () => [
       {
         id: "missingHoldings",
@@ -236,8 +236,8 @@ export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
     rowCount: filteredPlayers.length,
   });
 
-  // eslint-disable-next-line react-hooks/incompatible-library -- useReactTable
-  const table = useReactTable({
+  const table = useTable({
+    features: interactiveTableFeatures,
     data: filteredPlayers,
     columns,
     state: { sorting, pagination: tablePagination.pagination },
@@ -251,10 +251,6 @@ export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
     onPaginationChange: tablePagination.onPaginationChange,
     autoResetPageIndex: tablePagination.autoResetPageIndex,
     enableMultiSort: true,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     initialState: {
       columnVisibility: { missingHoldings: false },
     },

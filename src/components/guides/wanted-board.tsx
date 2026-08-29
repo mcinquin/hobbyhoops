@@ -2,15 +2,16 @@
 
 import { useCallback, useMemo, useState } from "react";
 import {
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
+  useTable,
   flexRender,
   type ColumnDef,
+  type Row,
   type SortingState,
 } from "@tanstack/react-table";
+import {
+  interactiveTableFeatures,
+  type InteractiveTableFeatures,
+} from "@/components/data-table/table-features";
 import { createWantedEntry, deleteWantedEntry } from "@/lib/guides-client";
 import type { WantedBlock, WantedEntry } from "@/lib/types";
 import { ColumnFilterCombobox } from "@/components/column-filter-combobox";
@@ -149,7 +150,7 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
     [t]
   );
 
-  const columns = useMemo<ColumnDef<WantedRow>[]>(
+  const columns = useMemo<ColumnDef<InteractiveTableFeatures, WantedRow>[]>(
     () => [
       {
         accessorKey: "set",
@@ -175,7 +176,10 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
             {row.original.slot ?? "—"}
           </span>
         ),
-        sortingFn: (a, b) => (a.original.slot ?? 999) - (b.original.slot ?? 999),
+        sortingFn: (
+          a: Row<InteractiveTableFeatures, WantedRow>,
+          b: Row<InteractiveTableFeatures, WantedRow>
+        ) => (a.original.slot ?? 999) - (b.original.slot ?? 999),
       },
       {
         accessorKey: "player",
@@ -216,18 +220,14 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
     rowCount: filteredRows.length,
   });
 
-  // eslint-disable-next-line react-hooks/incompatible-library -- useReactTable
-  const table = useReactTable({
+  const table = useTable({
+    features: interactiveTableFeatures,
     data: filteredRows,
     columns,
     state: { sorting, pagination: tablePagination.pagination },
     onSortingChange: setSorting,
     onPaginationChange: tablePagination.onPaginationChange,
     autoResetPageIndex: tablePagination.autoResetPageIndex,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
   });
 
   return (

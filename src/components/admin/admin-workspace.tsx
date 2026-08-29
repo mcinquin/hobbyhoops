@@ -1,9 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useState, useMemo, useCallback } from "react";
 import { References } from "@/lib/types";
-import { fetchAdminSnapshot } from "@/lib/cards-client";
+import { fetchAdminSnapshot, UnauthorizedError } from "@/lib/cards-client";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -87,6 +88,7 @@ export function AdminWorkspace({
   totalCardCount,
 }: AdminWorkspaceProps) {
   const t = useTranslations();
+  const router = useRouter();
   const [references, setReferences] = useState(initialReferences);
   const [totalCount, setTotalCount] = useState(totalCardCount);
   const [loading, setLoading] = useState(false);
@@ -94,16 +96,28 @@ export function AdminWorkspace({
   const [activeTab, setActiveTab] = useState("cards");
   const [cardsReloadToken, setCardsReloadToken] = useState(0);
 
+  const handleSnapshotError = useCallback(
+    (cause: unknown) => {
+      if (cause instanceof UnauthorizedError) {
+        router.push("/");
+        router.refresh();
+        return;
+      }
+      setError(t("admin.loadError"));
+    },
+    [router, t]
+  );
+
   const handleCsvImported = useCallback(async () => {
     try {
       const data = await fetchAdminSnapshot();
       setReferences(data.references);
       setTotalCount(data.totalCount);
       setCardsReloadToken((token) => token + 1);
-    } catch {
-      setError(t("admin.loadError"));
+    } catch (cause) {
+      handleSnapshotError(cause);
     }
-  }, [t]);
+  }, [handleSnapshotError]);
 
   const tabs = useMemo(
     () => [
@@ -127,12 +141,12 @@ export function AdminWorkspace({
       setReferences(data.references);
       setTotalCount(data.totalCount);
       setCardsReloadToken((token) => token + 1);
-    } catch {
-      setError(t("admin.loadError"));
+    } catch (cause) {
+      handleSnapshotError(cause);
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [handleSnapshotError]);
 
   if (error) {
     return (

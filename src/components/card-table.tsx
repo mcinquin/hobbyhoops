@@ -4,12 +4,11 @@ import { useState, useMemo, useEffect, useId, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { XIcon } from "lucide-react";
+import { useTable, flexRender, type ColumnDef } from "@tanstack/react-table";
 import {
-  useReactTable,
-  getCoreRowModel,
-  flexRender,
-  type ColumnDef,
-} from "@tanstack/react-table";
+  serverTableFeatures,
+  type ServerTableFeatures,
+} from "@/components/data-table/table-features";
 import {
   COLLECTION_PAGE_SIZE,
   COLLECTION_TAG_VALUES,
@@ -127,7 +126,7 @@ export function CardTable({
 
   const badgeLabels = useCardBadgeLabels();
 
-  const columns: ColumnDef<CardListItem>[] = useMemo(
+  const columns: ColumnDef<ServerTableFeatures, CardListItem>[] = useMemo(
     () => [
       {
         accessorKey: "player",
@@ -194,12 +193,10 @@ export function CardTable({
     [badgeLabels, t]
   );
 
-  // TanStack Table renvoie des helpers non mémoïsables compatibles React Compiler.
-  // eslint-disable-next-line react-hooks/incompatible-library -- useReactTable
-  const table = useReactTable({
+  const table = useTable({
+    features: serverTableFeatures,
     data: cards,
     columns,
-    getCoreRowModel: getCoreRowModel(),
   });
 
   const setSuggestions = useMemo(
