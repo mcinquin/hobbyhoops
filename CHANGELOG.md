@@ -1,3 +1,10 @@
+## [1.33.1](https://github.com/mcinquin/hobbyhoops/compare/v1.33.0...v1.33.1) (2026-08-29)
+
+
+### Bug Fixes
+
+* **search:** fix multiple issues with search field ([f501964](https://github.com/mcinquin/hobbyhoops/commit/f501964d9e0a49a074011c43dc901a48eff463a1))
+
 # [1.33.0](https://github.com/mcinquin/hobbyhoops/compare/v1.32.3...v1.33.0) (2026-07-26)
 
 
