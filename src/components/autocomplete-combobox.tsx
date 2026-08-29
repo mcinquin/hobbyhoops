@@ -40,26 +40,30 @@ export function AutocompleteCombobox({
   const inputId = id ?? generatedId;
   const listboxId = `${inputId}-listbox`;
   const [open, setOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
+  // -1 = aucune proposition surlignée : Entrée valide le texte saisi.
+  const [activeIndex, setActiveIndex] = useState(-1);
 
   const isDebounced = debounceMs !== undefined && debounceMs > 0;
+  // Le texte affiché est toujours piloté localement pendant la saisie.
   const [inputText, setInputText] = useState(value);
   const [prevValue, setPrevValue] = useState(value);
-  const [sentValue, setSentValue] = useState(value);
-  const [hasPendingDebounce, setHasPendingDebounce] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Dernière valeur que CE composant a émise, pour distinguer nos propres
+  // mises à jour (URL / parent) d'un vrai changement externe.
+  const [lastSent, setLastSent] = useState(value);
 
-  if (isDebounced && prevValue !== value) {
+  // Ne synchronise le champ depuis la valeur externe que si le changement
+  // ne provient pas de notre propre onChange (reset programmatique, effacement
+  // depuis l'extérieur…). Ne jamais écraser la saisie en cours de correction.
+  if (value !== prevValue) {
     setPrevValue(value);
-    // Ignore stale URL while the user is mid-edit (pending debounce).
-    if (!hasPendingDebounce && sentValue !== value) {
+    if (value !== lastSent) {
       setInputText(value);
-      setSentValue(value);
+      setLastSent(value);
     }
   }
 
-  const displayValue = isDebounced ? inputText : value;
-  const query = displayValue.trim().toLowerCase();
+  const query = inputText.trim().toLowerCase();
   const visibleSuggestions = useMemo(() => {
     if (suggestionsOnlyWhenOpen && !open) return [];
     return suggestions.filter((suggestion) =>
@@ -78,51 +82,47 @@ export function AutocompleteCombobox({
     return options;
   }, [clearOptionLabel, visibleSuggestions]);
 
+  function emit(nextValue: string): void {
+    setLastSent(nextValue);
+    onChange(nextValue);
+  }
+
+  /** Valide une valeur (clic sur une proposition, ou touche Entrée). */
   function commitValue(nextValue: string): void {
-    if (isDebounced) {
-      setInputText(nextValue);
-      setSentValue(nextValue);
-      setHasPendingDebounce(false);
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      onChange(nextValue);
-    } else {
-      onChange(nextValue);
-    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    setInputText(nextValue);
     setOpen(false);
-    setActiveIndex(0);
+    setActiveIndex(-1);
+    emit(nextValue);
   }
 
   function handleInputChange(newText: string): void {
-    if (isDebounced) {
-      setInputText(newText);
-      setOpen(true);
-      setActiveIndex(0);
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      // Flush empty clears immediately so applied filters stay in sync.
-      if (newText.trim() === "") {
-        setHasPendingDebounce(false);
-        setSentValue("");
-        onChange("");
-        return;
-      }
-      setHasPendingDebounce(true);
-      debounceRef.current = setTimeout(() => {
-        setSentValue(newText);
-        setHasPendingDebounce(false);
-        onChange(newText);
-      }, debounceMs);
+    setInputText(newText);
+    setOpen(true);
+    // Toute frappe annule la sélection clavier : c'est le texte qui prime.
+    setActiveIndex(-1);
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (!isDebounced) {
+      emit(newText);
       return;
     }
-    onChange(newText);
-    setOpen(true);
-    setActiveIndex(0);
+
+    // En mode debounce, on applique immédiatement un effacement pour garder
+    // les filtres synchronisés, sinon on temporise.
+    if (newText.trim() === "") {
+      emit("");
+      return;
+    }
+    debounceRef.current = setTimeout(() => emit(newText), debounceMs);
   }
 
   return (
     <div className="relative">
       <Input
         id={inputId}
-        value={displayValue}
+        value={inputText}
         onChange={(event) => handleInputChange(event.target.value)}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
@@ -133,22 +133,32 @@ export function AutocompleteCombobox({
           }
           if (event.key === "Escape") {
             setOpen(false);
+            setActiveIndex(-1);
+            return;
+          }
+          if (event.key === "Enter") {
+            event.preventDefault();
+            // Une proposition n'est prise que si elle a été surlignée
+            // explicitement au clavier ; sinon on recherche le texte saisi.
+            if (open && activeIndex >= 0 && listOptions[activeIndex]) {
+              commitValue(listOptions[activeIndex].value);
+            } else {
+              commitValue(inputText);
+            }
             return;
           }
           if (listOptions.length === 0) return;
           if (event.key === "ArrowDown") {
             event.preventDefault();
-            setActiveIndex((index) => (index + 1) % listOptions.length);
+            setActiveIndex((index) =>
+              index < 0 ? 0 : (index + 1) % listOptions.length
+            );
           }
           if (event.key === "ArrowUp") {
             event.preventDefault();
-            setActiveIndex(
-              (index) => (index - 1 + listOptions.length) % listOptions.length
+            setActiveIndex((index) =>
+              index <= 0 ? listOptions.length - 1 : index - 1
             );
-          }
-          if (event.key === "Enter" && open) {
-            event.preventDefault();
-            commitValue(listOptions[activeIndex]?.value ?? "");
           }
         }}
         placeholder={placeholder}
