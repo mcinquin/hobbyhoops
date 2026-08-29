@@ -1,12 +1,13 @@
 "use client";
 
-import { flexRender, type Header } from "@tanstack/react-table";
+import { flexRender, type Header, type RowData } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { TableHead } from "@/components/ui/table";
+import type { InteractiveTableFeatures } from "@/components/data-table/table-features";
 import { cn } from "@/lib/utils";
 
-interface SortableTableHeadProps<T> {
-  header?: Header<T, unknown>;
+interface SortableTableHeadProps<TData extends RowData> {
+  header?: Header<InteractiveTableFeatures, TData, unknown>;
   label?: React.ReactNode;
   className?: string;
   sortKey?: string;
@@ -14,14 +15,14 @@ interface SortableTableHeadProps<T> {
   onSortToggle?: () => void;
 }
 
-export function SortableTableHead<T>({
+export function SortableTableHead<TData extends RowData>({
   header,
   label,
   className,
   sortKey,
   sorted = false,
   onSortToggle,
-}: SortableTableHeadProps<T>) {
+}: SortableTableHeadProps<TData>) {
   const canSort = Boolean(onSortToggle ?? header?.column.getCanSort());
   const content =
     label ??
