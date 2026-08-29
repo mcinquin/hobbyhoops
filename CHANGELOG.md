@@ -1,3 +1,10 @@
+# [1.34.0](https://github.com/mcinquin/hobbyhoops/compare/v1.33.2...v1.34.0) (2026-08-29)
+
+
+### Dependencies
+
+* **deps:** bump node modules version ([efad1f4](https://github.com/mcinquin/hobbyhoops/commit/efad1f4a99bb002763a31c1c85fbdd6dbe2f45f5))
+
 ## [1.33.2](https://github.com/mcinquin/hobbyhoops/compare/v1.33.1...v1.33.2) (2026-08-29)
 
 
