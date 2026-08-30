@@ -10,6 +10,7 @@ import { buildCardBadgeLabels } from "@/lib/card-badge-labels";
 import { getTranslations } from "@/i18n/server";
 import { PageHeader } from "@/components/page-header";
 import { StatsCards } from "@/components/stats-cards";
+import { LeagueSummary } from "@/components/league-summary";
 import { RecentCards } from "@/components/recent-cards";
 import { IncomingShipmentsWidget } from "@/components/incoming-shipments-widget";
 import { ChartSkeleton } from "@/components/skeletons/page-skeletons";
@@ -46,6 +47,15 @@ export default async function DashboardPage() {
           numbered: t("dashboard.stats.numbered"),
           rookies: t("dashboard.stats.rookies"),
           tradable: t("dashboard.stats.tradable"),
+        }}
+      />
+      <LeagueSummary
+        nba={stats.total - stats.wnba}
+        wnba={stats.wnba}
+        labels={{
+          title: t("dashboard.league.title"),
+          nba: t("dashboard.league.nba"),
+          wnba: t("dashboard.league.wnba"),
         }}
       />
       <IncomingShipmentsWidget

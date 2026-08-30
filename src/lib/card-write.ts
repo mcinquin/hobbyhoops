@@ -79,6 +79,7 @@ export function prepareCardWriteInput(input: unknown): Record<string, unknown> {
     photo: asNullableString(raw.photo),
     tradable: Boolean(raw.tradable),
     rookie: Boolean(raw.rookie),
+    wnba: Boolean(raw.wnba),
     notes: asTrimmedString(raw.notes),
   };
 
@@ -117,6 +118,7 @@ export function buildCardWritePayload(
       photo: asNullableString(form.photo),
       tradable: Boolean(form.tradable),
       rookie: Boolean(form.rookie),
+      wnba: Boolean(form.wnba),
       notes: asTrimmedString(form.notes),
     })
   );

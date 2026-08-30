@@ -57,7 +57,7 @@ const ALLOWED_SORT_COLUMNS = new Set(Object.values(COLLECTION_SORT_SQL));
 
 type SqlInputValue = string | number | bigint | Buffer | null;
 
-const SCHEMA_VERSION = 17;
+const SCHEMA_VERSION = 18;
 
 /** Version de schéma attendue par le code déployé (migrations SQLite). */
 export const EXPECTED_SCHEMA_VERSION = SCHEMA_VERSION;
@@ -65,7 +65,7 @@ export const EXPECTED_SCHEMA_VERSION = SCHEMA_VERSION;
 const CARD_LIST_COLUMNS = `
   id, player, team, year, brand, set_name, variation,
   autograph, memorabilia, serial_number, serial_current, serial_total,
-  card_number, grading, opening_date, protection, storage, tradable, rookie, notes
+  card_number, grading, opening_date, protection, storage, tradable, rookie, wnba, notes
 `.trim();
 
 const globalForDb = globalThis as typeof globalThis & {
@@ -174,6 +174,7 @@ function initSchema(db: AppDatabase): void {
       photo TEXT,
       tradable INTEGER NOT NULL DEFAULT 0,
       rookie INTEGER NOT NULL DEFAULT 0,
+      wnba INTEGER NOT NULL DEFAULT 0,
       opening_date_sort INTEGER,
       search_text TEXT,
       notes TEXT NOT NULL DEFAULT ''
@@ -804,6 +805,7 @@ function rowToCardListItem(row: Record<string, unknown>): CardListItem {
     storage: String(row.storage),
     tradable: Boolean(row.tradable),
     rookie: Boolean(row.rookie),
+    wnba: Boolean(row.wnba),
     notes: row.notes == null ? "" : String(row.notes),
   });
 }
@@ -859,6 +861,7 @@ function cardToRow(card: Card): Record<string, SqlInputValue> {
     photo: normalized.photo,
     tradable: normalized.tradable ? 1 : 0,
     rookie: normalized.rookie ? 1 : 0,
+    wnba: normalized.wnba ? 1 : 0,
     notes: normalized.notes.trim(),
     opening_date_sort: derived.opening_date_sort,
     search_text: derived.search_text,
@@ -871,12 +874,12 @@ function importCards(db: AppDatabase, cards: Card[]): void {
       id, player, team, year, brand, set_name, variation,
       autograph, memorabilia, serial_number, serial_current, serial_total,
       card_number, grading, opening_date, protection, storage, photo,
-      tradable, rookie, notes, opening_date_sort, search_text
+      tradable, rookie, wnba, notes, opening_date_sort, search_text
     ) VALUES (
       @id, @player, @team, @year, @brand, @set_name, @variation,
       @autograph, @memorabilia, @serial_number, @serial_current, @serial_total,
       @card_number, @grading, @opening_date, @protection, @storage, @photo,
-      @tradable, @rookie, @notes, @opening_date_sort, @search_text
+      @tradable, @rookie, @wnba, @notes, @opening_date_sort, @search_text
     )
   `);
 
@@ -1133,6 +1136,14 @@ function runSchemaMigrations(db: AppDatabase): void {
     if (version < 17) {
       dbLogger.info({ msg: "Applying v17: session metadata columns" });
       migrateSessionMetadata(db);
+    }
+
+    if (version < 18) {
+      dbLogger.info({ msg: "Applying v18: WNBA card flag" });
+      if (!cardsTableHasColumn(db, "wnba")) {
+        db.exec("ALTER TABLE cards ADD COLUMN wnba INTEGER NOT NULL DEFAULT 0");
+      }
+      db.exec("CREATE INDEX IF NOT EXISTS idx_cards_wnba ON cards(wnba)");
     }
 
     setSchemaVersion(db, SCHEMA_VERSION);
@@ -1472,12 +1483,12 @@ const CARD_INSERT_SQL = `
     id, player, team, year, brand, set_name, variation,
     autograph, memorabilia, serial_number, serial_current, serial_total,
     card_number, grading, opening_date, protection, storage, photo,
-    tradable, rookie, notes, opening_date_sort, search_text
+    tradable, rookie, wnba, notes, opening_date_sort, search_text
   ) VALUES (
     @id, @player, @team, @year, @brand, @set_name, @variation,
     @autograph, @memorabilia, @serial_number, @serial_current, @serial_total,
     @card_number, @grading, @opening_date, @protection, @storage, @photo,
-    @tradable, @rookie, @notes, @opening_date_sort, @search_text
+    @tradable, @rookie, @wnba, @notes, @opening_date_sort, @search_text
   )
 `;
 
@@ -1502,6 +1513,7 @@ const CARD_UPDATE_SQL = `
     photo = @photo,
     tradable = @tradable,
     rookie = @rookie,
+    wnba = @wnba,
     notes = @notes,
     opening_date_sort = @opening_date_sort,
     search_text = @search_text
@@ -1597,7 +1609,8 @@ export function readCollectionStats(): CollectionStats {
         COALESCE(SUM(memorabilia), 0) as memorabilia,
         COALESCE(SUM(CASE WHEN serial_number IS NOT NULL AND serial_number != '' THEN 1 ELSE 0 END), 0) as numbered,
         COALESCE(SUM(rookie), 0) as rookies,
-        COALESCE(SUM(tradable), 0) as tradable
+        COALESCE(SUM(tradable), 0) as tradable,
+        COALESCE(SUM(wnba), 0) as wnba
       FROM cards`
     )
     .get() as Record<string, number>;
@@ -1608,7 +1621,18 @@ export function readCollectionStats(): CollectionStats {
     numbered: Number(row.numbered),
     rookies: Number(row.rookies),
     tradable: Number(row.tradable),
+    wnba: Number(row.wnba),
   };
+}
+
+export function readLeagueCounts(): { nba: number; wnba: number } {
+  const row = getDb()
+    .prepare(
+      `SELECT COUNT(*) as total, COALESCE(SUM(wnba), 0) as wnba FROM cards`
+    )
+    .get() as Record<string, number>;
+  const wnba = Number(row.wnba);
+  return { nba: Number(row.total) - wnba, wnba };
 }
 
 function readCardCountsByColumn(

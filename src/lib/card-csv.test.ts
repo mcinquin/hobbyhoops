@@ -28,6 +28,7 @@ const sampleCard = (overrides: Partial<Card> = {}): Card => ({
   photo: null,
   tradable: true,
   rookie: false,
+  wnba: false,
   notes: "From COMC",
   ...overrides,
 });

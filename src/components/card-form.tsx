@@ -79,6 +79,7 @@ const emptyCard: Partial<Card> = {
   photo: null,
   tradable: false,
   rookie: false,
+  wnba: false,
   notes: "",
 };
 
@@ -566,6 +567,13 @@ function CardFormFields({
                 onCheckedChange={(v) => update("tradable", v)}
               />
               <Label>{t("cards.tradable")}</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={form.wnba || false}
+                onCheckedChange={(v) => update("wnba", v)}
+              />
+              <Label>{t("badges.wnba")}</Label>
             </div>
           </div>
 

@@ -12,6 +12,7 @@ import type { FrNbaHoldingLabels } from "./fr-nba";
 
 const labels: FrNbaHoldingLabels = {
   types: {
+    simple: "Simple",
     auto: "Auto",
     patch: "Patch",
     rpa: "RPA",

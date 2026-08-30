@@ -20,6 +20,7 @@ export function useFrNbaHoldingLabels(): FrNbaHoldingLabels {
   return useMemo(
     () => ({
       types: {
+        simple: t("guides.frNba.holdingType.simple"),
         auto: t("guides.frNba.holdingType.auto"),
         patch: t("guides.frNba.holdingType.patch"),
         rpa: t("guides.frNba.holdingType.rpa"),

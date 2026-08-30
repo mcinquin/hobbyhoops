@@ -22,6 +22,7 @@ const baseCard = (id: string, overrides: Partial<CardListItem> = {}): CardListIt
   storage: "",
   tradable: false,
   rookie: false,
+  wnba: false,
   notes: "",
   ...overrides,
 });

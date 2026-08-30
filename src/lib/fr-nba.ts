@@ -6,6 +6,7 @@ import type {
 } from "./types";
 
 export const FR_NBA_HOLDING_TYPES: FrNbaHoldingType[] = [
+  "simple",
   "auto",
   "patch",
   "rpa",
