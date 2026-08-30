@@ -58,6 +58,7 @@ export function buildCardDraftFromShipment(
     photo: null,
     tradable: false,
     rookie: false,
+    wnba: false,
     notes: provenanceNote,
   };
 }

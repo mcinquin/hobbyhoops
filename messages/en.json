@@ -60,7 +60,9 @@
     "autograph": "AUTO",
     "memorabilia": "MEM",
     "numbered": "NUM",
-    "tradable": "TRADE"
+    "tradable": "TRADE",
+    "nba": "NBA",
+    "wnba": "WNBA"
   },
   "auth": {
     "bootstrapSubtitle": "Create the first administrator account.",
@@ -102,6 +104,7 @@
     "byBrand": "Cards by brand",
     "bySet": "Cards by set",
     "byYear": "Cards by year",
+    "byLeague": "NBA vs WNBA distribution",
     "topPlayers": "Top 10 players",
     "acquisitionTimeline": "Collection additions by month",
     "stats": {
@@ -111,6 +114,12 @@
       "numbered": "Numbered",
       "rookies": "Rookies",
       "tradable": "Tradable"
+    },
+    "league": {
+      "title": "NBA / WNBA",
+      "nba": "NBA cards",
+      "wnba": "WNBA cards",
+      "empty": "No cards yet."
     },
     "incoming": {
       "title": "Incoming",
@@ -555,7 +564,7 @@
       "placeholder": "Paste CSV text here (with header row)…",
       "formatHint": "Delimiter: comma, semicolon, or tab. UTF-8 encoding recommended.",
       "formatDetailsTitle": "Expected CSV format",
-      "formatDetailsBody": "Header (row 1):\nid,player,team,year,brand,set,variation,autograph,memorabilia,rookie,tradable,serial_number,serial_current,serial_total,card_number,grading,opening_date,protection,storage,photo,notes\n\nFrench aliases accepted: joueur, club, année, marque, auto, memo, rc, échange, série, gradation, date_ajout, rangement.\n\nBooleans: true/false, 1/0, yes/no, oui/non.\nDates: dd/mm/yyyy (e.g. 15/03/2024) or yyyy-mm-dd.\nPlayer required. id optional (upsert). Max 5000 rows.",
+      "formatDetailsBody": "Header (row 1):\nid,player,team,year,brand,set,variation,autograph,memorabilia,rookie,tradable,wnba,serial_number,serial_current,serial_total,card_number,grading,opening_date,protection,storage,photo,notes\n\nFrench aliases accepted: joueur, club, année, marque, auto, memo, rc, échange, wnba, série, gradation, date_ajout, rangement.\n\nBooleans: true/false, 1/0, yes/no, oui/non.\nDates: dd/mm/yyyy (e.g. 15/03/2024) or yyyy-mm-dd.\nPlayer required. id optional (upsert). Max 5000 rows.",
       "rowError": "Row {row}: {message}"
     },
     "cards": {

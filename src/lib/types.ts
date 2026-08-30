@@ -19,6 +19,7 @@ export interface Card {
   photo: string | null;
   tradable: boolean;
   rookie: boolean;
+  wnba: boolean;
   notes: string;
 }
 
@@ -103,6 +104,15 @@ export interface CollectionStats {
   numbered: number;
   rookies: number;
   tradable: number;
+  /** Cartes taguées WNBA. Les cartes NBA sont déduites (total - wnba). */
+  wnba: number;
+}
+
+export type CardLeague = "nba" | "wnba";
+
+export interface LeagueCountRow {
+  league: CardLeague;
+  count: number;
 }
 
 export interface PlayerSummaryRow {
@@ -131,6 +141,7 @@ export interface DashboardChartData {
   setData: ChartCountRow[];
   playerData: ChartCountRow[];
   acquisitionData: ChartCountRow[];
+  leagueData: LeagueCountRow[];
 }
 
 export type ShipmentPlatform = "ebay" | "vinted" | "comc" | "private" | "other";

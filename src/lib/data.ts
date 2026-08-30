@@ -36,6 +36,7 @@ import {
   readCardCountsByYear,
   readCardsByIds,
   readDuplicateGroupRows,
+  readLeagueCounts,
   readPlayerCardGroups,
   readPlayerPageSummary,
   readCollectionStats,
@@ -167,12 +168,19 @@ export function getDashboardChartData(
     locale
   );
 
+  const { nba, wnba } = readLeagueCounts();
+  const leagueData = [
+    { league: "nba" as const, count: nba },
+    { league: "wnba" as const, count: wnba },
+  ];
+
   return {
     brandData,
     yearData,
     setData,
     playerData: playerCounts,
     acquisitionData,
+    leagueData,
   };
 }
 

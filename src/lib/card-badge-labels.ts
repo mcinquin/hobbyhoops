@@ -9,5 +9,7 @@ export function buildCardBadgeLabels(t: TranslateFn): CardBadgeLabels {
     memorabilia: t("badges.memorabilia"),
     numbered: t("badges.numbered"),
     tradable: t("badges.tradable"),
+    nba: t("badges.nba"),
+    wnba: t("badges.wnba"),
   };
 }

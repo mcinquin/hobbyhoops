@@ -29,6 +29,7 @@ const sampleCard: CardListItem = {
   storage: "",
   tradable: false,
   rookie: false,
+  wnba: false,
   notes: "",
 };
 

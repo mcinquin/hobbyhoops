@@ -13,6 +13,8 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
+  PieChart,
+  Pie,
 } from "recharts";
 
 interface DashboardChartsProps {
@@ -34,6 +36,11 @@ const COLORS = [
 ];
 
 const tooltipCursor = { fill: "hsl(38, 92%, 50%, 0.12)" };
+
+const LEAGUE_COLORS: Record<"nba" | "wnba", string> = {
+  nba: "hsl(199, 89%, 48%)",
+  wnba: "hsl(24, 95%, 53%)",
+};
 
 function collectionHref(
   key: "brand" | "set" | "year" | "player",
@@ -122,8 +129,17 @@ export function DashboardCharts({ chartData }: DashboardChartsProps) {
     openCollectionFilter(key, value);
   }
 
-  const { brandData, yearData, setData, playerData, acquisitionData } =
+  const { brandData, yearData, setData, playerData, acquisitionData, leagueData } =
     chartData;
+
+  const leagueLabels: Record<"nba" | "wnba", string> = {
+    nba: t("badges.nba"),
+    wnba: t("badges.wnba"),
+  };
+  const leagueTotal = leagueData.reduce((sum, entry) => sum + entry.count, 0);
+  const leagueChartData = leagueData
+    .filter((entry) => entry.count > 0)
+    .map((entry) => ({ ...entry, name: leagueLabels[entry.league] }));
 
   const displaySetData = useMemo(
     () => (isMobile ? setData.slice(0, MOBILE_SET_LIMIT) : setData),
@@ -373,6 +389,92 @@ export function DashboardCharts({ chartData }: DashboardChartsProps) {
           </ResponsiveContainer>
         </div>
       ) : null}
+
+      <div className="min-w-0 rounded-lg border border-border bg-card p-4 sm:p-6 lg:col-span-2">
+        <h3 className="text-sm font-medium text-muted-foreground mb-4">
+          {t("dashboard.byLeague")}
+        </h3>
+        {leagueChartData.length > 0 ? (
+          <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-center">
+            <ResponsiveContainer width="100%" height={220} className="max-w-[280px]">
+              <PieChart>
+                <Pie
+                  data={leagueChartData}
+                  dataKey="count"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={90}
+                  paddingAngle={2}
+                  stroke="none"
+                >
+                  {leagueChartData.map((entry) => (
+                    <Cell
+                      key={entry.league}
+                      fill={LEAGUE_COLORS[entry.league]}
+                      role="link"
+                      tabIndex={0}
+                      aria-label={`${entry.name} - ${entry.count} ${cardsLabel}`}
+                      className="cursor-pointer focus:outline-none"
+                      onClick={() =>
+                        router.push(`/collection?tag=${entry.league}`)
+                      }
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  content={(props) => (
+                    <ChartTooltipContent
+                      active={props.active}
+                      payload={
+                        props.payload as
+                          | ReadonlyArray<{ value?: number | string }>
+                          | undefined
+                      }
+                      label={getDatumName(props.payload?.[0]) ?? undefined}
+                      cardsLabel={cardsLabel}
+                    />
+                  )}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <ul className="flex flex-col gap-2 text-sm">
+              {leagueChartData.map((entry) => {
+                const pct =
+                  leagueTotal > 0
+                    ? Math.round((entry.count / leagueTotal) * 100)
+                    : 0;
+                return (
+                  <li key={entry.league}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        router.push(`/collection?tag=${entry.league}`)
+                      }
+                      className="flex items-center gap-2 rounded-md px-1 py-0.5 transition-colors hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <span
+                        className="h-3 w-3 shrink-0 rounded-full"
+                        style={{ backgroundColor: LEAGUE_COLORS[entry.league] }}
+                        aria-hidden
+                      />
+                      <span className="font-medium">{entry.name}</span>
+                      <span className="text-muted-foreground">
+                        {entry.count.toLocaleString()} · {pct}%
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            {t("dashboard.league.empty")}
+          </p>
+        )}
+      </div>
 
       <div className="min-w-0 rounded-lg border border-border bg-card p-4 sm:p-6 lg:col-span-2">
         <h3 className="text-sm font-medium text-muted-foreground mb-4">

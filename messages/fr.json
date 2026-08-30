@@ -60,7 +60,9 @@
     "autograph": "AUTO",
     "memorabilia": "MEM",
     "numbered": "NUM",
-    "tradable": "ÉCHANGE"
+    "tradable": "ÉCHANGE",
+    "nba": "NBA",
+    "wnba": "WNBA"
   },
   "auth": {
     "bootstrapSubtitle": "Créez le premier compte administrateur.",
@@ -102,6 +104,7 @@
     "byBrand": "Cartes par marque",
     "bySet": "Cartes par set",
     "byYear": "Cartes par année",
+    "byLeague": "Répartition NBA / WNBA",
     "topPlayers": "Top 10 joueurs",
     "acquisitionTimeline": "Ajouts à la collection par mois",
     "stats": {
@@ -111,6 +114,12 @@
       "numbered": "Numérotées",
       "rookies": "Rookies",
       "tradable": "Échangeables"
+    },
+    "league": {
+      "title": "NBA / WNBA",
+      "nba": "Cartes NBA",
+      "wnba": "Cartes WNBA",
+      "empty": "Aucune carte pour l'instant."
     },
     "incoming": {
       "title": "En route",
@@ -555,7 +564,7 @@
       "placeholder": "Collez ici un CSV (avec en-tête)…",
       "formatHint": "Séparateur : virgule, point-virgule ou tabulation. Encodage UTF-8 recommandé.",
       "formatDetailsTitle": "Format CSV attendu",
-      "formatDetailsBody": "En-tête (ligne 1) :\nid,player,team,year,brand,set,variation,autograph,memorabilia,rookie,tradable,serial_number,serial_current,serial_total,card_number,grading,opening_date,protection,storage,photo,notes\n\nAlias FR acceptés : joueur, club, année, marque, auto, memo, rc, échange, série, gradation, date_ajout, rangement.\n\nBooleans : true/false, 1/0, yes/no, oui/non.\nDates : jj/mm/aaaa (ex. 15/03/2024) ou aaaa-mm-jj.\nJoueur obligatoire. id optionnel (upsert). Max 5000 lignes.",
+      "formatDetailsBody": "En-tête (ligne 1) :\nid,player,team,year,brand,set,variation,autograph,memorabilia,rookie,tradable,wnba,serial_number,serial_current,serial_total,card_number,grading,opening_date,protection,storage,photo,notes\n\nAlias FR acceptés : joueur, club, année, marque, auto, memo, rc, échange, wnba, série, gradation, date_ajout, rangement.\n\nBooleans : true/false, 1/0, yes/no, oui/non.\nDates : jj/mm/aaaa (ex. 15/03/2024) ou aaaa-mm-jj.\nJoueur obligatoire. id optionnel (upsert). Max 5000 lignes.",
       "rowError": "Ligne {row} : {message}"
     },
     "cards": {
