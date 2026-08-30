@@ -18,7 +18,7 @@
     "collection": "Collection",
     "wanted": "Wanted",
     "shipments": "Incoming",
-    "frNba": "Fr NBA",
+    "frNba": "Fr NBA/WNBA",
     "players": "Players",
     "admin": "Admin",
     "account": "My account",
@@ -280,7 +280,7 @@
       "deleteEntry": "Remove {player}"
     },
     "frNba": {
-      "title": "Fr NBA",
+      "title": "Fr NBA/WNBA",
       "subtitle": "RPA checklist and card holdings for French NBA players.",
       "search": "Search player, team, or year…",
       "player": "Player",
@@ -301,6 +301,7 @@
       "noHoldings": "No cards recorded yet.",
       "rookieShort": "RC",
       "holdingType": {
+        "simple": "Simple",
         "auto": "Auto",
         "patch": "Patch",
         "rpa": "RPA",

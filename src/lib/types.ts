@@ -53,7 +53,12 @@ export interface WantedBlock {
   entries: WantedEntry[];
 }
 
-export type FrNbaHoldingType = "auto" | "patch" | "rpa" | "immaculate";
+export type FrNbaHoldingType =
+  | "simple"
+  | "auto"
+  | "patch"
+  | "rpa"
+  | "immaculate";
 export type FrNbaAutoStyle = "on_card" | "sticker";
 
 export interface FrNbaHolding {
