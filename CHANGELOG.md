@@ -1,3 +1,10 @@
+## [1.35.1](https://github.com/mcinquin/hobbyhoops/compare/v1.35.0...v1.35.1) (2026-08-30)
+
+
+### Bug Fixes
+
+* **ui:** fix issue with sliders ([4d6bd90](https://github.com/mcinquin/hobbyhoops/commit/4d6bd909a33648901f8c7d39722410e334619552))
+
 # [1.35.0](https://github.com/mcinquin/hobbyhoops/compare/v1.34.0...v1.35.0) (2026-08-30)
 
 
