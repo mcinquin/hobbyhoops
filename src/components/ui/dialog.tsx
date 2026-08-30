@@ -7,8 +7,33 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
-function Dialog({ ...props }: DialogPrimitive.Root.Props) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />
+function Dialog({ onOpenChange, ...props }: DialogPrimitive.Root.Props) {
+  const handleOpenChange: NonNullable<
+    DialogPrimitive.Root.Props["onOpenChange"]
+  > = (open, eventDetails) => {
+    // Pressing or dragging the popup's own scrollbar is reported as an outside
+    // press by the dismissal logic, which would close the dialog. Ignore it
+    // when the interaction started inside the dialog content.
+    if (!open && eventDetails.reason === "outside-press") {
+      const target = eventDetails.event.target
+      if (
+        target instanceof Element &&
+        target.closest('[data-slot="dialog-content"]')
+      ) {
+        eventDetails.cancel()
+        return
+      }
+    }
+    onOpenChange?.(open, eventDetails)
+  }
+
+  return (
+    <DialogPrimitive.Root
+      data-slot="dialog"
+      onOpenChange={handleOpenChange}
+      {...props}
+    />
+  )
 }
 
 function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
