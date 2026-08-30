@@ -1,3 +1,11 @@
+# [1.35.0](https://github.com/mcinquin/hobbyhoops/compare/v1.34.0...v1.35.0) (2026-08-30)
+
+
+### Features
+
+* **wnba:** add new section for wnba ([bab07ce](https://github.com/mcinquin/hobbyhoops/commit/bab07ce0b9342f63065e8af5b03f1077de7f7ab5))
+* **wnba:** add new section for wnba ([479b240](https://github.com/mcinquin/hobbyhoops/commit/479b240b08b6592c0da1bb95fada97ee9316d583))
+
 # [1.34.0](https://github.com/mcinquin/hobbyhoops/compare/v1.33.2...v1.34.0) (2026-08-29)
 
 
