@@ -251,15 +251,40 @@ export type DetectedCarrier =
   | "laposte"
   | "colissimo"
   | "chronopost"
+  | "mondialrelay"
+  | "speedpak"
   | "usps"
   | "ups"
   | "fedex"
   | "dhl"
   | "unknown";
 
+/** Préfixes SpeedPAK / Orange Connex (eBay Chine → Europe). */
+const SPEEDPAK_PREFIXES = [
+  // Format officiel Orange Connex (28 car. : ES/EE/EX/EM + 26).
+  "ES",
+  "EE",
+  "EX",
+  "EM",
+  // Anciens / variantes S10 Chine parfois vues sur eBay.
+  "LK",
+  "LM",
+  "LX",
+  "LY",
+  "LZ",
+  "UC",
+  "JD",
+  "SF",
+] as const;
+
 export function detectCarrier(trackingNumber: string): DetectedCarrier {
   const normalized = trackingNumber.trim().toUpperCase().replace(/\s+/g, "");
   if (!normalized) return "unknown";
+
+  // SpeedPAK / Orange Connex — avant les heuristiques génériques (sinon → unknown → ParcelsApp).
+  if (/^(ES|EE|EX|EM)[A-Z0-9]{20,30}$/.test(normalized)) {
+    return "speedpak";
+  }
 
   if (/^1Z[A-Z0-9]{16}$/.test(normalized)) return "ups";
   if (/^\d{20,22}$/.test(normalized) || /^9\d{21,}$/.test(normalized)) {
@@ -268,19 +293,56 @@ export function detectCarrier(trackingNumber: string): DetectedCarrier {
   if (/^\d{12,15}$/.test(normalized) && normalized.startsWith("3")) {
     return "fedex";
   }
-  if (/^\d{10,11}$/.test(normalized)) return "dhl";
-  if (/^[A-Z]{2}\d{9}[A-Z]{2}$/.test(normalized)) return "laposte";
+
+  // Mondial Relay : n° d'expédition 8 chiffres (format classique).
+  if (/^\d{8}$/.test(normalized)) return "mondialrelay";
+
+  // DHL Express : 10 chiffres — 11 chiffres trop ambigus (souvent MR / autres).
+  if (/^\d{10}$/.test(normalized)) return "dhl";
+
+  // La Poste / Colissimo / Lettre suivie (S10 UPU, préfixe parfois chiffre+lettre ex. 6A…FR).
+  if (/^[A-Z0-9]{2}\d{9}[A-Z]{2}$/.test(normalized)) {
+    const destination = normalized.slice(-2);
+    // Variantes S10 Chine parfois routées SpeedPAK.
+    if (
+      destination === "CN" &&
+      SPEEDPAK_PREFIXES.some((prefix) => normalized.startsWith(prefix))
+    ) {
+      return "speedpak";
+    }
+    return "laposte";
+  }
+
   if (/^[A-Z0-9]{2}\d{9,11}$/.test(normalized)) return "laposte";
   if (/^\d{13}$/.test(normalized)) return "colissimo";
+
+  // Autres formats SpeedPAK / Orange Connex (longueur variable).
+  if (
+    /^[A-Z0-9]{12,32}$/.test(normalized) &&
+    SPEEDPAK_PREFIXES.some((prefix) => normalized.startsWith(prefix))
+  ) {
+    return "speedpak";
+  }
 
   return "unknown";
 }
 
-export function buildTrackingUrl(
+function buildParcelsAppUrl(
   trackingNumber: string,
-  carrier?: string | null
+  locale: "fr" | "en" = "fr"
 ): string {
   const code = encodeURIComponent(trackingNumber.trim());
+  const lang = locale === "fr" ? "fr" : "en";
+  return `https://parcelsapp.com/${lang}/tracking/${code}`;
+}
+
+export function buildTrackingUrl(
+  trackingNumber: string,
+  carrier?: string | null,
+  locale: "fr" | "en" = "fr"
+): string {
+  const trimmed = trackingNumber.trim();
+  const code = encodeURIComponent(trimmed);
   const detected =
     carrier && carrier !== "unknown"
       ? (carrier as DetectedCarrier)
@@ -291,6 +353,11 @@ export function buildTrackingUrl(
     case "colissimo":
     case "chronopost":
       return `https://www.laposte.fr/outils/suivre-vos-envois?code=${code}`;
+    case "mondialrelay":
+      return `https://www.mondialrelay.fr/suivi-de-colis/?numeroExpedition=${code}`;
+    case "speedpak":
+      // SpeedPAK / Orange Connex (eBay Chine) — suivi via 17track.
+      return `https://t.17track.net/en#nums=${code}`;
     case "usps":
       return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${code}`;
     case "ups":
@@ -300,7 +367,8 @@ export function buildTrackingUrl(
     case "dhl":
       return `https://www.dhl.com/fr-fr/home/tracking.html?tracking-id=${code}`;
     default:
-      return `https://t.17track.net/en#nums=${code}`;
+      // Agrégateur multi-transporteurs (MR, Colissimo, Lettre suivie…).
+      return buildParcelsAppUrl(trimmed, locale);
   }
 }
 
