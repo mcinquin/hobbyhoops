@@ -69,6 +69,30 @@ describe("detectCarrier", () => {
   it("detects La Poste international format", () => {
     expect(detectCarrier("6A12345678901")).toBe("laposte");
   });
+
+  it("detects La Poste S10 lettre suivie / Colissimo", () => {
+    expect(detectCarrier("RV123456789FR")).toBe("laposte");
+  });
+
+  it("detects La Poste S10 with alphanumeric prefix (6A…FR)", () => {
+    expect(detectCarrier("6A123456789FR")).toBe("laposte");
+  });
+
+  it("detects Mondial Relay 8-digit expedition numbers", () => {
+    expect(detectCarrier("12345678")).toBe("mondialrelay");
+  });
+
+  it("detects SpeedPAK / Orange Connex S10 from China", () => {
+    expect(detectCarrier("LK123456789CN")).toBe("speedpak");
+  });
+
+  it("detects SpeedPAK Standard (ES… 28 chars)", () => {
+    expect(detectCarrier("ES10024287564060001010001D0N")).toBe("speedpak");
+  });
+
+  it("detects SpeedPAK Economy (EE… 28 chars)", () => {
+    expect(detectCarrier("EE1000080117450AB01010001N0N")).toBe("speedpak");
+  });
 });
 
 describe("buildTrackingUrl", () => {
@@ -76,8 +100,26 @@ describe("buildTrackingUrl", () => {
     expect(buildTrackingUrl("6A12345678901")).toContain("laposte.fr");
   });
 
-  it("falls back to 17track for unknown carriers", () => {
-    expect(buildTrackingUrl("XYZ123")).toContain("17track.net");
+  it("builds Mondial Relay URL", () => {
+    expect(buildTrackingUrl("12345678")).toContain("mondialrelay.fr");
+  });
+
+  it("builds 17track URL for SpeedPAK / Orange Connex", () => {
+    expect(buildTrackingUrl("LK123456789CN", null, "fr")).toContain(
+      "17track.net"
+    );
+  });
+
+  it("builds 17track URL for official SpeedPAK ES numbers", () => {
+    expect(
+      buildTrackingUrl("ES10024287564060001010001D0N", null, "fr")
+    ).toContain("17track.net");
+  });
+
+  it("falls back to ParcelsApp for unknown carriers", () => {
+    expect(buildTrackingUrl("XYZ123", null, "en")).toContain(
+      "parcelsapp.com/en/tracking/"
+    );
   });
 });
 
