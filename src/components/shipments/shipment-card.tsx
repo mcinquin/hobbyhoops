@@ -50,7 +50,7 @@ export function ShipmentCard({
   const { locale } = useI18n();
   const protection = getShipmentProtection(shipment);
   const trackingUrl = shipment.trackingNumber
-    ? buildTrackingUrl(shipment.trackingNumber, shipment.carrier)
+    ? buildTrackingUrl(shipment.trackingNumber, shipment.carrier, locale)
     : null;
   const platformOrderUrl = buildPlatformOrderUrl(
     shipment.platform,
