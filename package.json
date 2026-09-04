@@ -38,8 +38,8 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "csv-parse": "^7.0.2",
+    "next": "16.3.4",
     "lucide-react": "^1.38.0",
-    "next": "16.3.3",
     "pino": "^10.3.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -61,7 +61,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19",
     "eslint": "^10.9.1",
-    "eslint-config-next": "16.3.3",
+    "eslint-config-next": "16.3.4",
     "husky": "^9.1.7",
     "lint-staged": "^17.4.1",
     "markdownlint-cli2": "^0.23.2",
@@ -73,6 +73,6 @@
   "overrides": {
     "nanoid": "^3.3.18",
     "postcss": "8.5.23",
-    "sharp": "0.35.3"
+    "sharp": "0.35.4"
   }
 }
