@@ -1,3 +1,10 @@
+# [1.36.0](https://github.com/mcinquin/hobbyhoops/compare/v1.35.1...v1.36.0) (2026-09-04)
+
+
+### Features
+
+* **incoming:** improvement for parcel tracking ([e8530a3](https://github.com/mcinquin/hobbyhoops/commit/e8530a3682d3dac728d46712a0067436a1dd78b9))
+
 ## [1.35.1](https://github.com/mcinquin/hobbyhoops/compare/v1.35.0...v1.35.1) (2026-08-30)
 
 
