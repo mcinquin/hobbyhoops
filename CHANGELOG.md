@@ -1,3 +1,11 @@
+# [1.39.0](https://github.com/mcinquin/hobbyhoops/compare/v1.38.0...v1.39.0) (2026-09-04)
+
+
+### Dependencies
+
+* **deps:** bump the next group with 2 updates ([a459ff7](https://github.com/mcinquin/hobbyhoops/commit/a459ff74b9957a92891a75bdc8909277265d036b))
+* **deps:** update package-lock.json for sharp package ([2a84443](https://github.com/mcinquin/hobbyhoops/commit/2a8444357cbb5c49325128c90a7b023f5c422e59))
+
 # [1.38.0](https://github.com/mcinquin/hobbyhoops/compare/v1.37.0...v1.38.0) (2026-09-04)
 
 
