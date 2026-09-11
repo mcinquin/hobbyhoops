@@ -1,3 +1,10 @@
+# [1.41.0](https://github.com/mcinquin/hobbyhoops/compare/v1.40.0...v1.41.0) (2026-09-11)
+
+
+### Dependencies
+
+* **deps:** bump node from `e67514e` to `50c8e8c` ([5bf7237](https://github.com/mcinquin/hobbyhoops/commit/5bf7237341fb1844a75742836015351d5be1b5a0))
+
 # [1.40.0](https://github.com/mcinquin/hobbyhoops/compare/v1.39.0...v1.40.0) (2026-09-04)
 
 
