@@ -1,3 +1,10 @@
+# [1.44.0](https://github.com/mcinquin/hobbyhoops/compare/v1.43.0...v1.44.0) (2026-09-11)
+
+
+### Dependencies
+
+* **deps:** bump @base-ui/react from 1.7.0 to 1.8.0 ([4e9c613](https://github.com/mcinquin/hobbyhoops/commit/4e9c613ca2974c107a61414fe9bfc48800d24c47))
+
 # [1.43.0](https://github.com/mcinquin/hobbyhoops/compare/v1.42.0...v1.43.0) (2026-09-11)
 
 
