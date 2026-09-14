@@ -8,15 +8,11 @@ RUN --mount=type=cache,target=/var/cache/apk \
   apk add --update-cache --cache-dir /var/cache/apk python3 make g++
 
 COPY package.json package-lock.json ./
-# sharp prebuilds need x86-64-v2 (SSE4.2+). Hosts like Intel Atom N2800 SIGILL
-# in libvips. Keep @img/sharp-wasm32 (declared dep) and strip native @img binaries
-# so sharp cannot load them. Do NOT use `npm install --cpu=wasm32` (prunes lightningcss).
+# Strip sharp if pulled in as an optional transitive of Next.js — native/WASM
+# sharp crashes on CPUs without x86-64-v2 / Wasm SIMD (e.g. Intel Atom N2800).
 RUN --mount=type=cache,target=/root/.npm \
   HUSKY=0 npm ci --prefer-offline --no-audit \
-  && find node_modules/@img -mindepth 1 -maxdepth 1 -type d \( \
-       -name 'sharp-linux*' -o -name 'sharp-libvips-*' \
-     \) -exec rm -rf {} + \
-  && test -f node_modules/@img/sharp-wasm32/lib/sharp-wasm32-0.35.4.node.wasm
+  && rm -rf node_modules/sharp node_modules/@img
 
 # ── Étape 2 : build ───────────────────────────────────────────────────────────
 FROM deps AS builder
@@ -46,12 +42,8 @@ RUN addgroup --system --gid 1111 hobbyhoops \
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=hobbyhoops:hobbyhoops /app/.next/standalone ./
 COPY --from=builder --chown=hobbyhoops:hobbyhoops /app/.next/static ./.next/static
-# Standalone tracing may omit dynamically loaded .wasm; force-copy sharp WASM runtime.
-COPY --from=builder --chown=hobbyhoops:hobbyhoops /app/node_modules/@img/sharp-wasm32 ./node_modules/@img/sharp-wasm32
-COPY --from=builder --chown=hobbyhoops:hobbyhoops /app/node_modules/@emnapi ./node_modules/@emnapi
 
 RUN mkdir -p /app/data && chown hobbyhoops:hobbyhoops /app/data
-RUN test -f /app/node_modules/@img/sharp-wasm32/lib/sharp-wasm32-0.35.4.node.wasm
 
 COPY --chmod=755 scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 COPY --chmod=755 scripts/docker-ensure-db.mjs /app/scripts/docker-ensure-db.mjs
