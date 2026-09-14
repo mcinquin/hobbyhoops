@@ -8,8 +8,14 @@ RUN --mount=type=cache,target=/var/cache/apk \
   apk add --update-cache --cache-dir /var/cache/apk python3 make g++
 
 COPY package.json package-lock.json ./
+# sharp prebuilds need x86-64-v2 (SSE4.2+). Hosts like Intel Atom N2800 SIGILL
+# in libvips. Force WASM and strip native @img binaries so sharp cannot load them.
 RUN --mount=type=cache,target=/root/.npm \
-  HUSKY=0 npm ci --prefer-offline --no-audit
+  HUSKY=0 npm ci --prefer-offline --no-audit \
+  && npm install --cpu=wasm32 --os=linux --no-save --no-audit --no-fund sharp@0.35.4 \
+  && find node_modules/@img -mindepth 1 -maxdepth 1 -type d \( \
+       -name 'sharp-linux*' -o -name 'sharp-libvips-*' \
+     \) -exec rm -rf {} +
 
 # ── Étape 2 : build ───────────────────────────────────────────────────────────
 FROM deps AS builder

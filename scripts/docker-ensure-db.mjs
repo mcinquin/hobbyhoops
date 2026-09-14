@@ -6,6 +6,7 @@
  * Self-contained: only this file is copied into the production image (see Dockerfile).
  * Pino is resolved from /app/node_modules via the Next.js standalone output.
  */
+import fs from "node:fs";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -33,6 +34,19 @@ const log = pino({
   },
 }).child({ scope: "docker-ensure-db" });
 
+/** Always print a plain line on stderr so Compose restart loops are diagnosable. */
+function abort(detail, error) {
+  const errMsg = error instanceof Error ? error.message : error ? String(error) : undefined;
+  const hint = errMsg ? `${detail} (${errMsg})` : detail;
+  console.error(`hobbyhoops: startup aborted — ${hint}`);
+  log.error({
+    msg: "Startup aborted",
+    detail,
+    ...(error ? { err: error } : {}),
+  });
+  process.exit(1);
+}
+
 const require = createRequire(import.meta.url);
 const instrumentationPath = path.join(appRoot, ".next/server/instrumentation.js");
 
@@ -40,24 +54,33 @@ let register;
 try {
   ({ register } = require(instrumentationPath));
 } catch {
-  log.error({
-    msg: "Startup aborted",
-    detail: "instrumentation module not found",
-  });
-  process.exit(1);
+  abort("instrumentation module not found");
 }
 
 try {
   await register();
 } catch (error) {
-  log.error({ msg: "Startup aborted", err: error });
-  process.exit(1);
+  abort(
+    "AUTH_SECRET missing or too short (min 32 chars) — set it in .env",
+    error
+  );
 }
 
 const dbPath = path.resolve(
   appRoot,
   process.env.HOBBYHOOPS_DB_PATH?.trim() || "data/hobbyhoops.db"
 );
+const dataDir = path.dirname(dbPath);
+
+try {
+  fs.mkdirSync(dataDir, { recursive: true });
+  fs.accessSync(dataDir, fs.constants.W_OK);
+} catch (error) {
+  abort(
+    `${dataDir} is not writable by UID 1111 — on the host run: sudo chown -R 1111:1111 data`,
+    error
+  );
+}
 
 try {
   const Database = (await import("better-sqlite3")).default;
@@ -66,6 +89,8 @@ try {
   db.prepare("SELECT 1").get();
   db.close();
 } catch (error) {
-  log.error({ msg: "Startup aborted", detail: "database unavailable", err: error });
-  process.exit(1);
+  abort(
+    `cannot open SQLite at ${dbPath} — check ownership/permissions of data/ (UID 1111)`,
+    error
+  );
 }

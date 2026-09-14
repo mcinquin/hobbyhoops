@@ -115,6 +115,8 @@ This complements the SQLite backup (`hobbyhoops.db`): CSV is ideal for spreadshe
 
 The image starts with an **empty collection**: only a writable `data/` directory is required (the SQLite database is created there automatically). The container runs as the **`hobbyhoops`** system user (UID/GID **1111**). Mount `data/` at `/app/data` and make it writable by that user.
 
+Card-photo processing uses **sharp via WebAssembly** in the Docker image (not the native libvips prebuild). Native sharp/libvips binaries require **x86-64-v2** (SSE4.2+) and crash with `SIGILL` / exit `132` on older CPUs such as Intel Atom N2800.
+
 The application listens on **`127.0.0.1:3000`** (not exposed on all interfaces). In production, place a reverse proxy (e.g. Apache) in front of the host and proxy to that address.
 
 Two Compose files:
