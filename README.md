@@ -131,7 +131,7 @@ Two Compose files:
 After each semantic-release run on `main`, images are published to GitHub Container Registry:
 
 - `ghcr.io/mcinquin/hobbyhoops:latest`
-- `ghcr.io/mcinquin/hobbyhoops:X.Y.Z` (e.g. `2.0.1`)
+- `ghcr.io/mcinquin/hobbyhoops:X.Y.Z` (e.g. `2.0.2`)
 
 Prefer a **version tag** in production, not `latest`.
 
@@ -140,7 +140,7 @@ cp .env.example .env
 # Required: AUTH_SECRET (openssl rand -hex 32)
 mkdir -p data && sudo chown -R 1111:1111 data
 
-export HOBBYHOOPS_VERSION=2.0.1   # tag matching your GHCR release
+export HOBBYHOOPS_VERSION=2.0.2   # tag matching your GHCR release
 docker compose pull
 docker compose up -d
 ```

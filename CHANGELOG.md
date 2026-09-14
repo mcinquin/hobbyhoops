@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/mcinquin/hobbyhoops/compare/v2.0.1...v2.0.2) (2026-09-14)
+
+
+### Bug Fixes
+
+* **sharp:** still issue with sharp-wasm ([0799d13](https://github.com/mcinquin/hobbyhoops/commit/0799d13717b50f3e970d65806811836363f01e65))
+
 ## [2.0.1](https://github.com/mcinquin/hobbyhoops/compare/v2.0.0...v2.0.1) (2026-09-14)
 
 
