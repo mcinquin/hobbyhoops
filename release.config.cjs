@@ -110,14 +110,15 @@ module.exports = {
     [
       "@semantic-release/commit-analyzer",
       {
-        // Les mises à jour de dépendances déclenchent une minor, que ce soit via
-        // chore(deps) ou via les commits Dependabot build(deps)/build(deps-dev).
-        // Les règles personnalisées sont évaluées avant les règles par défaut
-        // (feat → minor, fix → patch).
+        // Les mises à jour de dépendances déclenchent un patch, que ce soit via
+        // chore(deps)/chore(deps-dev) ou via les commits Dependabot
+        // build(deps)/build(deps-dev). Les règles personnalisées sont évaluées
+        // avant les règles par défaut (feat → minor, fix → patch).
         releaseRules: [
-          { type: "chore", scope: "deps", release: "minor" },
-          { type: "build", scope: "deps", release: "minor" },
-          { type: "build", scope: "deps-dev", release: "minor" },
+          { type: "chore", scope: "deps", release: "patch" },
+          { type: "chore", scope: "deps-dev", release: "patch" },
+          { type: "build", scope: "deps", release: "patch" },
+          { type: "build", scope: "deps-dev", release: "patch" },
         ],
       },
     ],
