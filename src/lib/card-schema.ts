@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Translator } from "@/i18n/translator";
+import { isLocalCardPhotoUrl } from "@/lib/card-photo-constants";
 import { isLikelyCorruptedSerialNumber } from "./card-serial";
 import { normalizeOpeningDate, OPENING_DATE_REGEX } from "./opening-date";
 import { REFERENCE_YEAR_REGEX } from "./reference-mutations";
@@ -37,6 +38,7 @@ const nullableSerialNumber = z
   );
 
 function isSafePhotoUrl(value: string): boolean {
+  if (isLocalCardPhotoUrl(value)) return true;
   if (/^https:\/\//i.test(value)) return true;
   return /^data:image\/(png|jpe?g|gif|webp);base64,/i.test(value);
 }
@@ -87,7 +89,8 @@ const cardFields = {
   openingDate: nullableOpeningDate,
   protection: optionalLabel,
   storage: optionalLabel,
-  photo: nullablePhoto,
+  photoFront: nullablePhoto,
+  photoBack: nullablePhoto,
   tradable: z.boolean(),
   rookie: z.boolean(),
   wnba: z.boolean(),

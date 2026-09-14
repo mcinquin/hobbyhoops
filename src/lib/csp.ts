@@ -22,7 +22,7 @@ export function buildContentSecurityPolicy(nonce: string): string {
     "default-src 'self'",
     `script-src ${scriptSrc}`,
     `style-src ${styleSrc}`,
-    "img-src 'self' blob: data:",
+    "img-src 'self' blob: data: https:",
     "font-src 'self' data:",
     "connect-src 'self'",
     "object-src 'none'",

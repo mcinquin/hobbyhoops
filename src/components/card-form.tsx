@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { AutocompleteCombobox } from "@/components/autocomplete-combobox";
 import { OpeningDateInput } from "@/components/opening-date-input";
+import { CardPhotoField } from "@/components/card-photo-field";
 import { AdminFeedback } from "@/components/admin/admin-feedback";
 import { useTranslations } from "@/i18n/client";
 import {
@@ -27,13 +28,21 @@ import {
   variationsLinkedToSet,
 } from "@/lib/reference-suggestions";
 import { patchReferences } from "@/lib/references-client";
+import {
+  deleteCardPhotoFile,
+  updateCard,
+  uploadCardPhoto,
+} from "@/lib/cards-client";
 
 interface CardFormProps {
   card?: Partial<Card> | null;
   references: References;
   open: boolean;
   onClose: () => void;
-  onSave: (card: Partial<Card>) => boolean | Promise<boolean>;
+  /** Persiste la carte et renvoie l’enregistrement sauvé (pour enchaîner l’upload photos). */
+  onSave: (card: Partial<Card>) => Card | false | Promise<Card | false>;
+  /** Appelé après sauvegarde + upload photos réussis, juste avant onClose. */
+  onSaved?: (card: Card) => void;
   /** Affiche l’ajout de marques/sets dans le formulaire (désactivé dans l’admin cartes). */
   manageReferences?: boolean;
   /** Après ajout marque/set via l’API, recharger les références (ex. refetch GET /api/references). */
@@ -76,7 +85,8 @@ const emptyCard: Partial<Card> = {
   openingDate: null,
   protection: "",
   storage: "",
-  photo: null,
+  photoFront: null,
+  photoBack: null,
   tradable: false,
   rookie: false,
   wnba: false,
@@ -89,6 +99,7 @@ export function CardForm({
   open,
   onClose,
   onSave,
+  onSaved,
   manageReferences = true,
   onReferencesUpdated,
   saveError = null,
@@ -110,6 +121,7 @@ export function CardForm({
             references={references}
             onClose={onClose}
             onSave={onSave}
+            onSaved={onSaved}
             manageReferences={manageReferences}
             onReferencesUpdated={onReferencesUpdated}
             saveError={saveError}
@@ -128,7 +140,8 @@ type CardFormFieldsProps = {
   card?: Partial<Card> | null;
   references: References;
   onClose: () => void;
-  onSave: (card: Partial<Card>) => boolean | Promise<boolean>;
+  onSave: (card: Partial<Card>) => Card | false | Promise<Card | false>;
+  onSaved?: (card: Card) => void;
   manageReferences: boolean;
   onReferencesUpdated?: () => Promise<void>;
   saveError?: string | null;
@@ -147,6 +160,7 @@ function CardFormFields({
   references,
   onClose,
   onSave,
+  onSaved,
   manageReferences,
   onReferencesUpdated,
   saveError = null,
@@ -173,6 +187,10 @@ function CardFormFields({
   const [addingBrand, setAddingBrand] = useState(false);
   const [addingSet, setAddingSet] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [pendingFront, setPendingFront] = useState<File | null>(null);
+  const [pendingBack, setPendingBack] = useState<File | null>(null);
+  const [clearFront, setClearFront] = useState(false);
+  const [clearBack, setClearBack] = useState(false);
 
   const brandKey = (form.brand ?? "").trim();
   const setKey = (form.set ?? "").trim();
@@ -204,6 +222,47 @@ function CardFormFields({
       if (!saved) {
         return;
       }
+
+      let photoFront = saved.photoFront ?? null;
+      let photoBack = saved.photoBack ?? null;
+      let photosChanged = false;
+
+      if (clearFront && !pendingFront) {
+        await deleteCardPhotoFile(saved.id, "front");
+        photoFront = null;
+        photosChanged = true;
+      }
+      if (clearBack && !pendingBack) {
+        await deleteCardPhotoFile(saved.id, "back");
+        photoBack = null;
+        photosChanged = true;
+      }
+      if (pendingFront) {
+        photoFront = await uploadCardPhoto(saved.id, "front", pendingFront);
+        photosChanged = true;
+      }
+      if (pendingBack) {
+        photoBack = await uploadCardPhoto(saved.id, "back", pendingBack);
+        photosChanged = true;
+      }
+
+      if (photosChanged) {
+        const withPhotos = await updateCard({
+          ...saved,
+          photoFront,
+          photoBack,
+        });
+        onSaved?.(withPhotos);
+      } else {
+        onSaved?.(saved);
+      }
+      onClose();
+    } catch (err) {
+      setRefError(
+        err instanceof Error && err.message
+          ? err.message
+          : t("errors.updateFailed")
+      );
     } finally {
       setSaving(false);
     }
@@ -517,6 +576,46 @@ function CardFormFields({
                 suggestions={references.storages}
                 clearOptionLabel={t("cards.selectNone")}
                 placeholder={t("cards.selectNone")}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <CardPhotoField
+                side="front"
+                label={t("cards.photoFront")}
+                existingUrl={form.photoFront ?? null}
+                file={pendingFront}
+                cleared={clearFront}
+                disabled={saving}
+                onFileChange={(file) => {
+                  setPendingFront(file);
+                  if (file) setClearFront(false);
+                }}
+                onClear={() => {
+                  setPendingFront(null);
+                  setClearFront(true);
+                }}
+                onRestore={() => setClearFront(false)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <CardPhotoField
+                side="back"
+                label={t("cards.photoBack")}
+                existingUrl={form.photoBack ?? null}
+                file={pendingBack}
+                cleared={clearBack}
+                disabled={saving}
+                onFileChange={(file) => {
+                  setPendingBack(file);
+                  if (file) setClearBack(false);
+                }}
+                onClear={() => {
+                  setPendingBack(null);
+                  setClearBack(true);
+                }}
+                onRestore={() => setClearBack(false)}
               />
             </div>
 

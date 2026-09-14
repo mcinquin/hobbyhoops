@@ -57,7 +57,7 @@ const ALLOWED_SORT_COLUMNS = new Set(Object.values(COLLECTION_SORT_SQL));
 
 type SqlInputValue = string | number | bigint | Buffer | null;
 
-const SCHEMA_VERSION = 18;
+const SCHEMA_VERSION = 19;
 
 /** Version de schéma attendue par le code déployé (migrations SQLite). */
 export const EXPECTED_SCHEMA_VERSION = SCHEMA_VERSION;
@@ -171,7 +171,8 @@ function initSchema(db: AppDatabase): void {
       opening_date TEXT,
       protection TEXT NOT NULL DEFAULT '',
       storage TEXT NOT NULL DEFAULT '',
-      photo TEXT,
+      photo_front TEXT,
+      photo_back TEXT,
       tradable INTEGER NOT NULL DEFAULT 0,
       rookie INTEGER NOT NULL DEFAULT 0,
       wnba INTEGER NOT NULL DEFAULT 0,
@@ -814,7 +815,8 @@ function rowToCard(row: Record<string, unknown>): Card {
   const list = rowToCardListItem(row);
   return {
     ...list,
-    photo: row.photo == null ? null : String(row.photo),
+    photoFront: row.photo_front == null ? null : String(row.photo_front),
+    photoBack: row.photo_back == null ? null : String(row.photo_back),
   };
 }
 
@@ -858,7 +860,8 @@ function cardToRow(card: Card): Record<string, SqlInputValue> {
     opening_date: normalizeOpeningDate(normalized.openingDate),
     protection: normalized.protection,
     storage: normalized.storage,
-    photo: normalized.photo,
+    photo_front: normalized.photoFront,
+    photo_back: normalized.photoBack,
     tradable: normalized.tradable ? 1 : 0,
     rookie: normalized.rookie ? 1 : 0,
     wnba: normalized.wnba ? 1 : 0,
@@ -873,12 +876,12 @@ function importCards(db: AppDatabase, cards: Card[]): void {
     INSERT INTO cards (
       id, player, team, year, brand, set_name, variation,
       autograph, memorabilia, serial_number, serial_current, serial_total,
-      card_number, grading, opening_date, protection, storage, photo,
+      card_number, grading, opening_date, protection, storage, photo_front, photo_back,
       tradable, rookie, wnba, notes, opening_date_sort, search_text
     ) VALUES (
       @id, @player, @team, @year, @brand, @set_name, @variation,
       @autograph, @memorabilia, @serial_number, @serial_current, @serial_total,
-      @card_number, @grading, @opening_date, @protection, @storage, @photo,
+      @card_number, @grading, @opening_date, @protection, @storage, @photo_front, @photo_back,
       @tradable, @rookie, @wnba, @notes, @opening_date_sort, @search_text
     )
   `);
@@ -1144,6 +1147,22 @@ function runSchemaMigrations(db: AppDatabase): void {
         db.exec("ALTER TABLE cards ADD COLUMN wnba INTEGER NOT NULL DEFAULT 0");
       }
       db.exec("CREATE INDEX IF NOT EXISTS idx_cards_wnba ON cards(wnba)");
+    }
+
+    if (version < 19) {
+      dbLogger.info({ msg: "Applying v19: split card photo into front/back" });
+      if (
+        cardsTableHasColumn(db, "photo") &&
+        !cardsTableHasColumn(db, "photo_front")
+      ) {
+        db.exec("ALTER TABLE cards RENAME COLUMN photo TO photo_front");
+      }
+      if (!cardsTableHasColumn(db, "photo_front")) {
+        db.exec("ALTER TABLE cards ADD COLUMN photo_front TEXT");
+      }
+      if (!cardsTableHasColumn(db, "photo_back")) {
+        db.exec("ALTER TABLE cards ADD COLUMN photo_back TEXT");
+      }
     }
 
     setSchemaVersion(db, SCHEMA_VERSION);
@@ -1482,12 +1501,12 @@ const CARD_INSERT_SQL = `
   INSERT INTO cards (
     id, player, team, year, brand, set_name, variation,
     autograph, memorabilia, serial_number, serial_current, serial_total,
-    card_number, grading, opening_date, protection, storage, photo,
+    card_number, grading, opening_date, protection, storage, photo_front, photo_back,
     tradable, rookie, wnba, notes, opening_date_sort, search_text
   ) VALUES (
     @id, @player, @team, @year, @brand, @set_name, @variation,
     @autograph, @memorabilia, @serial_number, @serial_current, @serial_total,
-    @card_number, @grading, @opening_date, @protection, @storage, @photo,
+    @card_number, @grading, @opening_date, @protection, @storage, @photo_front, @photo_back,
     @tradable, @rookie, @wnba, @notes, @opening_date_sort, @search_text
   )
 `;
@@ -1510,7 +1529,8 @@ const CARD_UPDATE_SQL = `
     opening_date = @opening_date,
     protection = @protection,
     storage = @storage,
-    photo = @photo,
+    photo_front = @photo_front,
+    photo_back = @photo_back,
     tradable = @tradable,
     rookie = @rookie,
     wnba = @wnba,

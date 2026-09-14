@@ -58,7 +58,7 @@ Les listes de référence (joueurs, marques, sets, etc.) sont **enrichies automa
 ### En-tête canonique (ligne 1)
 
 ```csv
-id,player,team,year,brand,set,variation,autograph,memorabilia,rookie,tradable,serial_number,serial_current,serial_total,card_number,grading,opening_date,protection,storage,photo
+id,player,team,year,brand,set,variation,autograph,memorabilia,rookie,tradable,wnba,serial_number,serial_current,serial_total,card_number,grading,opening_date,protection,storage,photo_front,photo_back,notes
 ```
 
 ### Colonnes
@@ -84,7 +84,8 @@ id,player,team,year,brand,set,variation,autograph,memorabilia,rookie,tradable,se
 | `opening_date` | Non | Date d’ajout à la collection | `15/03/2024` |
 | `protection` | Non | Protection (toploader, etc.) | `Penny sleeve` |
 | `storage` | Non | Lieu de rangement | `Boîte A` |
-| `photo` | Non | URL HTTPS ou data URI image | `https://…` |
+| `photo_front` | Non | Recto : chemin local `/api/card-photos/…` ou URL HTTPS / data URI | `/api/card-photos/card-0001/front.webp` |
+| `photo_back` | Non | Verso : idem | `/api/card-photos/card-0001/back.webp` |
 
 ### Alias d’en-tête (français)
 
@@ -105,6 +106,8 @@ L’import accepte des en-têtes en français (insensible à la casse) :
 | `gradation` | `grading` |
 | `date`, `date_ajout` | `opening_date` |
 | `rangement` | `storage` |
+| `photo`, `recto` | `photo_front` |
+| `verso` | `photo_back` |
 
 ### Valeurs booléennes
 

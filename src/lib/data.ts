@@ -16,6 +16,7 @@ import {
   type ReferencesFilterIndex,
 } from "./types";
 import { getCachedReferences } from "./references-cache";
+import { deleteAllCardPhotos, deleteLocalPhotoIfStored } from "./card-photo-storage";
 import {
   buildCollectionWhereClause,
   COLLECTION_SORT_SQL,
@@ -207,11 +208,25 @@ export function createCardRecord(card: Omit<Card, "id">): Card {
 }
 
 export function editCardRecord(card: Card): Card | null {
-  return updateCard(card);
+  const existing = readCardById(card.id);
+  const saved = updateCard(card);
+  if (saved && existing) {
+    if (!saved.photoFront && existing.photoFront) {
+      deleteLocalPhotoIfStored(existing.photoFront);
+    }
+    if (!saved.photoBack && existing.photoBack) {
+      deleteLocalPhotoIfStored(existing.photoBack);
+    }
+  }
+  return saved;
 }
 
 export function removeCardRecord(id: string): boolean {
-  return deleteCard(id);
+  const removed = deleteCard(id);
+  if (removed) {
+    deleteAllCardPhotos(id);
+  }
+  return removed;
 }
 
 const EMPTY_COLLECTION_QUERY: CollectionListQuery = {

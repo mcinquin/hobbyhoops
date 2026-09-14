@@ -55,6 +55,14 @@ export async function fetchCardsPage(
   return (await res.json()) as CardsPageResult;
 }
 
+export async function fetchCardById(id: string): Promise<Card> {
+  const res = await fetch(`/api/cards/${encodeURIComponent(id)}`, API_FETCH_OPTS);
+  if (!res.ok) {
+    throw new Error(await parseApiErrorMessage(res, "Failed to load card"));
+  }
+  return (await res.json()) as Card;
+}
+
 export interface AdminSnapshot {
   references: References;
   totalCount: number;
@@ -95,6 +103,44 @@ export async function deleteCard(id: string): Promise<void> {
   });
   if (!res.ok) {
     throw new Error(await parseApiErrorMessage(res, "Failed to delete card"));
+  }
+}
+
+export async function uploadCardPhoto(
+  cardId: string,
+  side: "front" | "back",
+  file: File
+): Promise<string> {
+  const body = new FormData();
+  body.set("cardId", cardId);
+  body.set("side", side);
+  body.set("file", file);
+  const res = await fetch("/api/cards/photos", {
+    method: "POST",
+    ...API_FETCH_OPTS,
+    body,
+  });
+  if (!res.ok) {
+    throw new Error(await parseApiErrorMessage(res, "Failed to upload photo"));
+  }
+  const payload = (await res.json()) as { url?: string };
+  if (!payload.url) {
+    throw new Error("Failed to upload photo");
+  }
+  return payload.url;
+}
+
+export async function deleteCardPhotoFile(
+  cardId: string,
+  side: "front" | "back"
+): Promise<void> {
+  const params = new URLSearchParams({ cardId, side });
+  const res = await fetch(`/api/cards/photos?${params.toString()}`, {
+    method: "DELETE",
+    ...API_FETCH_OPTS,
+  });
+  if (!res.ok) {
+    throw new Error(await parseApiErrorMessage(res, "Failed to delete photo"));
   }
 }
 

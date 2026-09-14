@@ -16,15 +16,16 @@ export interface Card {
   openingDate: string | null;
   protection: string;
   storage: string;
-  photo: string | null;
+  photoFront: string | null;
+  photoBack: string | null;
   tradable: boolean;
   rookie: boolean;
   wnba: boolean;
   notes: string;
 }
 
-/** Carte sans photo — listes, pagination et fiches joueur. */
-export type CardListItem = Omit<Card, "photo">;
+/** Carte sans photos — listes, pagination et fiches joueur. */
+export type CardListItem = Omit<Card, "photoFront" | "photoBack">;
 
 export interface ReferencesFilterIndex {
   players: string[];

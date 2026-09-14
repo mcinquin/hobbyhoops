@@ -47,7 +47,8 @@ const sampleCard = (overrides: Partial<Card> = {}): Card => ({
   openingDate: "01/01/2024",
   protection: "",
   storage: "",
-  photo: null,
+  photoFront: null,
+  photoBack: null,
   tradable: false,
   rookie: true,
   wnba: false,
@@ -119,7 +120,8 @@ describe("card CRUD", () => {
       offset: 0,
     });
     expect(page).toHaveLength(1);
-    expect(page[0]).not.toHaveProperty("photo");
+    expect(page[0]).not.toHaveProperty("photoFront");
+    expect(page[0]).not.toHaveProperty("photoBack");
 
     const { whereSql: multiWhere, params: multiParams } =
       buildCollectionWhereClause({
