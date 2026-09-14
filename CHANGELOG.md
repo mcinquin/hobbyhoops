@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/mcinquin/hobbyhoops/compare/v2.0.3...v2.1.0) (2026-09-14)
+
+
+### Features
+
+* **wanted:** change Wanted UI ([1b74add](https://github.com/mcinquin/hobbyhoops/commit/1b74add810f18659f3e1af1b00a2ebe236d072b6))
+
 ## [2.0.3](https://github.com/mcinquin/hobbyhoops/compare/v2.0.2...v2.0.3) (2026-09-14)
 
 
