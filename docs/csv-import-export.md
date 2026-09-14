@@ -84,8 +84,8 @@ id,player,team,year,brand,set,variation,autograph,memorabilia,rookie,tradable,wn
 | `opening_date` | Non | Date d’ajout à la collection | `15/03/2024` |
 | `protection` | Non | Protection (toploader, etc.) | `Penny sleeve` |
 | `storage` | Non | Lieu de rangement | `Boîte A` |
-| `photo_front` | Non | Recto : chemin local `/api/card-photos/…` ou URL HTTPS / data URI | `/api/card-photos/card-0001/front.webp` |
-| `photo_back` | Non | Verso : idem | `/api/card-photos/card-0001/back.webp` |
+| `photo_front` | Non | Recto : chemin local `/api/card-photos/…` ou URL HTTPS / data URI | `/api/card-photos/card-0001/front.jpg` |
+| `photo_back` | Non | Verso : idem | `/api/card-photos/card-0001/back.png` |
 
 ### Alias d’en-tête (français)
 

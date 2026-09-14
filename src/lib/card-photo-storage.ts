@@ -3,14 +3,15 @@ import "server-only";
 import { createHash } from "crypto";
 import fs from "fs";
 import path from "path";
-import sharp from "sharp";
 import {
   ACCEPTED_IMAGE_MIME_TYPES,
   CARD_PHOTO_MAX_BYTES,
-  CARD_PHOTO_OUTPUT_EXT,
+  STOREABLE_CARD_PHOTO_MIME,
+  contentTypeForCardPhotoFilename,
   isLocalCardPhotoUrl,
   publicCardPhotoUrl,
   type CardPhotoSide,
+  type StoreableCardPhotoMime,
 } from "@/lib/card-photo-constants";
 
 export {
@@ -24,9 +25,8 @@ export {
   type CardPhotoSide,
 } from "@/lib/card-photo-constants";
 
-const OUTPUT_MIME = "image/webp";
 const CARD_ID_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
-const SIDE_FILE_RE = /^(front|back)\.webp$/;
+const SIDE_FILE_RE = /^(front|back)\.(webp|jpe?g|png|gif)$/i;
 
 function getDataRoot(): string {
   const configured = process.env.HOBBYHOOPS_DB_PATH?.trim();
@@ -145,6 +145,19 @@ function normalizeDeclaredMime(mime: string): string {
   return base;
 }
 
+function resolveStoreableMime(
+  sniffed: string | null,
+  declared: string | null
+): StoreableCardPhotoMime | null {
+  if (sniffed && sniffed in STOREABLE_CARD_PHOTO_MIME) {
+    return sniffed as StoreableCardPhotoMime;
+  }
+  if (declared && declared in STOREABLE_CARD_PHOTO_MIME) {
+    return declared as StoreableCardPhotoMime;
+  }
+  return null;
+}
+
 export type SaveCardPhotoResult =
   | { ok: true; url: string; bytes: number }
   | {
@@ -158,6 +171,11 @@ export type SaveCardPhotoResult =
         | "invalid_card_id";
     };
 
+/**
+ * Persists a card photo without re-encoding.
+ * JPEG / PNG / GIF / WebP are stored as-is so the app runs on CPUs that cannot
+ * load sharp (no x86-64-v2 / no Wasm SIMD), e.g. Intel Atom N2800.
+ */
 export async function saveCardPhoto(options: {
   cardId: string;
   side: CardPhotoSide;
@@ -201,16 +219,13 @@ export async function saveCardPhoto(options: {
     return { ok: false, code: "unsupported_type" };
   }
 
-  let webp: Buffer;
-  try {
-    webp = await sharp(buffer, { failOn: "none" })
-      .rotate()
-      .webp({ quality: 85, effort: 4 })
-      .toBuffer();
-  } catch {
+  const storeable = resolveStoreableMime(sniffed, declared);
+  if (!storeable) {
+    // Formats that would need a converter (HEIC, AVIF, TIFF, …) — no sharp on Atom.
     return { ok: false, code: "convert_failed" };
   }
 
+  const { ext } = STOREABLE_CARD_PHOTO_MIME[storeable];
   const dir = cardPhotoDir(cardId);
   fs.mkdirSync(dir, { recursive: true });
 
@@ -220,19 +235,19 @@ export async function saveCardPhoto(options: {
     }
   }
 
-  const filename = `${side}${CARD_PHOTO_OUTPUT_EXT}`;
+  const filename = `${side}${ext}`;
   const target = path.join(dir, filename);
   const tmp = path.join(
     dir,
-    `.${side}-${createHash("sha1").update(webp).digest("hex").slice(0, 8)}.tmp`
+    `.${side}-${createHash("sha1").update(buffer).digest("hex").slice(0, 8)}.tmp`
   );
-  fs.writeFileSync(tmp, webp);
+  fs.writeFileSync(tmp, buffer);
   fs.renameSync(tmp, target);
 
   return {
     ok: true,
-    url: publicCardPhotoUrl(cardId, side),
-    bytes: webp.length,
+    url: publicCardPhotoUrl(cardId, side, ext),
+    bytes: buffer.length,
   };
 }
 
@@ -247,6 +262,9 @@ export function readCardPhotoFile(
   if (!CARD_ID_RE.test(cardId) || !SIDE_FILE_RE.test(filename)) {
     return { ok: false };
   }
+
+  const contentType = contentTypeForCardPhotoFilename(filename);
+  if (!contentType) return { ok: false };
 
   const dir = path.join(getCardPhotosRoot(), cardId);
   const resolved = path.resolve(dir, filename);
@@ -263,7 +281,7 @@ export function readCardPhotoFile(
   return {
     ok: true,
     buffer: fs.readFileSync(resolved),
-    contentType: OUTPUT_MIME,
+    contentType,
     mtimeMs: stat.mtimeMs,
   };
 }
@@ -296,7 +314,7 @@ export function deleteAllCardPhotos(cardId: string): void {
 export function deleteLocalPhotoIfStored(url: string | null | undefined): void {
   if (!url || !isLocalCardPhotoUrl(url)) return;
   const match = url.match(
-    /^\/api\/card-photos\/([^/]+)\/(front|back)\.webp$/i
+    /^\/api\/card-photos\/([^/]+)\/(front|back)\.(webp|jpe?g|png|gif)$/i
   );
   if (!match) return;
   const cardId = decodeURIComponent(match[1]!);

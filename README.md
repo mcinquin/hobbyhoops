@@ -44,7 +44,7 @@ npm run clean      # removes .next, TypeScript caches, etc.
 Everything is stored in **`data/`** (gitignored), mounted as `/app/data` in Docker:
 
 - **`data/hobbyhoops.db`** — SQLite (collection, references, accounts, sessions, rate limiting) via `better-sqlite3`
-- **`data/card-photos/`** — card front/back images (WebP), uploaded from Admin / receive flow
+- **`data/card-photos/`** — card front/back images (JPEG / PNG / GIF / WebP as uploaded), from Admin / receive flow
 
 This file and its WAL journals are **local** and must **never** be committed. Card photos live next to the database on the same volume — back up `data/` as a whole if you want images included.
 
@@ -115,7 +115,7 @@ This complements the SQLite backup (`hobbyhoops.db`): CSV is ideal for spreadshe
 
 The image starts with an **empty collection**: only a writable `data/` directory is required (the SQLite database is created there automatically). The container runs as the **`hobbyhoops`** system user (UID/GID **1111**). Mount `data/` at `/app/data` and make it writable by that user.
 
-Card-photo processing uses **sharp via WebAssembly** in the Docker image (not the native libvips prebuild). Native sharp/libvips binaries require **x86-64-v2** (SSE4.2+) and crash with `SIGILL` / exit `132` on older CPUs such as Intel Atom N2800.
+Card photos are stored **as uploaded** (JPEG / PNG / GIF / WebP) with no native image library. The app deliberately avoids `sharp` so it runs on older CPUs such as Intel Atom N2800 (no x86-64-v2 / Wasm SIMD).
 
 The application listens on **`127.0.0.1:3000`** (not exposed on all interfaces). In production, place a reverse proxy (e.g. Apache) in front of the host and proxy to that address.
 

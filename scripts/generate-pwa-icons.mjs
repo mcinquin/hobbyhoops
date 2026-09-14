@@ -1,6 +1,7 @@
 /**
  * Generates raster PNG icons required for PWA installation on Android and iOS.
- * Uses sharp (bundled with Next.js) to rasterise src/app/icon.svg.
+ * Requires a one-off `sharp` install on a modern CPU (not shipped in production):
+ *   npm install --no-save sharp && npm run generate:icons
  *
  * Outputs:
  *   public/icons/icon-192x192.png        – standard manifest icon
@@ -9,13 +10,24 @@
  *   public/icons/apple-touch-icon.png    – 180×180 for iOS
  */
 
-import sharp from "sharp";
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { getLogger } from "./lib/logger.mjs";
 
 const log = getLogger("generate-pwa-icons");
+
+let sharp;
+try {
+  sharp = (await import("sharp")).default;
+} catch {
+  log.error({
+    msg: "sharp is not installed — required only for this maintainer script",
+    hint: "npm install --no-save sharp && npm run generate:icons",
+  });
+  process.exit(1);
+}
+
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const iconSvg = join(root, "src/app/icon.svg");
 const outputDir = join(root, "public/icons");

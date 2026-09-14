@@ -41,7 +41,7 @@ describe("card-photo-storage", () => {
     }
   });
 
-  it("saves a webp under data/card-photos and reads it back", async () => {
+  it("saves a png under data/card-photos and reads it back", async () => {
     const saved = await saveCardPhoto({
       cardId: "card-0001",
       side: "front",
@@ -51,15 +51,15 @@ describe("card-photo-storage", () => {
     expect(saved.ok).toBe(true);
     if (!saved.ok) return;
 
-    expect(saved.url).toBe("/api/card-photos/card-0001/front.webp");
+    expect(saved.url).toBe("/api/card-photos/card-0001/front.png");
     expect(
-      fs.existsSync(path.join(getCardPhotosRoot(), "card-0001", "front.webp"))
+      fs.existsSync(path.join(getCardPhotosRoot(), "card-0001", "front.png"))
     ).toBe(true);
 
-    const read = readCardPhotoFile("card-0001", "front.webp");
+    const read = readCardPhotoFile("card-0001", "front.png");
     expect(read.ok).toBe(true);
     if (!read.ok) return;
-    expect(read.contentType).toBe("image/webp");
+    expect(read.contentType).toBe("image/png");
     expect(read.buffer.length).toBeGreaterThan(0);
   });
 
