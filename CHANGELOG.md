@@ -1,3 +1,10 @@
+## [1.44.1](https://github.com/mcinquin/hobbyhoops/compare/v1.44.0...v1.44.1) (2026-09-14)
+
+
+### Bug Fixes
+
+* **cards:** fix issue with lint ([50d6188](https://github.com/mcinquin/hobbyhoops/commit/50d61887e90ab1383d2eda2d746795ded5cc7938))
+
 # [1.44.0](https://github.com/mcinquin/hobbyhoops/compare/v1.43.0...v1.44.0) (2026-09-11)
 
 
