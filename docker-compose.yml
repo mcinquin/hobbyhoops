@@ -3,8 +3,9 @@
 #   export HOBBYHOOPS_VERSION=2.0.0   # tag publié sur GHCR
 #   docker compose pull && docker compose up -d
 #
-# Au démarrage, l'entrypoint exécute la migration SQLite avant le serveur.
-# Si la migration échoue, le conteneur quitte avec le code 1 (Compose échoue).
+# Au démarrage, l'entrypoint vérifie AUTH_SECRET et que data/ est writable (UID 1111).
+# Échec = exit 1 → boucle de restart (unless-stopped). Les migrations SQLite
+# s'exécutent ensuite au premier accès DB (healthcheck / requête).
 #
 # Dev local (build) : docker compose -f docker-compose.dev.yml up --build
 
