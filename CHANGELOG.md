@@ -1,3 +1,20 @@
+# [2.0.0](https://github.com/mcinquin/hobbyhoops/compare/v1.44.1...v2.0.0) (2026-09-14)
+
+
+* feat(cards)!: store card photos as front/back BREAKING CHANGE: `photo` is replaced by `photoFront` / `photoBack` (DB `photo_front` / `photo_back`, CSV headers updated). ([83b3de7](https://github.com/mcinquin/hobbyhoops/commit/83b3de7377d18da30eb50fb670fe10a8a9dbd3dd))
+* feat(cards)!: store card photos as front/back BREAKING CHANGE: `photo` is replaced by `photoFront` / `photoBack` (DB `photo_front` / `photo_back`, CSV headers updated). ([218d72e](https://github.com/mcinquin/hobbyhoops/commit/218d72e722ccfc6b35ced6191e9543a97aa1950c))
+* feat(cards)!: store card photos as front/back BREAKING CHANGE: `photo` is replaced by `photoFront` / `photoBack` (DB `photo_front` / `photo_back`, CSV headers updated). ([b85cb98](https://github.com/mcinquin/hobbyhoops/commit/b85cb9895704941a538a50c470ca6a6a19c532f1))
+
+
+### BREAKING CHANGES
+
+* `photo` is replaced by `photoFront` / `photoBack`
+(DB `photo_front` / `photo_back`, CSV headers updated).
+* `photo` is replaced by `photoFront` / `photoBack`
+(DB `photo_front` / `photo_back`, CSV headers updated).
+* `photo` is replaced by `photoFront` / `photoBack`
+(DB `photo_front` / `photo_back`, CSV headers updated).
+
 ## [1.44.1](https://github.com/mcinquin/hobbyhoops/compare/v1.44.0...v1.44.1) (2026-09-14)
 
 
