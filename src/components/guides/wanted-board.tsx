@@ -1,34 +1,14 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import {
-  useTable,
-  flexRender,
-  type ColumnDef,
-  type Row,
-  type SortingState,
-} from "@tanstack/react-table";
-import {
-  interactiveTableFeatures,
-  type InteractiveTableFeatures,
-} from "@/components/data-table/table-features";
+import { useCallback, useId, useMemo, useState } from "react";
 import { createWantedEntry, deleteWantedEntry } from "@/lib/guides-client";
 import type { WantedBlock, WantedEntry } from "@/lib/types";
 import { ColumnFilterCombobox } from "@/components/column-filter-combobox";
-import { SortableTableHead } from "@/components/data-table/sortable-table-head";
-import { TablePagination } from "@/components/data-table/table-pagination";
+import { FilterChipButton } from "@/components/filter-chip-button";
 import { SearchField } from "@/components/search-field";
-import { useStableTablePagination } from "@/hooks/use-stable-table-pagination";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "@/i18n/client";
 
@@ -38,15 +18,26 @@ interface WantedBoardProps {
 
 type WantedRow = WantedEntry & { set: string };
 
+type WantedSetGroup = {
+  set: string;
+  entries: WantedRow[];
+};
+
+function compareWantedRows(a: WantedRow, b: WantedRow): number {
+  const variationCmp = a.variation.localeCompare(b.variation);
+  if (variationCmp !== 0) return variationCmp;
+  const slotA = a.slot ?? Number.POSITIVE_INFINITY;
+  const slotB = b.slot ?? Number.POSITIVE_INFINITY;
+  if (slotA !== slotB) return slotA - slotB;
+  return a.player.localeCompare(b.player);
+}
+
 export function WantedBoard({ initialBlocks }: WantedBoardProps) {
   const t = useTranslations();
   const [blocks, setBlocks] = useState(initialBlocks);
   const [search, setSearch] = useState("");
+  const [setFilter, setSetFilter] = useState("");
   const [variationFilter, setVariationFilter] = useState("");
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: "variation", desc: false },
-    { id: "slot", desc: false },
-  ]);
   const [setName, setSetName] = useState("");
   const [variation, setVariation] = useState("");
   const [slot, setSlot] = useState("");
@@ -64,22 +55,35 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
   );
 
   const setNames = useMemo(
-    () => [...new Set(blocks.map((block) => block.set))].sort((a, b) =>
-      a.localeCompare(b)
-    ),
+    () =>
+      [...new Set(blocks.map((block) => block.set))].sort((a, b) =>
+        a.localeCompare(b)
+      ),
     [blocks]
   );
 
-  const variations = useMemo(
-    () =>
-      [...new Set(rows.map((row) => row.variation))].sort((a, b) =>
-        a.localeCompare(b)
-      ),
-    [rows]
-  );
+  const setCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const row of rows) {
+      counts.set(row.set, (counts.get(row.set) ?? 0) + 1);
+    }
+    return counts;
+  }, [rows]);
+
+  const variations = useMemo(() => {
+    const source = setFilter
+      ? rows.filter((row) => row.set === setFilter)
+      : rows;
+    return [...new Set(source.map((row) => row.variation))].sort((a, b) =>
+      a.localeCompare(b)
+    );
+  }, [rows, setFilter]);
 
   const filteredRows = useMemo(() => {
     let result = rows;
+    if (setFilter) {
+      result = result.filter((row) => row.set === setFilter);
+    }
     if (variationFilter) {
       result = result.filter((row) => row.variation === variationFilter);
     }
@@ -93,7 +97,26 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
       );
     }
     return result;
-  }, [rows, search, variationFilter]);
+  }, [rows, search, setFilter, variationFilter]);
+
+  const groupedSets = useMemo((): WantedSetGroup[] => {
+    const bySet = new Map<string, WantedRow[]>();
+    for (const row of filteredRows) {
+      const list = bySet.get(row.set);
+      if (list) {
+        list.push(row);
+      } else {
+        bySet.set(row.set, [row]);
+      }
+    }
+
+    return [...bySet.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([set, entries]) => ({
+        set,
+        entries: [...entries].sort(compareWantedRows),
+      }));
+  }, [filteredRows]);
 
   async function handleAdd() {
     const trimmedSet = setName.trim();
@@ -115,13 +138,13 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
     setSuccess(null);
     setLoading(true);
     try {
-      const blocks = await createWantedEntry({
+      const nextBlocks = await createWantedEntry({
         set: trimmedSet,
         variation: trimmedVariation,
         player: trimmedPlayer,
         slot: slotValue,
       });
-      setBlocks(blocks);
+      setBlocks(nextBlocks);
       setVariation("");
       setSlot("");
       setPlayer("");
@@ -138,8 +161,8 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
       setSuccess(null);
       setLoading(true);
       try {
-        const blocks = await deleteWantedEntry(id);
-        setBlocks(blocks);
+        const nextBlocks = await deleteWantedEntry(id);
+        setBlocks(nextBlocks);
         setSuccess(t("guides.wanted.deleted"));
       } catch {
         setFormError(t("errors.updateFailed"));
@@ -149,86 +172,6 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
     },
     [t]
   );
-
-  const columns = useMemo<ColumnDef<InteractiveTableFeatures, WantedRow>[]>(
-    () => [
-      {
-        accessorKey: "set",
-        header: t("guides.wanted.set"),
-        cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">{row.original.set}</span>
-        ),
-      },
-      {
-        accessorKey: "variation",
-        header: t("guides.wanted.variation"),
-        cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">
-            {row.original.variation}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "slot",
-        header: t("guides.wanted.slot"),
-        cell: ({ row }) => (
-          <span className="font-mono text-sm tabular-nums">
-            {row.original.slot ?? "—"}
-          </span>
-        ),
-        sortingFn: (
-          a: Row<InteractiveTableFeatures, WantedRow>,
-          b: Row<InteractiveTableFeatures, WantedRow>
-        ) => (a.original.slot ?? 999) - (b.original.slot ?? 999),
-      },
-      {
-        accessorKey: "player",
-        header: t("guides.wanted.player"),
-        cell: ({ row }) => (
-          <span className="font-medium">{row.original.player}</span>
-        ),
-      },
-      {
-        id: "actions",
-        header: t("guides.wanted.actions"),
-        enableSorting: false,
-        cell: ({ row }) => (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-            disabled={loading}
-            aria-label={t("guides.wanted.deleteEntry", {
-              player: row.original.player,
-            })}
-            onClick={() => void handleDelete(row.original.id)}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        ),
-      },
-    ],
-    [handleDelete, loading, t]
-  );
-
-  const filterResetKey = `${search}\0${variationFilter}`;
-
-  const tablePagination = useStableTablePagination({
-    pageSize: 25,
-    resetKey: filterResetKey,
-    rowCount: filteredRows.length,
-  });
-
-  const table = useTable({
-    features: interactiveTableFeatures,
-    data: filteredRows,
-    columns,
-    state: { sorting, pagination: tablePagination.pagination },
-    onSortingChange: setSorting,
-    onPaginationChange: tablePagination.onPaginationChange,
-    autoResetPageIndex: tablePagination.autoResetPageIndex,
-  });
 
   return (
     <div className="space-y-4">
@@ -292,7 +235,9 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
             {t("common.add")}
           </Button>
           {success ? (
-            <p className="text-sm text-emerald-600 dark:text-emerald-400">{success}</p>
+            <p className="text-sm text-emerald-600 dark:text-emerald-400">
+              {success}
+            </p>
           ) : null}
           {formError ? (
             <p className="text-sm text-destructive" role="alert">
@@ -302,14 +247,35 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
         </div>
       </div>
 
-      {blocks.map((block) => (
-        <p
-          key={block.set}
-          className="rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium"
+      {setNames.length > 0 ? (
+        <div
+          className="flex flex-wrap gap-2"
+          role="group"
+          aria-label={t("guides.wanted.filterSet")}
         >
-          {block.set}
-        </p>
-      ))}
+          <FilterChipButton
+            label={t("guides.wanted.allSets")}
+            pressed={setFilter === ""}
+            onPressedChange={() => {
+              setSetFilter("");
+            }}
+          />
+          {setNames.map((name) => (
+            <FilterChipButton
+              key={name}
+              label={t("guides.wanted.setChip", {
+                set: name,
+                count: setCounts.get(name) ?? 0,
+              })}
+              pressed={setFilter === name}
+              onPressedChange={(pressed) => {
+                setSetFilter(pressed ? name : "");
+                setVariationFilter("");
+              }}
+            />
+          ))}
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <SearchField
@@ -330,22 +296,71 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
 
       <p className="text-sm text-muted-foreground">
         {t("guides.wanted.count", { count: filteredRows.length })}
-        {filteredRows.length !== rows.length &&
-          ` ${t("common.filteredOf", { total: rows.length })}`}
+        {filteredRows.length !== rows.length
+          ? ` ${t("common.filteredOf", { total: rows.length })}`
+          : null}
       </p>
 
-      <div className="space-y-2 md:hidden">
-        {table.getRowModel().rows.length ? (
-          table.getRowModel().rows.map((row) => (
-            <div
-              key={row.id}
-              className="flex items-start justify-between gap-3 rounded-lg border border-border bg-card p-3 text-sm"
-            >
-              <div className="min-w-0">
-                <p className="font-medium">{row.original.player}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {row.original.set} · {row.original.variation}
-                  {row.original.slot != null ? ` · #${row.original.slot}` : ""}
+      {groupedSets.length === 0 ? (
+        <div className="rounded-lg border border-border p-6 text-center text-sm text-muted-foreground">
+          {t("common.noneFound")}
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {groupedSets.map((group) => (
+            <WantedSetSection
+              key={group.set}
+              set={group.set}
+              entries={group.entries}
+              loading={loading}
+              onDelete={handleDelete}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WantedSetSection({
+  set,
+  entries,
+  loading,
+  onDelete,
+}: {
+  set: string;
+  entries: WantedRow[];
+  loading: boolean;
+  onDelete: (id: number) => void | Promise<void>;
+}) {
+  const t = useTranslations();
+  const headingId = useId();
+
+  return (
+    <section aria-labelledby={headingId}>
+      <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-border pb-2">
+        <h2 id={headingId} className="text-sm font-medium text-foreground">
+          {set}
+        </h2>
+        <p className="text-xs text-muted-foreground">
+          {t("guides.wanted.setCount", { count: entries.length })}
+        </p>
+      </div>
+      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {entries.map((entry) => (
+          <li key={entry.id}>
+            <article className="flex h-full items-start justify-between gap-3 rounded-lg border border-border bg-card p-3">
+              <div className="min-w-0 space-y-1">
+                <h3 className="text-sm font-medium leading-snug">
+                  {entry.player}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {entry.variation}
+                  {entry.slot != null ? (
+                    <span className="font-mono tabular-nums">
+                      {` · #${entry.slot}`}
+                    </span>
+                  ) : null}
                 </p>
               </div>
               <Button
@@ -355,58 +370,17 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
                 className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
                 disabled={loading}
                 aria-label={t("guides.wanted.deleteEntry", {
-                  player: row.original.player,
+                  player: entry.player,
+                  set: entry.set,
                 })}
-                onClick={() => void handleDelete(row.original.id)}
+                onClick={() => void onDelete(entry.id)}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
-            </div>
-          ))
-        ) : (
-          <div className="rounded-lg border border-border p-6 text-center text-sm text-muted-foreground">
-            {t("common.noneFound")}
-          </div>
-        )}
-      </div>
-
-      <div className="hidden rounded-md border border-border md:block md:overflow-auto">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <SortableTableHead key={header.id} header={header} />
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-2">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center text-muted-foreground"
-                >
-                  {t("common.noneFound")}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      <TablePagination table={table} />
-    </div>
+            </article>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

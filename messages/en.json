@@ -271,7 +271,11 @@
       "slotOptional": "Optional",
       "player": "Player",
       "allVariations": "All variations",
+      "allSets": "All sets",
+      "filterSet": "Filter by set",
       "filterVariation": "Variation…",
+      "setChip": "{set} ({count})",
+      "setCount": "{count} cards",
       "count": "{count} entries",
       "addEntry": "Add an entry",
       "fieldsRequired": "Set, variation, and player are required.",
@@ -279,7 +283,7 @@
       "added": "Entry added.",
       "deleted": "Entry removed.",
       "actions": "Actions",
-      "deleteEntry": "Remove {player}"
+      "deleteEntry": "Remove {player} — {set}"
     },
     "frNba": {
       "title": "Fr NBA/WNBA",

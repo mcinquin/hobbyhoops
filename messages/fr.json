@@ -271,7 +271,11 @@
       "slotOptional": "Optionnel",
       "player": "Joueur",
       "allVariations": "Toutes les variations",
+      "allSets": "Tous les sets",
+      "filterSet": "Filtrer par set",
       "filterVariation": "Variation…",
+      "setChip": "{set} ({count})",
+      "setCount": "{count} cartes",
       "count": "{count} entrées",
       "addEntry": "Ajouter une entrée",
       "fieldsRequired": "Set, variation et joueur sont obligatoires.",
@@ -279,7 +283,7 @@
       "added": "Entrée ajoutée.",
       "deleted": "Entrée supprimée.",
       "actions": "Actions",
-      "deleteEntry": "Supprimer {player}"
+      "deleteEntry": "Supprimer {player} — {set}"
     },
     "frNba": {
       "title": "Fr NBA/WNBA",
