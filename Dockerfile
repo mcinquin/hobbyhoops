@@ -9,10 +9,11 @@ RUN --mount=type=cache,target=/var/cache/apk \
 
 COPY package.json package-lock.json ./
 # sharp prebuilds need x86-64-v2 (SSE4.2+). Hosts like Intel Atom N2800 SIGILL
-# in libvips. Force WASM and strip native @img binaries so sharp cannot load them.
+# in libvips. Install WASM addon explicitly (do NOT use `npm install --cpu=wasm32`,
+# which prunes other musl natives e.g. lightningcss) then strip native @img binaries.
 RUN --mount=type=cache,target=/root/.npm \
   HUSKY=0 npm ci --prefer-offline --no-audit \
-  && npm install --cpu=wasm32 --os=linux --no-save --no-audit --no-fund sharp@0.35.4 \
+  && npm install --no-save --no-audit --no-fund @img/sharp-wasm32@0.35.4 \
   && find node_modules/@img -mindepth 1 -maxdepth 1 -type d \( \
        -name 'sharp-linux*' -o -name 'sharp-libvips-*' \
      \) -exec rm -rf {} +
