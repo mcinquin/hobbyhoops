@@ -1,6 +1,6 @@
 # Production — image GHCR, reverse proxy Apache en amont (hors Compose).
 # Déploiement : cp .env.example .env, renseigner AUTH_SECRET, puis :
-#   export HOBBYHOOPS_VERSION=2.0.2   # tag publié sur GHCR
+#   export HOBBYHOOPS_VERSION=2.0.3   # tag publié sur GHCR
 #   docker compose pull && docker compose up -d
 #
 # Au démarrage, l'entrypoint vérifie AUTH_SECRET et que data/ est writable (UID 1111).
@@ -11,7 +11,7 @@
 
 services:
   app:
-    image: ghcr.io/mcinquin/hobbyhoops:${HOBBYHOOPS_VERSION:-2.0.2}
+    image: ghcr.io/mcinquin/hobbyhoops:${HOBBYHOOPS_VERSION:-2.0.3}
     pull_policy: always
     container_name: hobbyhoops
     entrypoint: ["/usr/local/bin/docker-entrypoint.sh"]

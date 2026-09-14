@@ -1,3 +1,10 @@
+## [2.0.3](https://github.com/mcinquin/hobbyhoops/compare/v2.0.2...v2.0.3) (2026-09-14)
+
+
+### Bug Fixes
+
+* **sharp:** remove sharp - Incompatibility with Intel Atom CPU ([7f77dfe](https://github.com/mcinquin/hobbyhoops/commit/7f77dfe3f11edddbc2910329c1ffd55320bb5056))
+
 ## [2.0.2](https://github.com/mcinquin/hobbyhoops/compare/v2.0.1...v2.0.2) (2026-09-14)
 
 
