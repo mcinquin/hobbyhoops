@@ -14,7 +14,7 @@ import {
   variationsForFilters,
   type CollectionListQuery,
 } from "@/lib/collection-query";
-import { createCard, deleteCard, fetchCardsPage, updateCard } from "@/lib/cards-client";
+import { createCard, deleteCard, fetchCardById, fetchCardsPage, updateCard } from "@/lib/cards-client";
 import { fetchReferences } from "@/lib/references-client";
 import { FilterChipButton } from "@/components/filter-chip-button";
 import { CardForm } from "@/components/card-form";
@@ -43,10 +43,6 @@ import { CollectionSearchInput } from "@/components/collection-search-input";
 import { useTranslations } from "@/i18n/client";
 import { useCollectionUrlFilters } from "@/hooks/use-collection-url-filters";
 import { useCardBadgeLabels } from "@/hooks/use-card-badge-labels";
-
-function listItemToEditableCard(card: CardListItem): Card {
-  return { ...card, photo: null };
-}
 
 /** Cascade brand → set/variation when the parent filter changes. */
 function brandFilterPatch(brand: string): Partial<CollectionListQuery> {
@@ -162,24 +158,37 @@ export function AdminCardsSection({
     }
   }
 
-  async function handleSave(cardData: Partial<Card>): Promise<boolean> {
+  async function openEditCard(card: CardListItem) {
     setSaveError(null);
     setSuccess(null);
     try {
-      if (editingCard) {
-        await updateCard({ ...editingCard, ...cardData });
-        setEditingCard(null);
-        setFormOpen(false);
-        setSuccess(t("admin.cards.updated"));
-      } else {
-        await createCard(cardData);
-        setEditingCard(null);
-        setFormOpen(false);
-        setSuccess(t("admin.cards.created"));
-      }
+      const full = await fetchCardById(card.id);
+      setEditingCard(full);
+      setFormOpen(true);
+    } catch (err) {
+      setSaveError(
+        err instanceof Error && err.message
+          ? err.message
+          : t("admin.cards.saveFailed")
+      );
+    }
+  }
+
+  async function handleSave(cardData: Partial<Card>): Promise<Card | false> {
+    setSaveError(null);
+    setSuccess(null);
+    const wasEditing = Boolean(editingCard);
+    try {
+      const saved = wasEditing
+        ? await updateCard({ ...editingCard!, ...cardData })
+        : await createCard(cardData);
+      setEditingCard(null);
+      setSuccess(
+        wasEditing ? t("admin.cards.updated") : t("admin.cards.created")
+      );
       void loadPage();
       void refreshReferences();
-      return true;
+      return saved;
     } catch (err) {
       setSaveError(
         err instanceof Error && err.message
@@ -359,9 +368,7 @@ export function AdminCardsSection({
                       player: card.player,
                     })}
                     onClick={() => {
-                      setEditingCard(listItemToEditableCard(card));
-                      setSaveError(null);
-                      setFormOpen(true);
+                      void openEditCard(card);
                     }}
                   >
                     <Pencil className="h-3.5 w-3.5 mr-1" />
@@ -531,9 +538,7 @@ export function AdminCardsSection({
                         player: card.player,
                       })}
                       onClick={() => {
-                        setEditingCard(listItemToEditableCard(card));
-                        setSaveError(null);
-                        setFormOpen(true);
+                        void openEditCard(card);
                       }}
                     >
                       <Pencil className="h-3.5 w-3.5" />

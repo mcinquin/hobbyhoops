@@ -41,7 +41,12 @@ npm run clean      # removes .next, TypeScript caches, etc.
 
 ## Data
 
-Everything is stored in **`data/hobbyhoops.db`** (SQLite via `better-sqlite3`): collection, references, accounts, sessions, and rate limiting. This file and its WAL journals are **local** and must **never** be committed.
+Everything is stored in **`data/`** (gitignored), mounted as `/app/data` in Docker:
+
+- **`data/hobbyhoops.db`** — SQLite (collection, references, accounts, sessions, rate limiting) via `better-sqlite3`
+- **`data/card-photos/`** — card front/back images (WebP), uploaded from Admin / receive flow
+
+This file and its WAL journals are **local** and must **never** be committed. Card photos live next to the database on the same volume — back up `data/` as a whole if you want images included.
 
 On first launch, an empty database is created; create the administrator account from the login screen.
 

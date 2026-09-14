@@ -24,7 +24,8 @@ export const CARD_CSV_COLUMNS = [
   "opening_date",
   "protection",
   "storage",
-  "photo",
+  "photo_front",
+  "photo_back",
   "notes",
 ] as const;
 
@@ -85,7 +86,13 @@ const COLUMN_ALIASES: Record<string, CardCsvColumn> = {
   protection: "protection",
   storage: "storage",
   rangement: "storage",
-  photo: "photo",
+  photo: "photo_front",
+  photo_front: "photo_front",
+  photofront: "photo_front",
+  recto: "photo_front",
+  photo_back: "photo_back",
+  photoback: "photo_back",
+  verso: "photo_back",
   notes: "notes",
   note: "notes",
   remarques: "notes",
@@ -170,7 +177,8 @@ function cardToCsvRow(card: Card): string[] {
     card.openingDate ?? "",
     card.protection,
     card.storage,
-    card.photo ?? "",
+    card.photoFront ?? "",
+    card.photoBack ?? "",
     card.notes,
   ];
 }
@@ -232,7 +240,8 @@ export function csvRowToWritePayload(
     openingDate: row.opening_date ?? "",
     protection: row.protection ?? "",
     storage: row.storage ?? "",
-    photo: row.photo ?? "",
+    photoFront: row.photo_front ?? "",
+    photoBack: row.photo_back ?? "",
     notes: row.notes ?? "",
   });
 

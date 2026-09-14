@@ -63,7 +63,7 @@ export function ShipmentReceiveDialog({
     );
   }, [locale, shipment, t]);
 
-  async function handleSave(cardData: Partial<Card>): Promise<boolean> {
+  async function handleSave(cardData: Partial<Card>): Promise<Card | false> {
     if (!shipment) return false;
     setSaveError(null);
     try {
@@ -73,8 +73,7 @@ export function ShipmentReceiveDialog({
         status: "received",
         cardId: created.id,
       });
-      onComplete("addedToCollection");
-      return true;
+      return created;
     } catch (err) {
       setSaveError(
         err instanceof Error && err.message
@@ -110,6 +109,7 @@ export function ShipmentReceiveDialog({
       open={open}
       onClose={onClose}
       onSave={handleSave}
+      onSaved={() => onComplete("addedToCollection")}
       manageReferences={false}
       saveError={saveError}
       dialogTitle={t("shipments.receive.title")}
