@@ -1,3 +1,11 @@
+## [2.0.1](https://github.com/mcinquin/hobbyhoops/compare/v2.0.0...v2.0.1) (2026-09-14)
+
+
+### Bug Fixes
+
+* **sharp:** fix dependencies issue ([c10eaaa](https://github.com/mcinquin/hobbyhoops/commit/c10eaaa8e32f33cac88baf46989f153fac12f676))
+* **sharp:** fix incompatibility with sharp and CPU Intel Atom ([1c85098](https://github.com/mcinquin/hobbyhoops/commit/1c85098b3d51b1e8ca86675608927a76376ca4e1))
+
 # [2.0.0](https://github.com/mcinquin/hobbyhoops/compare/v1.44.1...v2.0.0) (2026-09-14)
 
 
