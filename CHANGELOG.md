@@ -1,3 +1,10 @@
+## [2.1.2](https://github.com/mcinquin/hobbyhoops/compare/v2.1.1...v2.1.2) (2026-09-18)
+
+
+### Dependencies
+
+* **deps:** bump docker/setup-buildx-action from 4.3.0 to 4.4.0 ([0d83720](https://github.com/mcinquin/hobbyhoops/commit/0d837208a5ab2c2e9b3cb4ff15adbc0507c88e63))
+
 ## [2.1.1](https://github.com/mcinquin/hobbyhoops/compare/v2.1.0...v2.1.1) (2026-09-18)
 
 
