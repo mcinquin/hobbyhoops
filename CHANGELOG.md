@@ -1,3 +1,10 @@
+## [2.1.3](https://github.com/mcinquin/hobbyhoops/compare/v2.1.2...v2.1.3) (2026-09-18)
+
+
+### Dependencies
+
+* **deps:** bump docker/build-push-action from 7.3.0 to 7.4.0 ([df8e4d8](https://github.com/mcinquin/hobbyhoops/commit/df8e4d8435540200fbb5ff745e831fb813d82375))
+
 ## [2.1.2](https://github.com/mcinquin/hobbyhoops/compare/v2.1.1...v2.1.2) (2026-09-18)
 
 
