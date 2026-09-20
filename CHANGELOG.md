@@ -1,3 +1,38 @@
+## [2.1.5](https://github.com/mcinquin/hobbyhoops/compare/v2.1.4...v2.1.5) (2026-09-20)
+
+
+### Dependencies
+
+* **deps-dev:** bump the dev-tools group across 1 directory with 3 updates ([695e0ca](https://github.com/mcinquin/hobbyhoops/commit/695e0cab5abc66a52a418958d41aa86ebd6756a7))
+
+## [2.1.4](https://github.com/mcinquin/hobbyhoops/compare/v2.1.3...v2.1.4) (2026-09-20)
+
+
+### Dependencies
+
+* **deps:** bump the next group with 2 updates ([8cc9ce0](https://github.com/mcinquin/hobbyhoops/commit/8cc9ce0cdef9efff7e106098a2c385765eb4acb7))
+
+## [2.1.3](https://github.com/mcinquin/hobbyhoops/compare/v2.1.2...v2.1.3) (2026-09-18)
+
+
+### Dependencies
+
+* **deps:** bump docker/build-push-action from 7.3.0 to 7.4.0 ([df8e4d8](https://github.com/mcinquin/hobbyhoops/commit/df8e4d8435540200fbb5ff745e831fb813d82375))
+
+## [2.1.2](https://github.com/mcinquin/hobbyhoops/compare/v2.1.1...v2.1.2) (2026-09-18)
+
+
+### Dependencies
+
+* **deps:** bump docker/setup-buildx-action from 4.3.0 to 4.4.0 ([0d83720](https://github.com/mcinquin/hobbyhoops/commit/0d837208a5ab2c2e9b3cb4ff15adbc0507c88e63))
+
+## [2.1.1](https://github.com/mcinquin/hobbyhoops/compare/v2.1.0...v2.1.1) (2026-09-18)
+
+
+### Dependencies
+
+* **deps:** bump node from `50c8e8c` to `ebfe2f9` ([f69201a](https://github.com/mcinquin/hobbyhoops/commit/f69201ab66f1883de334ef738919acb3b3cbb66e))
+
 # [2.1.0](https://github.com/mcinquin/hobbyhoops/compare/v2.0.3...v2.1.0) (2026-09-14)
 
 
