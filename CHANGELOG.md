@@ -1,3 +1,10 @@
+## [2.1.7](https://github.com/mcinquin/hobbyhoops/compare/v2.1.6...v2.1.7) (2026-09-20)
+
+
+### Dependencies
+
+* **deps:** bump zod from 4.5.4 to 4.6.5 ([6d77907](https://github.com/mcinquin/hobbyhoops/commit/6d7790798d6c37d049653ec52814d9d224f4baa9))
+
 ## [2.1.6](https://github.com/mcinquin/hobbyhoops/compare/v2.1.5...v2.1.6) (2026-09-20)
 
 
