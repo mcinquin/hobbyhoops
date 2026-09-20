@@ -1,6 +1,6 @@
 {
   "name": "hobbyhoops",
-  "version": "2.1.0",
+  "version": "2.1.4",
   "private": true,
   "engines": {
     "node": ">=24 <25"
@@ -39,7 +39,7 @@
     "clsx": "^2.1.1",
     "csv-parse": "^7.0.2",
     "lucide-react": "^1.42.0",
-    "next": "16.3.4",
+    "next": "16.3.5",
     "pino": "^10.3.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -57,18 +57,18 @@
     "@semantic-release/github": "^12.0.9",
     "@tailwindcss/postcss": "^4",
     "@types/better-sqlite3": "^9.6.0",
-    "@types/node": "^24.13.3",
+    "@types/node": "^24.13.5",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19",
     "eslint": "^10.10.0",
-    "eslint-config-next": "16.3.4",
+    "eslint-config-next": "16.3.5",
     "husky": "^9.1.7",
-    "lint-staged": "^17.5.0",
+    "lint-staged": "^17.5.1",
     "markdownlint-cli2": "^0.23.2",
     "semantic-release": "^25.0.9",
     "tailwindcss": "^4",
     "typescript": "~6.0.3",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.1"
   },
   "overrides": {
     "nanoid": "^3.3.18",
