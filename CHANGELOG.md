@@ -1,3 +1,10 @@
+## [2.1.6](https://github.com/mcinquin/hobbyhoops/compare/v2.1.5...v2.1.6) (2026-09-20)
+
+
+### Dependencies
+
+* **deps:** bump tailwind-merge from 3.6.0 to 3.7.0 ([5a7e239](https://github.com/mcinquin/hobbyhoops/commit/5a7e23949c8eed41b6a86fb1420a22f1392d1322))
+
 ## [2.1.5](https://github.com/mcinquin/hobbyhoops/compare/v2.1.4...v2.1.5) (2026-09-20)
 
 
