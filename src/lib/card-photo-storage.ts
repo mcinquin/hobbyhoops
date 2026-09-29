@@ -17,8 +17,6 @@ import {
 export {
   ACCEPTED_IMAGE_MIME_TYPES,
   CARD_PHOTO_MAX_BYTES,
-  CARD_PHOTO_SIDES,
-  cardPhotoFileInputAccept,
   isCardPhotoSide,
   isLocalCardPhotoUrl,
   publicCardPhotoUrl,

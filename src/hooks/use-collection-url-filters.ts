@@ -12,21 +12,6 @@ import {
 
 export type { CollectionTagValue, CollectionSortKey };
 
-export type CollectionFiltersState = Pick<
-  CollectionListQuery,
-  | "search"
-  | "player"
-  | "team"
-  | "year"
-  | "brand"
-  | "set"
-  | "variation"
-  | "tags"
-  | "page"
-  | "sort"
-  | "sortDesc"
->;
-
 export type UseCollectionUrlFiltersOptions = {
   /** Taille de page fixe (ex. admin) — écrit `pageSize` dans l’URL. */
   fixedPageSize?: number;

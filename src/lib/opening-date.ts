@@ -36,10 +36,6 @@ function isoToOpeningDate(iso: string): string | null {
   return toFrenchDate(day, month, year);
 }
 
-export function formatOpeningDateFrFromDate(date: Date): string {
-  return toFrenchDate(date.getDate(), date.getMonth() + 1, date.getFullYear());
-}
-
 export function formatTodayOpeningDateFr(): string {
   return isoToOpeningDate(formatTodayIsoDate())!;
 }
