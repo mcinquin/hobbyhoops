@@ -68,12 +68,6 @@ export function parseShipmentDateInput(
   return parseDateInputToIso(value, locale);
 }
 
-export function formatTodayShipmentDateForInput(
-  locale: DateLocale = "fr"
-): string {
-  return formatShipmentDateForInput(formatTodayIsoDate(), locale);
-}
-
 export { formatTodayIsoDate };
 
 export type ProtectionUrgency = "safe" | "warning" | "critical" | "expired";
@@ -92,10 +86,6 @@ export interface ShipmentProtectionInfo {
   isActive: boolean;
   phase: ShipmentProtectionPhase;
 }
-
-/** @deprecated Alias conservé pour la compatibilité interne. */
-export type EbayProtectionInfo = ShipmentProtectionInfo;
-
 function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
