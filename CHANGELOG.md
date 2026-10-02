@@ -1,3 +1,10 @@
+## [2.1.11](https://github.com/mcinquin/hobbyhoops/compare/v2.1.10...v2.1.11) (2026-10-02)
+
+
+### Dependencies
+
+* **deps-dev:** bump the dev-tools group across 1 directory with 3 updates ([80fd8cd](https://github.com/mcinquin/hobbyhoops/commit/80fd8cd15916c0b1d09149672b42941ddf82afde))
+
 ## [2.1.10](https://github.com/mcinquin/hobbyhoops/compare/v2.1.9...v2.1.10) (2026-10-02)
 
 
