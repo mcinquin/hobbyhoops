@@ -1,3 +1,10 @@
+## [2.1.12](https://github.com/mcinquin/hobbyhoops/compare/v2.1.11...v2.1.12) (2026-10-02)
+
+
+### Dependencies
+
+* **deps:** bump csv-parse from 7.0.2 to 7.0.3 ([fedfc3f](https://github.com/mcinquin/hobbyhoops/commit/fedfc3fe9bca1d205a20fde24c1b22ecbef0a1f9))
+
 ## [2.1.11](https://github.com/mcinquin/hobbyhoops/compare/v2.1.10...v2.1.11) (2026-10-02)
 
 
