@@ -21,17 +21,37 @@ updates:
         patterns:
           - "*"
 
+  # ── GitHub Actions (pins SHA dans .github/workflows/) ───────────────────────
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: "chore"
+      include: "scope"
 
+  # ── Docker (Dockerfile, y compris digests sha256) ───────────────────────────
   - package-ecosystem: docker
     directory: /
     schedule:
       interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - docker
+    commit-message:
+      prefix: "chore"
+      include: "scope"
     # Ignorer les mises à jour majeures de node : on décide manuellement
     # quand passer à la prochaine version LTS (paires : 24 → 26 → 28…).
     ignore:
       - dependency-name: "node"
         update-types: ["version-update:semver-major"]
+
+    
