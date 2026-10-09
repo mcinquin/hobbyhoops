@@ -1,3 +1,10 @@
+## [2.1.18](https://github.com/mcinquin/hobbyhoops/compare/v2.1.17...v2.1.18) (2026-10-09)
+
+
+### Dependencies
+
+* **deps:** bump pino from 10.3.1 to 10.4.0 ([5eae5d0](https://github.com/mcinquin/hobbyhoops/commit/5eae5d08f49668f30d8ac52c74b8f4168fb88cc4))
+
 ## [2.1.17](https://github.com/mcinquin/hobbyhoops/compare/v2.1.16...v2.1.17) (2026-10-09)
 
 
