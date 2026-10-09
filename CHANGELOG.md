@@ -1,3 +1,10 @@
+## [2.1.19](https://github.com/mcinquin/hobbyhoops/compare/v2.1.18...v2.1.19) (2026-10-09)
+
+
+### Dependencies
+
+* **deps-dev:** bump handlebars ([9efe092](https://github.com/mcinquin/hobbyhoops/commit/9efe092cfa4eed180903ae3ce6b9c7341c8ff74f))
+
 ## [2.1.18](https://github.com/mcinquin/hobbyhoops/compare/v2.1.17...v2.1.18) (2026-10-09)
 
 
