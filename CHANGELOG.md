@@ -1,3 +1,10 @@
+## [2.1.14](https://github.com/mcinquin/hobbyhoops/compare/v2.1.13...v2.1.14) (2026-10-09)
+
+
+### Bug Fixes
+
+* **security:** patch next and pin sharp/source-map-js for npm audit ([906a17a](https://github.com/mcinquin/hobbyhoops/commit/906a17a5c8c6cf9f01390c87ea67fd5ad3a5e819))
+
 ## [2.1.13](https://github.com/mcinquin/hobbyhoops/compare/v2.1.12...v2.1.13) (2026-10-02)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "hobbyhoops",
-  "version": "2.1.13",
+  "version": "2.1.14",
   "private": true,
   "engines": {
     "node": ">=24 <25"
@@ -39,7 +39,7 @@
     "clsx": "^2.1.1",
     "csv-parse": "^7.0.3",
     "lucide-react": "^1.48.0",
-    "next": "16.3.6",
+    "next": "16.3.8",
     "pino": "^10.3.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -61,7 +61,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19",
     "eslint": "^10.12.0",
-    "eslint-config-next": "16.3.6",
+    "eslint-config-next": "16.3.8",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "markdownlint-cli2": "^0.23.3",
@@ -72,6 +72,8 @@
   },
   "overrides": {
     "nanoid": "^3.3.18",
-    "postcss": "8.5.23"
+    "postcss": "8.5.23",
+    "sharp": "0.35.5",
+    "source-map-js": "1.2.2"
   }
 }
