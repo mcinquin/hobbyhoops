@@ -1,3 +1,17 @@
+## [2.1.16](https://github.com/mcinquin/hobbyhoops/compare/v2.1.15...v2.1.16) (2026-10-09)
+
+
+### Dependencies
+
+* **deps:** bump @tanstack/react-table from 9.2.4 to 9.2.6 ([50a1ed3](https://github.com/mcinquin/hobbyhoops/commit/50a1ed33ce1755916a46b5d9f44208fb40d1abaf))
+
+## [2.1.15](https://github.com/mcinquin/hobbyhoops/compare/v2.1.14...v2.1.15) (2026-10-09)
+
+
+### Dependencies
+
+* **deps-dev:** bump the dev-tools group with 3 updates ([b2b14b8](https://github.com/mcinquin/hobbyhoops/commit/b2b14b8ae433e3b2ec56811b218328cb021488d5))
+
 ## [2.1.14](https://github.com/mcinquin/hobbyhoops/compare/v2.1.13...v2.1.14) (2026-10-09)
 
 

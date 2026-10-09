@@ -1,6 +1,6 @@
 {
   "name": "hobbyhoops",
-  "version": "2.1.14",
+  "version": "2.1.16",
   "private": true,
   "engines": {
     "node": ">=24 <25"
@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
-    "@tanstack/react-table": "^9.1.2",
+    "@tanstack/react-table": "^9.2.6",
     "better-sqlite3": "^13.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -57,10 +57,10 @@
     "@semantic-release/github": "^12.0.10",
     "@tailwindcss/postcss": "^4",
     "@types/better-sqlite3": "^9.6.0",
-    "@types/node": "^24.19.0",
+    "@types/node": "^24.19.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19",
-    "eslint": "^10.11.0",
+    "eslint": "^10.12.0",
     "eslint-config-next": "16.3.8",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
@@ -68,7 +68,7 @@
     "semantic-release": "^25.0.9",
     "tailwindcss": "^4",
     "typescript": "~6.0.3",
-    "vitest": "^5.0.2"
+    "vitest": "^5.0.3"
   },
   "overrides": {
     "nanoid": "^3.3.18",
