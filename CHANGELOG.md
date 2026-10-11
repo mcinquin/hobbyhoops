@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/mcinquin/hobbyhoops/compare/v2.1.19...v2.2.0) (2026-10-11)
+
+
+### Features
+
+* **scan:** add cards recognition ([52d7586](https://github.com/mcinquin/hobbyhoops/commit/52d75862dfe16071b34a7a2fbf7a7a3e9323f93c))
+
 ## [2.1.19](https://github.com/mcinquin/hobbyhoops/compare/v2.1.18...v2.1.19) (2026-10-09)
 
 
