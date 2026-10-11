@@ -7,6 +7,8 @@ import type {
   CardCsvImportMode,
   CardCsvImportResult,
 } from "@/lib/card-csv";
+import type { RecognizeApiResponse } from "@/lib/card-recognition/types";
+import { downscaleImageFile } from "@/lib/image-downscale";
 import type { Card, CardsPageResult, References } from "@/lib/types";
 
 /** Levée quand une requête protégée renvoie 401 (session expirée/invalide). */
@@ -128,6 +130,40 @@ export async function uploadCardPhoto(
     throw new Error("Failed to upload photo");
   }
   return payload.url;
+}
+
+export type RecognizePhotoSource =
+  | File
+  | { cardId: string; side: "front" | "back" };
+
+/**
+ * Reconnaissance d'une carte à partir d'une photo : fichier fraîchement
+ * sélectionné (redimensionné avant envoi) ou photo déjà stockée côté serveur.
+ */
+export async function recognizeCardPhoto(
+  source: RecognizePhotoSource
+): Promise<RecognizeApiResponse> {
+  let res: Response;
+  if (source instanceof File) {
+    const body = new FormData();
+    body.set("file", await downscaleImageFile(source));
+    res = await fetch("/api/cards/recognize", {
+      method: "POST",
+      ...API_FETCH_OPTS,
+      body,
+    });
+  } else {
+    res = await fetch("/api/cards/recognize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      ...API_FETCH_OPTS,
+      body: JSON.stringify(source),
+    });
+  }
+  if (!res.ok) {
+    throw new Error(await parseApiErrorMessage(res, "Failed to recognize card"));
+  }
+  return (await res.json()) as RecognizeApiResponse;
 }
 
 export async function deleteCardPhotoFile(

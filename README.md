@@ -1,6 +1,71 @@
 # HobbyHoops
 
-Next.js application for managing an NBA card collection: collection browsing, player pages, reference administration, and SQLite persistence.
+Next.js application for managing an NBA card collection: collection browsing, player pages, reference administration, photo recognition (CardSight), and SQLite persistence.
+
+![HobbyHoops dashboard](docs/screenshots/dashboard.png)
+
+---
+
+## Table of contents
+
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Requirements](#requirements)
+- [Local Setup](#local-setup)
+- [Languages](#languages)
+- [Useful Scripts](#useful-scripts)
+- [Data](#data)
+- [Docker](#docker)
+
+---
+
+## Features
+
+- **Dashboard** — collection totals, charts by brand/year/set, recent additions, incoming shipments
+- **Collection** — filterable/searchable card grid with tags (RC, AUTO, MEM, NUM, TRADE, NBA/WNBA)
+- **Players** — per-player inventory grouped by set and variation
+- **Incoming** — track eBay/Vinted/etc. purchases before they join the collection
+- **Admin** — manage cards and reference lists (brands, sets, variations, years, teams)
+- **Card recognition** — analyze a card photo (CardSight AI) to prefill year, brand, set, variation, and more
+- **i18n** — French (default) and English (US)
+
+---
+
+## Screenshots
+
+### Sign-in
+
+![Sign-in page](docs/screenshots/signin.png)
+
+### Dashboard
+
+![Dashboard overview](docs/screenshots/dashboard.png)
+
+### Collection
+
+![Collection with filters and card grid](docs/screenshots/collection.png)
+
+### Players
+
+![Players list](docs/screenshots/players.png)
+
+### Player detail
+
+![Player page with cards grouped by set](docs/screenshots/player.png)
+
+### Incoming shipments
+
+![Incoming purchases tracker](docs/screenshots/incoming.png)
+
+### Admin — cards
+
+![Admin cards management](docs/screenshots/admin.png)
+
+### Admin — CardSight
+
+![CardSight account status in admin](docs/screenshots/admin-cardsight.png)
+
+---
 
 ## Requirements
 

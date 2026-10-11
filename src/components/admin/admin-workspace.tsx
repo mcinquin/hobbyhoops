@@ -70,6 +70,14 @@ const AdminSiteInfoSection = dynamic(
   { loading: adminTabLoading }
 );
 
+const AdminCardSightSection = dynamic(
+  () =>
+    import("@/components/admin/admin-cardsight-section").then(
+      (mod) => mod.AdminCardSightSection
+    ),
+  { loading: adminTabLoading }
+);
+
 const AdminToolsSection = dynamic(
   () =>
     import("@/components/admin/admin-tools-section").then(
@@ -128,6 +136,7 @@ export function AdminWorkspace({
       { value: "years", label: t("admin.tabs.years") },
       { value: "csv", label: t("admin.tabs.csv") },
       { value: "tools", label: t("admin.tabs.tools") },
+      { value: "cardsight", label: t("admin.tabs.cardsight") },
       { value: "site", label: t("admin.tabs.site") },
     ],
     [t]
@@ -264,6 +273,10 @@ export function AdminWorkspace({
 
         <TabsContent value="tools" className="pt-6">
           {activeTab === "tools" ? <AdminToolsSection /> : null}
+        </TabsContent>
+
+        <TabsContent value="cardsight" className="pt-6">
+          {activeTab === "cardsight" ? <AdminCardSightSection /> : null}
         </TabsContent>
 
         <TabsContent value="site" className="pt-6">
