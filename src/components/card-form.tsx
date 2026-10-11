@@ -30,9 +30,12 @@ import {
 import { patchReferences } from "@/lib/references-client";
 import {
   deleteCardPhotoFile,
+  recognizeCardPhoto,
   updateCard,
   uploadCardPhoto,
 } from "@/lib/cards-client";
+import type { CardRecognitionSuggestion } from "@/lib/card-recognition/types";
+import { isLocalCardPhotoUrl } from "@/lib/card-photo-constants";
 
 interface CardFormProps {
   card?: Partial<Card> | null;
@@ -191,6 +194,8 @@ function CardFormFields({
   const [pendingBack, setPendingBack] = useState<File | null>(null);
   const [clearFront, setClearFront] = useState(false);
   const [clearBack, setClearBack] = useState(false);
+  const [recognizing, setRecognizing] = useState(false);
+  const [recognizeNote, setRecognizeNote] = useState<string | null>(null);
 
   const brandKey = (form.brand ?? "").trim();
   const setKey = (form.set ?? "").trim();
@@ -296,6 +301,101 @@ function CardFormFields({
       return { ...prev, set: value, variation: nextVariation };
     });
   };
+
+  /** Photo recto disponible : fichier frais, ou photo locale déjà stockée. */
+  const storedFrontAvailable = Boolean(
+    card?.id &&
+      form.photoFront &&
+      isLocalCardPhotoUrl(form.photoFront) &&
+      !clearFront
+  );
+  const canRecognize = Boolean(pendingFront) || storedFrontAvailable;
+
+  /** Préremplit uniquement les champs vides ; n'écrase jamais une saisie. */
+  function applySuggestion(suggestion: CardRecognitionSuggestion): string[] {
+    const applied: string[] = [];
+    setForm((prev) => {
+      const next = { ...prev };
+      const fillText = (
+        field: "player" | "year" | "brand" | "set" | "variation" | "cardNumber",
+        value: string,
+        label: string
+      ) => {
+        if (!value) return;
+        const current = (next[field] ?? "") as string;
+        if (current.trim()) return;
+        next[field] = value;
+        applied.push(label);
+      };
+
+      fillText("player", suggestion.player, t("cards.player"));
+      fillText("year", suggestion.year, t("cards.year"));
+      fillText("brand", suggestion.brand, t("cards.brand"));
+      fillText("set", suggestion.set, t("cards.set"));
+      fillText("variation", suggestion.variation, t("cards.variation"));
+      fillText("cardNumber", suggestion.cardNumber, t("cards.cardNum"));
+
+      if (suggestion.serialTotal && !(next.serialNumber ?? "").trim()) {
+        next.serialNumber = `/${suggestion.serialTotal}`;
+        applied.push(t("cards.serialNum"));
+      }
+      if (suggestion.rookie && !next.rookie) {
+        next.rookie = true;
+        applied.push(t("badges.rookie"));
+      }
+      if (suggestion.autograph && !next.autograph) {
+        next.autograph = true;
+        applied.push(t("cards.autograph"));
+      }
+      if (suggestion.memorabilia && !next.memorabilia) {
+        next.memorabilia = true;
+        applied.push(t("cards.memorabiliaLabel"));
+      }
+      return next;
+    });
+    return applied;
+  }
+
+  async function handleRecognize() {
+    const source = pendingFront
+      ? pendingFront
+      : storedFrontAvailable && card?.id
+        ? ({ cardId: card.id, side: "front" } as const)
+        : null;
+    if (!source || recognizing) return;
+
+    setRefError(null);
+    setRefSuccess(null);
+    setRecognizeNote(null);
+    setRecognizing(true);
+    try {
+      const result = await recognizeCardPhoto(source);
+      if (!result.suggestion) {
+        setRecognizeNote(t("cards.recognizeNoMatch"));
+        return;
+      }
+      const applied = applySuggestion(result.suggestion);
+      setRefSuccess(
+        applied.length > 0
+          ? t("cards.recognizeApplied", { fields: applied.join(", ") })
+          : t("cards.recognizeNoEmptyFields")
+      );
+      if (
+        result.suggestion.confidence !== "high" ||
+        result.suggestion.variationUncertain
+      ) {
+        setRecognizeNote(t("cards.recognizeLowConfidence"));
+      }
+    } catch (err) {
+      setRefError(
+        err instanceof Error && err.message
+          ? err.message
+          : t("errors.recognizeFailed")
+      );
+    } finally {
+      setRecognizing(false);
+    }
+  }
 
   async function handleAddBrand() {
     if (!onReferencesUpdated) return;
@@ -618,6 +718,23 @@ function CardFormFields({
                 onRestore={() => setClearBack(false)}
               />
             </div>
+
+            {canRecognize ? (
+              <div className="space-y-1 col-span-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  disabled={recognizing || saving}
+                  onClick={() => void handleRecognize()}
+                >
+                  {recognizing ? t("cards.recognizing") : t("cards.recognize")}
+                </Button>
+                {recognizeNote ? (
+                  <p className="text-xs text-muted-foreground">{recognizeNote}</p>
+                ) : null}
+              </div>
+            ) : null}
 
             <div className="space-y-2 col-span-2">
               <Label>{t("cards.notesOptional")}</Label>

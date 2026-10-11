@@ -52,7 +52,7 @@ function cardPhotoDir(cardId: string): string {
   return path.join(getCardPhotosRoot(), cardId);
 }
 
-function sniffImageMime(buffer: Buffer): string | null {
+export function sniffImageMime(buffer: Buffer): string | null {
   if (buffer.length < 12) return null;
 
   if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
