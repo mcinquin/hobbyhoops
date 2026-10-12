@@ -16,7 +16,6 @@ if (!/^\d+\.\d+\.\d+/.test(version)) {
 
 const exportPattern = /export HOBBYHOOPS_VERSION=\d+\.\d+\.\d+/g;
 const composeDefaultPattern = /HOBBYHOOPS_VERSION:-\d+\.\d+\.\d+/g;
-const readmeExamplePattern = /\(e\.g\. `\d+\.\d+\.\d+`\)/g;
 
 function syncDockerCompose(content) {
   return content
@@ -24,16 +23,7 @@ function syncDockerCompose(content) {
     .replace(composeDefaultPattern, `HOBBYHOOPS_VERSION:-${version}`);
 }
 
-function syncReadme(content) {
-  return content
-    .replace(readmeExamplePattern, `(e.g. \`${version}\`)`)
-    .replace(exportPattern, `export HOBBYHOOPS_VERSION=${version}`);
-}
-
-const targets = [
-  { file: "docker-compose.yml", sync: syncDockerCompose },
-  { file: "README.md", sync: syncReadme },
-];
+const targets = [{ file: "docker-compose.yml", sync: syncDockerCompose }];
 
 for (const { file, sync } of targets) {
   const absPath = path.join(root, file);

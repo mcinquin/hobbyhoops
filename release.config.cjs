@@ -160,7 +160,6 @@ module.exports = {
           "package.json",
           "package-lock.json",
           "docker-compose.yml",
-          "README.md",
         ],
         message:
           "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
