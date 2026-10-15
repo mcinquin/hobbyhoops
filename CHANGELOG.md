@@ -1,3 +1,10 @@
+## [2.2.1](https://github.com/mcinquin/hobbyhoops/compare/v2.2.0...v2.2.1) (2026-10-15)
+
+
+### Bug Fixes
+
+* **incoming:** fix issue with tracking number detection ([10782a8](https://github.com/mcinquin/hobbyhoops/commit/10782a817286c89f8a4ed76ae2a917ccee112f34))
+
 # [2.2.0](https://github.com/mcinquin/hobbyhoops/compare/v2.1.19...v2.2.0) (2026-10-11)
 
 
