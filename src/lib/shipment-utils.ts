@@ -243,16 +243,23 @@ export type DetectedCarrier =
   | "chronopost"
   | "mondialrelay"
   | "speedpak"
+  | "ebay_standard"
   | "usps"
   | "ups"
   | "fedex"
   | "dhl"
   | "unknown";
 
+/**
+ * eBay Standard Delivery / Envelope (ESE) : ES + code pays ISO + chiffres.
+ * Ex. ESUS364299104 — ne pas confondre avec SpeedPAK (ES + 26 car. alphanum.).
+ */
+const EBAY_STANDARD_PATTERN = /^ES[A-Z]{2}\d{7,14}$/;
+
 /** Préfixes SpeedPAK / Orange Connex (eBay Chine → Europe). */
 const SPEEDPAK_PREFIXES = [
   // Format officiel Orange Connex (28 car. : ES/EE/EX/EM + 26).
-  "ES",
+  // "ES" est géré à part (long format) pour ne pas attraper les ESUS… eBay.
   "EE",
   "EX",
   "EM",
@@ -271,7 +278,12 @@ export function detectCarrier(trackingNumber: string): DetectedCarrier {
   const normalized = trackingNumber.trim().toUpperCase().replace(/\s+/g, "");
   if (!normalized) return "unknown";
 
-  // SpeedPAK / Orange Connex — avant les heuristiques génériques (sinon → unknown → ParcelsApp).
+  // eBay Standard Delivery / Envelope — avant SpeedPAK (même préfixe ES).
+  if (EBAY_STANDARD_PATTERN.test(normalized)) {
+    return "ebay_standard";
+  }
+
+  // SpeedPAK / Orange Connex — format officiel long (ES/EE/EX/EM + ≥20 car.).
   if (/^(ES|EE|EX|EM)[A-Z0-9]{20,30}$/.test(normalized)) {
     return "speedpak";
   }
@@ -296,7 +308,8 @@ export function detectCarrier(trackingNumber: string): DetectedCarrier {
     // Variantes S10 Chine parfois routées SpeedPAK.
     if (
       destination === "CN" &&
-      SPEEDPAK_PREFIXES.some((prefix) => normalized.startsWith(prefix))
+      (normalized.startsWith("ES") ||
+        SPEEDPAK_PREFIXES.some((prefix) => normalized.startsWith(prefix)))
     ) {
       return "speedpak";
     }
@@ -306,7 +319,7 @@ export function detectCarrier(trackingNumber: string): DetectedCarrier {
   if (/^[A-Z0-9]{2}\d{9,11}$/.test(normalized)) return "laposte";
   if (/^\d{13}$/.test(normalized)) return "colissimo";
 
-  // Autres formats SpeedPAK / Orange Connex (longueur variable).
+  // Autres formats SpeedPAK / Orange Connex (longueur variable, hors ES court = eBay).
   if (
     /^[A-Z0-9]{12,32}$/.test(normalized) &&
     SPEEDPAK_PREFIXES.some((prefix) => normalized.startsWith(prefix))
@@ -348,6 +361,9 @@ export function buildTrackingUrl(
     case "speedpak":
       // SpeedPAK / Orange Connex (eBay Chine) — suivi via 17track.
       return `https://t.17track.net/en#nums=${code}`;
+    case "ebay_standard":
+      // eBay Standard Delivery / Envelope — suivi propriétaire, agrégateur multi-transporteurs.
+      return buildParcelsAppUrl(trimmed, locale);
     case "usps":
       return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${code}`;
     case "ups":

@@ -93,6 +93,15 @@ describe("detectCarrier", () => {
   it("detects SpeedPAK Economy (EE… 28 chars)", () => {
     expect(detectCarrier("EE1000080117450AB01010001N0N")).toBe("speedpak");
   });
+
+  it("detects eBay Standard Delivery (ESUS…), not SpeedPAK", () => {
+    expect(detectCarrier("ESUS364299104")).toBe("ebay_standard");
+    expect(detectCarrier("ESUS354796430")).toBe("ebay_standard");
+  });
+
+  it("does not treat short ES+country numbers as SpeedPAK", () => {
+    expect(detectCarrier("ESCA12345678")).toBe("ebay_standard");
+  });
 });
 
 describe("buildTrackingUrl", () => {
@@ -114,6 +123,12 @@ describe("buildTrackingUrl", () => {
     expect(
       buildTrackingUrl("ES10024287564060001010001D0N", null, "fr")
     ).toContain("17track.net");
+  });
+
+  it("builds ParcelsApp URL for eBay Standard Delivery", () => {
+    expect(buildTrackingUrl("ESUS364299104", null, "fr")).toContain(
+      "parcelsapp.com/fr/tracking/"
+    );
   });
 
   it("falls back to ParcelsApp for unknown carriers", () => {

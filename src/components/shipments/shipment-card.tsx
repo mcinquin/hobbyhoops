@@ -49,8 +49,15 @@ export function ShipmentCard({
   const t = useTranslations();
   const { locale } = useI18n();
   const protection = getShipmentProtection(shipment);
+  // Toujours re-détecter depuis le n° de suivi (le carrier stocké peut être obsolète
+  // après amélioration des heuristiques, ex. ESUS… jadis classé SpeedPAK).
+  const carrier = shipment.trackingNumber
+    ? detectCarrier(shipment.trackingNumber)
+    : shipment.carrier && shipment.carrier !== "unknown"
+      ? shipment.carrier
+      : null;
   const trackingUrl = shipment.trackingNumber
-    ? buildTrackingUrl(shipment.trackingNumber, shipment.carrier, locale)
+    ? buildTrackingUrl(shipment.trackingNumber, carrier, locale)
     : null;
   const platformOrderUrl = buildPlatformOrderUrl(
     shipment.platform,
@@ -62,12 +69,6 @@ export function ShipmentCard({
     shipment.currency,
     locale
   );
-  const carrier =
-    shipment.carrier && shipment.carrier !== "unknown"
-      ? shipment.carrier
-      : shipment.trackingNumber
-        ? detectCarrier(shipment.trackingNumber)
-        : null;
 
   const nextActions: { status: ShipmentStatus; label: string }[] = [];
   if (shipment.status === "pending") {
