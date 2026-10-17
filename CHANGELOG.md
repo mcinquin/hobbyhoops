@@ -1,3 +1,17 @@
+## [2.2.3](https://github.com/mcinquin/hobbyhoops/compare/v2.2.2...v2.2.3) (2026-10-16)
+
+
+### Dependencies
+
+* **deps:** bump actions/setup-node from 7.0.0 to 7.1.0 ([f0df212](https://github.com/mcinquin/hobbyhoops/commit/f0df2120e51354a254d3f9fd426f27bdfe6cf411))
+
+## [2.2.2](https://github.com/mcinquin/hobbyhoops/compare/v2.2.1...v2.2.2) (2026-10-16)
+
+
+### Dependencies
+
+* **deps:** bump actions/create-github-app-token from 3.2.0 to 3.3.0 ([aaf8b08](https://github.com/mcinquin/hobbyhoops/commit/aaf8b08389ad5a3f380ca79cc738f867842cfe62))
+
 ## [2.2.1](https://github.com/mcinquin/hobbyhoops/compare/v2.2.0...v2.2.1) (2026-10-15)
 
 
