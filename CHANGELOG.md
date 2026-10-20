@@ -1,3 +1,45 @@
+## [2.2.7](https://github.com/mcinquin/hobbyhoops/compare/v2.2.6...v2.2.7) (2026-10-20)
+
+
+### Dependencies
+
+* **deps:** bump @base-ui/react from 1.8.0 to 1.9.0 ([71b6fe0](https://github.com/mcinquin/hobbyhoops/commit/71b6fe0c29dbb1f30a90a73cd8e9ad94e8a1d7c3))
+
+## [2.2.6](https://github.com/mcinquin/hobbyhoops/compare/v2.2.5...v2.2.6) (2026-10-19)
+
+
+### Dependencies
+
+* **deps:** bump @tanstack/react-table from 9.2.6 to 9.3.1 ([bf1113f](https://github.com/mcinquin/hobbyhoops/commit/bf1113f8bd3566ffb4ac67ec4014524b2ed36a12))
+
+## [2.2.5](https://github.com/mcinquin/hobbyhoops/compare/v2.2.4...v2.2.5) (2026-10-17)
+
+
+### Dependencies
+
+* **deps:** bump zod from 4.6.5 to 4.6.7 ([3627e83](https://github.com/mcinquin/hobbyhoops/commit/3627e8374f85ed38733329a03318e686b50ff3ea))
+
+## [2.2.4](https://github.com/mcinquin/hobbyhoops/compare/v2.2.3...v2.2.4) (2026-10-17)
+
+
+### Dependencies
+
+* **deps-dev:** bump the dev-tools group with 2 updates ([9ca75e5](https://github.com/mcinquin/hobbyhoops/commit/9ca75e58471a2677414ce323262d50386dedeb31))
+
+## [2.2.3](https://github.com/mcinquin/hobbyhoops/compare/v2.2.2...v2.2.3) (2026-10-16)
+
+
+### Dependencies
+
+* **deps:** bump actions/setup-node from 7.0.0 to 7.1.0 ([f0df212](https://github.com/mcinquin/hobbyhoops/commit/f0df2120e51354a254d3f9fd426f27bdfe6cf411))
+
+## [2.2.2](https://github.com/mcinquin/hobbyhoops/compare/v2.2.1...v2.2.2) (2026-10-16)
+
+
+### Dependencies
+
+* **deps:** bump actions/create-github-app-token from 3.2.0 to 3.3.0 ([aaf8b08](https://github.com/mcinquin/hobbyhoops/commit/aaf8b08389ad5a3f380ca79cc738f867842cfe62))
+
 ## [2.2.1](https://github.com/mcinquin/hobbyhoops/compare/v2.2.0...v2.2.1) (2026-10-15)
 
 
