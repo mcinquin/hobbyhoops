@@ -1,3 +1,10 @@
+## [2.2.14](https://github.com/mcinquin/hobbyhoops/compare/v2.2.13...v2.2.14) (2026-10-25)
+
+
+### Dependencies
+
+* **deps:** bump node from `ebfe2f9` to `06d7adf` ([5f37ca5](https://github.com/mcinquin/hobbyhoops/commit/5f37ca58bdefe237d4243cc5c395a90179fd9f9e))
+
 ## [2.2.13](https://github.com/mcinquin/hobbyhoops/compare/v2.2.12...v2.2.13) (2026-10-25)
 
 
