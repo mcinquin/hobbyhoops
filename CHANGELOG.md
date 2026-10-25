@@ -1,3 +1,17 @@
+## [2.2.12](https://github.com/mcinquin/hobbyhoops/compare/v2.2.11...v2.2.12) (2026-10-25)
+
+
+### Dependencies
+
+* **deps:** bump lucide-react from 1.52.0 to 1.60.0 ([cc01a1e](https://github.com/mcinquin/hobbyhoops/commit/cc01a1ec5543c5baf7aeff0125f1d05984cfd799))
+
+## [2.2.11](https://github.com/mcinquin/hobbyhoops/compare/v2.2.10...v2.2.11) (2026-10-25)
+
+
+### Dependencies
+
+* **deps-dev:** bump the dev-tools group across 1 directory with 4 updates ([ed838bd](https://github.com/mcinquin/hobbyhoops/commit/ed838bd2dd3210673088bc3e98516588bc14c319))
+
 ## [2.2.10](https://github.com/mcinquin/hobbyhoops/compare/v2.2.9...v2.2.10) (2026-10-23)
 
 
