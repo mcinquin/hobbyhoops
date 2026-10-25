@@ -1,3 +1,10 @@
+## [2.2.13](https://github.com/mcinquin/hobbyhoops/compare/v2.2.12...v2.2.13) (2026-10-25)
+
+
+### Dependencies
+
+* **deps:** bump the security group across 1 directory with 1 update ([e05e27e](https://github.com/mcinquin/hobbyhoops/commit/e05e27e52f8ca4de4e1dd3bc11e089f76022da42))
+
 ## [2.2.12](https://github.com/mcinquin/hobbyhoops/compare/v2.2.11...v2.2.12) (2026-10-25)
 
 
