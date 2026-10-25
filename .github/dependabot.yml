@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
+      interval: daily
     # @types/node suit les majors de Node.js (24, 26, 28…).
     # Tant que le runtime est verrouillé sur Node 24, on n'accepte que les patch/minor 24.x.
     ignore:
@@ -30,7 +30,7 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: daily
     groups:
       security:
         applies-to: security-updates
@@ -40,7 +40,7 @@ updates:
   - package-ecosystem: docker
     directory: /
     schedule:
-      interval: weekly
+      interval: daily
     # Ignorer les mises à jour majeures de node : on décide manuellement
     # quand passer à la prochaine version LTS (paires : 24 → 26 → 28…).
     ignore:
