@@ -1,3 +1,10 @@
+## [2.2.15](https://github.com/mcinquin/hobbyhoops/compare/v2.2.14...v2.2.15) (2026-10-26)
+
+
+### Dependencies
+
+* **deps:** bump docker/login-action from 4.6.0 to 4.7.0 ([de8ef4c](https://github.com/mcinquin/hobbyhoops/commit/de8ef4c5dc010e9634db023465b63490fd8b2df8))
+
 ## [2.2.14](https://github.com/mcinquin/hobbyhoops/compare/v2.2.13...v2.2.14) (2026-10-25)
 
 
