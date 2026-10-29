@@ -1,3 +1,10 @@
+## [2.2.18](https://github.com/mcinquin/hobbyhoops/compare/v2.2.17...v2.2.18) (2026-10-29)
+
+
+### Bug Fixes
+
+* **calendar:** fix issue with focus and autoformat ([b20b547](https://github.com/mcinquin/hobbyhoops/commit/b20b5478ac201f90cb13aac291c858a618552054))
+
 ## [2.2.17](https://github.com/mcinquin/hobbyhoops/compare/v2.2.16...v2.2.17) (2026-10-29)
 
 
