@@ -61,6 +61,25 @@ export function autoFormatSlashedDateInput(
   return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
 }
 
+/**
+ * Position du curseur dans une date slashée après `digitCount` chiffres.
+ * Sert à conserver le caret après un reformatage contrôlé.
+ */
+export function caretIndexAfterDigitCount(
+  formatted: string,
+  digitCount: number
+): number {
+  if (digitCount <= 0) return 0;
+  let seen = 0;
+  for (let i = 0; i < formatted.length; i++) {
+    if (/\d/.test(formatted[i]!)) {
+      seen += 1;
+      if (seen === digitCount) return i + 1;
+    }
+  }
+  return formatted.length;
+}
+
 /** Parse une saisie (ISO ou jj/mm/aaaa | mm/dd/yyyy) vers ISO. */
 export function parseDateInputToIso(
   value: string | null | undefined,
