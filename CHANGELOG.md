@@ -1,3 +1,10 @@
+## [2.2.16](https://github.com/mcinquin/hobbyhoops/compare/v2.2.15...v2.2.16) (2026-10-29)
+
+
+### Dependencies
+
+* **deps:** bump react and @types/react ([173c4b0](https://github.com/mcinquin/hobbyhoops/commit/173c4b0a21d4c02babc522f8cebe234a15c02a4f))
+
 ## [2.2.15](https://github.com/mcinquin/hobbyhoops/compare/v2.2.14...v2.2.15) (2026-10-26)
 
 
