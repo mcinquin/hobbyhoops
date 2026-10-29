@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   autoFormatSlashedDateInput,
+  caretIndexAfterDigitCount,
   formatIsoDateForInput,
   formatIsoDateLabel,
   parseDateInputToIso,
@@ -61,5 +62,20 @@ describe("autoFormatSlashedDateInput", () => {
 
   it("limits input to eight digits", () => {
     expect(autoFormatSlashedDateInput("150620251234")).toBe("15/06/2025");
+  });
+});
+
+describe("caretIndexAfterDigitCount", () => {
+  it("maps digit counts onto slash-formatted dates", () => {
+    expect(caretIndexAfterDigitCount("15/06/2025", 0)).toBe(0);
+    expect(caretIndexAfterDigitCount("15/06/2025", 1)).toBe(1);
+    expect(caretIndexAfterDigitCount("15/06/2025", 2)).toBe(2);
+    expect(caretIndexAfterDigitCount("15/06/2025", 3)).toBe(4);
+    expect(caretIndexAfterDigitCount("15/06/2025", 4)).toBe(5);
+    expect(caretIndexAfterDigitCount("15/06/2025", 8)).toBe(10);
+  });
+
+  it("clamps past the end of the string", () => {
+    expect(caretIndexAfterDigitCount("15/", 4)).toBe(3);
   });
 });
