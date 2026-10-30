@@ -24,6 +24,7 @@
     "clean": "node scripts/clean.mjs",
     "optimize:logo": "node scripts/optimize-logo.mjs",
     "generate:icons": "node scripts/generate-pwa-icons.mjs",
+    "sync:labels": "node scripts/sync-github-labels.mjs",
     "prepare": "husky",
     "release": "semantic-release"
   },
