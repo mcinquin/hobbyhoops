@@ -5,7 +5,7 @@ updates:
     schedule:
       interval: daily
     # @types/node suit les majors de Node.js (24, 26, 28…).
-    # Tant que le runtime est verrouillé sur Node 24, on n'accepte que les patch/minor 24.x.
+    # Tant que le runtime est verrouillé sur Node 26, on n'accepte que les patch/minor 26.x.
     ignore:
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
@@ -42,7 +42,7 @@ updates:
     schedule:
       interval: daily
     # Ignorer les mises à jour majeures de node : on décide manuellement
-    # quand passer à la prochaine version LTS (paires : 24 → 26 → 28…).
+    # quand passer à la prochaine version LTS (paires : 26 → 28 → 30…).
     ignore:
       - dependency-name: "node"
         update-types: ["version-update:semver-major"]
