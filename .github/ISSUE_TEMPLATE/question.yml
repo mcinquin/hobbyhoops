@@ -1,0 +1,60 @@
+name: Question
+description: Ask about usage, setup, or behaviour — not a bug or feature request.
+title: "[Question]: "
+labels: ["question", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Prefer the [wiki](https://github.com/mcinquin/hobbyhoops/wiki) for architecture, Docker, CI, and backups.
+
+        **Security:** do not discuss vulnerabilities here — see [SECURITY.md](https://github.com/mcinquin/hobbyhoops/blob/main/SECURITY.md).
+
+  - type: checkboxes
+    id: docs
+    attributes:
+      label: Documentation checked
+      options:
+        - label: I have checked the README and wiki for an answer
+          required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What do you need clarified?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: How you run HobbyHoops, what you already tried, and any relevant config (no secrets).
+      placeholder: |
+        - Setup: local / Docker
+        - Already tried: …
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area (optional)
+      options:
+        - Unsure
+        - Collection
+        - Dashboard
+        - Players
+        - Shipments
+        - Admin
+        - CardSight
+        - Wanted
+        - FR-NBA
+        - Auth
+        - Account
+        - i18n
+        - UI
+        - Infra (Docker / CI / PWA)
+    validations:
+      required: false

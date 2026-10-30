@@ -1,0 +1,76 @@
+name: Enhancement
+description: Propose a new feature or an improvement to existing behaviour.
+title: "[Enhancement]: "
+labels: ["enhancement", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the need first; a concrete proposal helps, but is optional.
+
+        Check the [wiki](https://github.com/mcinquin/hobbyhoops/wiki) and [existing issues](https://github.com/mcinquin/hobbyhoops/issues) before opening a duplicate.
+
+  - type: checkboxes
+    id: existing
+    attributes:
+      label: Existing issues
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What are you trying to do, and what is painful or missing today?
+      placeholder: e.g. Filtering the collection by grade is awkward because…
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How would you like it to work?
+      placeholder: e.g. Add a grade filter chip on the collection page…
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you thought about (or “none”).
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area (optional)
+      description: Closest product surface — maintainers may adjust the label.
+      options:
+        - Unsure
+        - Collection
+        - Dashboard
+        - Players
+        - Shipments
+        - Admin
+        - CardSight
+        - Wanted
+        - FR-NBA
+        - Auth
+        - Account
+        - i18n
+        - UI
+        - Infra (Docker / CI / PWA)
+    validations:
+      required: false
+
+  - type: textarea
+    id: extras
+    attributes:
+      label: Extra context
+      description: Mockups, examples from other apps, or links. Drag files into this field to attach them.
+    validations:
+      required: false

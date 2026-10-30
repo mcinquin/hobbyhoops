@@ -1,0 +1,124 @@
+# HobbyHoops GitHub issue/PR labels.
+# Sync with: npm run sync:labels
+#
+# Taxonomy (pick what applies):
+# - type: bug | enhancement | documentation | question | security | performance | maintenance
+# - priority: critical | high | medium | low
+# - area: product surface impacted
+# - triage / community: GitHub defaults + needs triage
+# - bot: Dependabot / release labels (kept for tooling)
+
+# --- Type ---
+- name: bug
+  color: "d73a4a"
+  description: Something isn't working
+- name: enhancement
+  color: "a2eeef"
+  description: New feature or improvement to existing behaviour
+- name: documentation
+  color: "0075ca"
+  description: Improvements or additions to documentation
+- name: question
+  color: "d876e3"
+  description: Further information is requested
+- name: security
+  color: "b60205"
+  description: Security hardening (public only — see SECURITY.md for vulns)
+- name: performance
+  color: "f9d0c4"
+  description: Performance improvement
+- name: maintenance
+  color: "cfd3d7"
+  description: Refactor, tests, tooling, or non-user-facing upkeep
+
+# --- Priority ---
+- name: "priority: critical"
+  color: "b60205"
+  description: Blocks release, data loss, or security incident
+- name: "priority: high"
+  color: "d93f0b"
+  description: Important — resolve in the current work cycle
+- name: "priority: medium"
+  color: "fbca04"
+  description: Normal priority — schedule soon
+- name: "priority: low"
+  color: "0e8a16"
+  description: Nice to have — no time pressure
+
+# --- Area (product surfaces) ---
+- name: "area: collection"
+  color: "1d76db"
+  description: Collection grid, filters, tags, card photos, CSV
+- name: "area: dashboard"
+  color: "1d76db"
+  description: Home dashboard, charts, recent cards, widgets
+- name: "area: players"
+  color: "1d76db"
+  description: Player list and per-player inventory
+- name: "area: shipments"
+  color: "1d76db"
+  description: Incoming purchases / shipment tracking
+- name: "area: admin"
+  color: "1d76db"
+  description: Admin cards, references, site info, CSV tools
+- name: "area: cardsight"
+  color: "1d76db"
+  description: CardSight recognition / photo prefill
+- name: "area: wanted"
+  color: "1d76db"
+  description: Wanted board / guides
+- name: "area: fr-nba"
+  color: "1d76db"
+  description: FR-NBA rookie checklist
+- name: "area: auth"
+  color: "1d76db"
+  description: Login, sessions, bootstrap, rate limits
+- name: "area: account"
+  color: "1d76db"
+  description: User account settings
+- name: "area: i18n"
+  color: "5319e7"
+  description: French / English translations and locale behaviour
+- name: "area: ui"
+  color: "5319e7"
+  description: Cross-cutting UI / UX / accessibility
+- name: "area: infra"
+  color: "000000"
+  description: Docker, CI, PWA, release, Node, SQLite ops
+
+# --- Triage / community ---
+- name: "needs triage"
+  color: "ededed"
+  description: New issue awaiting type, priority, and area
+- name: duplicate
+  color: "cfd3d7"
+  description: This issue or pull request already exists
+- name: invalid
+  color: "e4e669"
+  description: This doesn't seem right
+- name: wontfix
+  color: "ffffff"
+  description: This will not be worked on
+- name: "good first issue"
+  color: "7057ff"
+  description: Good for newcomers
+- name: "help wanted"
+  color: "008672"
+  description: Extra attention is needed
+
+# --- Bot / tooling (Dependabot & releases) ---
+- name: dependencies
+  color: "0366d6"
+  description: Pull requests that update a dependency file
+- name: github_actions
+  color: "000000"
+  description: Pull requests that update GitHub Actions code
+- name: javascript
+  color: "168700"
+  description: Pull requests that update javascript code
+- name: docker
+  color: "21ceff"
+  description: Pull requests that update docker code
+- name: released
+  color: "ededed"
+  description: Included in a published release

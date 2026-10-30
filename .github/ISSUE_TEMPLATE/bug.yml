@@ -1,0 +1,118 @@
+name: Bug
+description: Something isn't working as expected.
+title: "[Bug]: "
+labels: ["bug", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please search [existing issues](https://github.com/mcinquin/hobbyhoops/issues) first.
+
+        **Security problems:** do not use this form — see [SECURITY.md](https://github.com/mcinquin/hobbyhoops/blob/main/SECURITY.md).
+
+  - type: checkboxes
+    id: existing
+    attributes:
+      label: Existing issues
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong in one or two sentences?
+      placeholder: e.g. Saving a card with a photo fails with HTTP 500.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps someone else can follow.
+      placeholder: |
+        1. Go to …
+        2. Click …
+        3. See error …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      placeholder: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Include error messages, status codes, or console output if relevant.
+      placeholder: What happened instead?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: How do you run HobbyHoops?
+      options:
+        - Local (`npm run dev`)
+        - Docker Compose
+        - Other (describe below)
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: App version from the UI / package, or Docker image tag (e.g. `2.2.18`).
+      placeholder: e.g. 2.2.18
+    validations:
+      required: false
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser / OS
+      description: Where you saw the bug (if UI-related).
+      placeholder: e.g. Firefox 133 on Linux
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area (optional)
+      description: Closest product surface — maintainers may adjust the label.
+      multiple: false
+      options:
+        - Unsure
+        - Collection
+        - Dashboard
+        - Players
+        - Shipments
+        - Admin
+        - CardSight
+        - Wanted
+        - FR-NBA
+        - Auth
+        - Account
+        - i18n
+        - UI
+        - Infra (Docker / CI / PWA)
+    validations:
+      required: false
+
+  - type: textarea
+    id: extras
+    attributes:
+      label: Extra context
+      description: Screenshots, logs, or links. Drag files into this field to attach them.
+    validations:
+      required: false
