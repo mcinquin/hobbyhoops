@@ -359,8 +359,10 @@ export function buildTrackingUrl(
     case "mondialrelay":
       return `https://www.mondialrelay.fr/suivi-de-colis/?numeroExpedition=${code}`;
     case "speedpak":
-      // SpeedPAK / Orange Connex (eBay Chine) — suivi via 17track.
-      return `https://t.17track.net/en#nums=${code}`;
+      // SpeedPAK (Orange Connex) — ParcelsApp détecte SpeedPAK ;
+      // sur 17track le transporteur s’appelle « Orange Connex » (code 190205)
+      // et n’est plus listé sous SpeedPAK, donc l’auto-détection échoue.
+      return buildParcelsAppUrl(trimmed, locale);
     case "ebay_standard":
       // eBay Standard Delivery / Envelope — suivi propriétaire, agrégateur multi-transporteurs.
       return buildParcelsAppUrl(trimmed, locale);

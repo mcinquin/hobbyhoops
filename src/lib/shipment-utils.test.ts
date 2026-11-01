@@ -113,16 +113,16 @@ describe("buildTrackingUrl", () => {
     expect(buildTrackingUrl("12345678")).toContain("mondialrelay.fr");
   });
 
-  it("builds 17track URL for SpeedPAK / Orange Connex", () => {
+  it("builds ParcelsApp URL for SpeedPAK / Orange Connex", () => {
     expect(buildTrackingUrl("LK123456789CN", null, "fr")).toContain(
-      "17track.net"
+      "parcelsapp.com/fr/tracking/"
     );
   });
 
-  it("builds 17track URL for official SpeedPAK ES numbers", () => {
+  it("builds ParcelsApp URL for official SpeedPAK ES numbers", () => {
     expect(
       buildTrackingUrl("ES10024287564060001010001D0N", null, "fr")
-    ).toContain("17track.net");
+    ).toContain("parcelsapp.com/fr/tracking/");
   });
 
   it("builds ParcelsApp URL for eBay Standard Delivery", () => {
