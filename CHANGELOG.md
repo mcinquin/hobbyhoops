@@ -1,3 +1,10 @@
+## [2.2.20](https://github.com/mcinquin/hobbyhoops/compare/v2.2.19...v2.2.20) (2026-11-01)
+
+
+### Bug Fixes
+
+* **tracking:** fix tracking for speedpak carrier ([64a6b89](https://github.com/mcinquin/hobbyhoops/commit/64a6b89e719befb679cfa4d9e935ee8f7c0ab199))
+
 ## [2.2.19](https://github.com/mcinquin/hobbyhoops/compare/v2.2.18...v2.2.19) (2026-10-30)
 
 
