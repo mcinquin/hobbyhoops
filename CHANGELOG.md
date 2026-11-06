@@ -1,3 +1,10 @@
+## [2.2.22](https://github.com/mcinquin/hobbyhoops/compare/v2.2.21...v2.2.22) (2026-11-04)
+
+
+### Dependencies
+
+* **deps-dev:** bump eslint ([90dfd87](https://github.com/mcinquin/hobbyhoops/commit/90dfd872f874ab5f684d91ab165a18d9fc7eee99))
+
 ## [2.2.21](https://github.com/mcinquin/hobbyhoops/compare/v2.2.20...v2.2.21) (2026-11-02)
 
 
