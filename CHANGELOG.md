@@ -1,3 +1,10 @@
+## [2.2.24](https://github.com/mcinquin/hobbyhoops/compare/v2.2.23...v2.2.24) (2026-11-06)
+
+
+### Dependencies
+
+* **deps-dev:** bump the dev-tools group with 3 updates ([c5fbf0c](https://github.com/mcinquin/hobbyhoops/commit/c5fbf0c9f3be08ba2ae733252149f8f280ceb245))
+
 ## [2.2.23](https://github.com/mcinquin/hobbyhoops/compare/v2.2.22...v2.2.23) (2026-11-06)
 
 
