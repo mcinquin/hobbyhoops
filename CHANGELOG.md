@@ -1,3 +1,10 @@
+## [2.2.28](https://github.com/mcinquin/hobbyhoops/compare/v2.2.27...v2.2.28) (2026-11-09)
+
+
+### Dependencies
+
+* **deps:** bump the next group across 1 directory with 2 updates ([9a45738](https://github.com/mcinquin/hobbyhoops/commit/9a45738b138aa45c0b71e0bc0acbc9b9ca17dcd5))
+
 ## [2.2.27](https://github.com/mcinquin/hobbyhoops/compare/v2.2.26...v2.2.27) (2026-11-09)
 
 
