@@ -34,6 +34,8 @@ import { COLLECTION_SORT_SQL } from "./collection-query";
 import {
   applySeedAttributeReferences,
   createEmptyReferences,
+  formatBrandSetLabel,
+  migrateSetVariationsToBrandScope,
   normLabel,
   syncCardAttributeReferences,
   syncReferencesFromCard,
@@ -57,7 +59,7 @@ const ALLOWED_SORT_COLUMNS = new Set(Object.values(COLLECTION_SORT_SQL));
 
 type SqlInputValue = string | number | bigint | Buffer | null;
 
-const SCHEMA_VERSION = 19;
+const SCHEMA_VERSION = 20;
 
 /** Version de schéma attendue par le code déployé (migrations SQLite). */
 export const EXPECTED_SCHEMA_VERSION = SCHEMA_VERSION;
@@ -209,6 +211,7 @@ function initSchema(db: AppDatabase): void {
 
     CREATE TABLE IF NOT EXISTS wanted_entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      brand TEXT NOT NULL DEFAULT '',
       set_name TEXT NOT NULL,
       variation TEXT NOT NULL,
       slot INTEGER,
@@ -424,8 +427,8 @@ function legacyNullableBool(
 
 function importWantedBlocks(db: AppDatabase, blocks: WantedBlock[]): void {
   const insert = db.prepare(`
-    INSERT INTO wanted_entries (set_name, variation, slot, player)
-    VALUES (@set_name, @variation, @slot, @player)
+    INSERT INTO wanted_entries (brand, set_name, variation, slot, player)
+    VALUES (@brand, @set_name, @variation, @slot, @player)
   `);
 
   runInTransaction(db, () => {
@@ -433,6 +436,7 @@ function importWantedBlocks(db: AppDatabase, blocks: WantedBlock[]): void {
     for (const block of blocks) {
       for (const entry of block.entries) {
         insert.run({
+          brand: block.brand ?? "",
           set_name: block.set,
           variation: entry.variation,
           slot: entry.slot,
@@ -444,6 +448,7 @@ function importWantedBlocks(db: AppDatabase, blocks: WantedBlock[]): void {
 }
 
 export function insertWantedEntry(input: {
+  brand: string;
   set: string;
   variation: string;
   slot: number | null;
@@ -452,10 +457,11 @@ export function insertWantedEntry(input: {
   const db = getDb();
   const result = db
     .prepare(
-      `INSERT INTO wanted_entries (set_name, variation, slot, player)
-       VALUES (@set_name, @variation, @slot, @player)`
+      `INSERT INTO wanted_entries (brand, set_name, variation, slot, player)
+       VALUES (@brand, @set_name, @variation, @slot, @player)`
     )
     .run({
+      brand: input.brand.trim(),
       set_name: input.set.trim(),
       variation: input.variation.trim(),
       slot: input.slot,
@@ -515,19 +521,22 @@ function importFrNbaPlayers(db: AppDatabase, players: FrNbaPlayer[]): void {
 function wantedBlocksFromRows(
   rows: {
     id: number;
+    brand: string;
     set_name: string;
     variation: string;
     slot: number | null;
     player: string;
   }[]
 ): WantedBlock[] {
-  const bySet = new Map<string, WantedBlock>();
+  const byKey = new Map<string, WantedBlock>();
 
   for (const row of rows) {
-    let block = bySet.get(row.set_name);
+    const brand = row.brand ?? "";
+    const key = `${brand}\u0000${row.set_name}`;
+    let block = byKey.get(key);
     if (!block) {
-      block = { set: row.set_name, variations: [], entries: [] };
-      bySet.set(row.set_name, block);
+      block = { brand, set: row.set_name, variations: [], entries: [] };
+      byKey.set(key, block);
     }
     if (!block.variations.includes(row.variation)) {
       block.variations.push(row.variation);
@@ -540,7 +549,10 @@ function wantedBlocksFromRows(
     });
   }
 
-  return [...bySet.values()].sort((a, b) => a.set.localeCompare(b.set));
+  return [...byKey.values()].sort(
+    (a, b) =>
+      a.brand.localeCompare(b.brand) || a.set.localeCompare(b.set)
+  );
 }
 
 function readGuidesStatePayloads(db: AppDatabase): {
@@ -594,12 +606,13 @@ function seedGuidesTablesIfEmpty(db: AppDatabase): void {
 export function readWantedBlocks(): WantedBlock[] {
   const rows = getDb()
     .prepare(
-      `SELECT id, set_name, variation, slot, player
+      `SELECT id, brand, set_name, variation, slot, player
        FROM wanted_entries
-       ORDER BY set_name, variation, slot, player`
+       ORDER BY brand, set_name, variation, slot, player`
     )
     .all() as {
     id: number;
+    brand: string;
     set_name: string;
     variation: string;
     slot: number | null;
@@ -610,16 +623,17 @@ export function readWantedBlocks(): WantedBlock[] {
 
 export function readWantedEntryById(
   id: number
-): (WantedEntry & { set: string }) | null {
+): (WantedEntry & { brand: string; set: string }) | null {
   const row = getDb()
     .prepare(
-      `SELECT id, set_name, variation, slot, player
+      `SELECT id, brand, set_name, variation, slot, player
        FROM wanted_entries
        WHERE id = ?`
     )
     .get(id) as
     | {
         id: number;
+        brand: string;
         set_name: string;
         variation: string;
         slot: number | null;
@@ -629,6 +643,7 @@ export function readWantedEntryById(
   if (!row) return null;
   return {
     id: row.id,
+    brand: row.brand ?? "",
     set: row.set_name,
     variation: row.variation,
     slot: row.slot,
@@ -1165,12 +1180,85 @@ function runSchemaMigrations(db: AppDatabase): void {
       }
     }
 
+    if (version < 20) {
+      dbLogger.info({
+        msg: "Applying v20: brand-scoped set variations and wanted brands",
+      });
+      migrateBrandScopedCatalog(db);
+    }
+
     setSchemaVersion(db, SCHEMA_VERSION);
     dbLogger.info({ msg: `Migration complete (v${SCHEMA_VERSION})` });
   } catch (error) {
     dbLogger.error({ msg: "Migration failed", err: error });
     throw error;
   }
+}
+
+function brandsForSetFromCards(
+  db: AppDatabase,
+  setName: string
+): string[] {
+  const rows = db
+    .prepare(
+      `SELECT brand, COUNT(*) as count
+       FROM cards
+       WHERE brand != '' AND LOWER(set_name) = LOWER(?)
+       GROUP BY brand
+       ORDER BY count DESC, brand COLLATE NOCASE`
+    )
+    .all(setName) as { brand: string; count: number }[];
+  return rows.map((row) => String(row.brand)).filter(Boolean);
+}
+
+function migrateBrandScopedCatalog(db: AppDatabase): void {
+  if (!tableHasColumn(db, "wanted_entries", "brand")) {
+    db.exec(
+      "ALTER TABLE wanted_entries ADD COLUMN brand TEXT NOT NULL DEFAULT ''"
+    );
+  }
+
+  const refs = readReferencesPayload(db);
+  const fallbackBrandBySet: Record<string, string[]> = {};
+  for (const setName of Object.keys(refs.setVariations)) {
+    if (setName.includes("\u0000")) continue;
+    fallbackBrandBySet[setName] = brandsForSetFromCards(db, setName);
+  }
+  migrateSetVariationsToBrandScope(refs, fallbackBrandBySet);
+  importReferences(db, refs);
+
+  const wantedRows = db
+    .prepare(
+      `SELECT id, set_name FROM wanted_entries
+       WHERE brand IS NULL OR brand = ''`
+    )
+    .all() as { id: number; set_name: string }[];
+
+  if (wantedRows.length === 0) return;
+
+  const update = db.prepare(
+    "UPDATE wanted_entries SET brand = ? WHERE id = ?"
+  );
+  const brandFromBrandSets = (setName: string): string | null => {
+    const owners: string[] = [];
+    for (const [brand, sets] of Object.entries(refs.brandSets)) {
+      if (sets.some((set) => set.toLowerCase() === setName.toLowerCase())) {
+        owners.push(brand);
+      }
+    }
+    return owners.length === 1 ? owners[0] : null;
+  };
+
+  runInTransaction(db, () => {
+    for (const row of wantedRows) {
+      const fromRefs = brandFromBrandSets(row.set_name);
+      const fromCards = brandsForSetFromCards(db, row.set_name);
+      const brand = fromRefs ?? (fromCards.length === 1 ? fromCards[0] : "");
+      if (brand) {
+        update.run(brand, row.id);
+      }
+    }
+  });
 }
 
 function migrateSessionMetadata(db: AppDatabase): void {
@@ -1681,7 +1769,18 @@ export function readCardCountsByYear(): ChartCountRow[] {
 }
 
 export function readCardCountsBySet(): ChartCountRow[] {
-  return readCardCountsByColumn("set_name");
+  const rows = getDb()
+    .prepare(
+      `SELECT brand, set_name, COUNT(*) as count
+       FROM cards
+       WHERE set_name IS NOT NULL AND set_name != ''
+       GROUP BY brand, set_name`
+    )
+    .all() as { brand: string; set_name: string; count: number }[];
+  return rows.map((row) => ({
+    name: formatBrandSetLabel(String(row.brand ?? ""), String(row.set_name)),
+    count: Number(row.count),
+  }));
 }
 
 export function readAcquisitionTimeline(): ChartCountRow[] {

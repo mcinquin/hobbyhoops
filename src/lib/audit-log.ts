@@ -4,7 +4,7 @@ import type { Card } from "./types";
 import type { ReferencePatchBody } from "./reference-schema";
 import {
   uniqueBrandSetEntries,
-  uniqueSetVariationEntries,
+  uniqueBrandSetVariationEntries,
   uniqueStrings,
   uniqueYears,
 } from "./reference-mutations";
@@ -91,6 +91,7 @@ export function auditReferencePatch(
     case "addVariation":
       auditLog("ref.variation.add", {
         ...base,
+        brand: body.brand,
         set: body.set,
         variation: body.variation,
       });
@@ -98,12 +99,13 @@ export function auditReferencePatch(
     case "addVariations":
       auditLog("ref.variation.add", {
         ...base,
-        count: uniqueSetVariationEntries(body.entries).length,
+        count: uniqueBrandSetVariationEntries(body.entries).length,
       });
       return;
     case "removeVariation":
       auditLog("ref.variation.remove", {
         ...base,
+        brand: body.brand,
         set: body.set,
         variation: body.variation,
       });

@@ -4,6 +4,9 @@ export const LABEL_MAX = 160;
 
 export const REFERENCE_YEAR_REGEX = /^(\d{4}|\d{4}-\d{2})$/;
 
+/** Séparateur interne pour les clés marque+set (jamais affiché). */
+export const BRAND_SET_KEY_SEP = "\u0000";
+
 /** Valeurs initiales (grading, protection, rangement) injectées une fois en base. */
 export const SEED_ATTRIBUTE_REFERENCES = {
   grading: ["Ungraded", "PSA", "SGC", "BGS", "CGC"],
@@ -78,6 +81,25 @@ export function uniqueStrings(values: unknown): string[] {
   return out;
 }
 
+export function brandSetKey(brand: string, set: string): string {
+  return `${normLabel(brand)}${BRAND_SET_KEY_SEP}${normLabel(set)}`;
+}
+
+export function parseBrandSetKey(
+  key: string
+): { brand: string; set: string } | null {
+  const sep = key.indexOf(BRAND_SET_KEY_SEP);
+  if (sep <= 0 || sep >= key.length - 1) return null;
+  return { brand: key.slice(0, sep), set: key.slice(sep + 1) };
+}
+
+export function formatBrandSetLabel(brand: string, set: string): string {
+  const brandName = brand.trim();
+  const setName = set.trim();
+  if (brandName && setName) return `${brandName} · ${setName}`;
+  return setName || brandName;
+}
+
 export function uniqueBrandSetEntries(
   entries: { brand: string; set: string }[]
 ): { brand: string; set: string }[] {
@@ -87,7 +109,7 @@ export function uniqueBrandSetEntries(
     const brand = normLabel(entry.brand);
     const set = normLabel(entry.set);
     if (!brand || !set) continue;
-    const key = `${brand}\u0000${set}`;
+    const key = brandSetKey(brand, set);
     if (seen.has(key)) continue;
     seen.add(key);
     out.push({ brand, set });
@@ -95,21 +117,35 @@ export function uniqueBrandSetEntries(
   return out;
 }
 
-export function uniqueSetVariationEntries(
-  entries: { set: string; variation: string }[]
-): { set: string; variation: string }[] {
-  const out: { set: string; variation: string }[] = [];
+export function uniqueBrandSetVariationEntries(
+  entries: { brand: string; set: string; variation: string }[]
+): { brand: string; set: string; variation: string }[] {
+  const out: { brand: string; set: string; variation: string }[] = [];
   const seen = new Set<string>();
   for (const entry of entries) {
+    const brand = normLabel(entry.brand);
     const set = normLabel(entry.set);
     const variation = normLabel(entry.variation);
-    if (!set || !variation) continue;
-    const key = `${set}\u0000${variation}`;
+    if (!brand || !set || !variation) continue;
+    const key = `${brandSetKey(brand, set)}${BRAND_SET_KEY_SEP}${variation}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push({ set, variation });
+    out.push({ brand, set, variation });
   }
   return out;
+}
+
+/** @deprecated Prefer uniqueBrandSetVariationEntries — kept for batch rows without brand. */
+export function uniqueSetVariationEntries(
+  entries: { set: string; variation: string; brand?: string }[]
+): { brand: string; set: string; variation: string }[] {
+  return uniqueBrandSetVariationEntries(
+    entries.map((entry) => ({
+      brand: entry.brand ?? "",
+      set: entry.set,
+      variation: entry.variation,
+    }))
+  );
 }
 
 export function addUniqueSorted(list: string[], values: string[]): string[] {
@@ -119,6 +155,60 @@ export function addUniqueSorted(list: string[], values: string[]): string[] {
     if (label) set.add(label);
   }
   return [...set].sort((a, b) => a.localeCompare(b));
+}
+
+function brandsOwningSet(refs: References, setName: string): string[] {
+  const owners: string[] = [];
+  for (const [brand, sets] of Object.entries(refs.brandSets)) {
+    if (sets.includes(setName)) owners.push(brand);
+  }
+  return owners;
+}
+
+/**
+ * Convertit les anciennes clés setVariations (set seul) en clés marque+set.
+ * Retourne true si le payload a changé.
+ */
+export function migrateSetVariationsToBrandScope(
+  refs: References,
+  fallbackBrandBySet?: Record<string, string[]>
+): boolean {
+  let changed = false;
+  const next: Record<string, string[]> = {};
+
+  for (const [key, variations] of Object.entries(refs.setVariations)) {
+    const parsed = parseBrandSetKey(key);
+    if (parsed) {
+      const scopedKey = brandSetKey(parsed.brand, parsed.set);
+      next[scopedKey] = addUniqueSorted(next[scopedKey] ?? [], variations);
+      if (scopedKey !== key) changed = true;
+      continue;
+    }
+
+    changed = true;
+    const setName = normLabel(key);
+    if (!setName) continue;
+
+    let brands = brandsOwningSet(refs, setName);
+    if (brands.length === 0 && fallbackBrandBySet?.[setName]) {
+      brands = fallbackBrandBySet[setName]
+        .map((brand) => normLabel(brand))
+        .filter(Boolean);
+      for (const brand of brands) {
+        addSet(refs, brand, setName);
+      }
+    }
+
+    for (const brand of brands) {
+      const scopedKey = brandSetKey(brand, setName);
+      next[scopedKey] = addUniqueSorted(next[scopedKey] ?? [], variations);
+    }
+  }
+
+  if (changed) {
+    refs.setVariations = next;
+  }
+  return changed;
 }
 
 export function addBrand(refs: References, brand: string): References {
@@ -139,23 +229,27 @@ export function addSet(refs: References, brand: string, set: string): References
   const prev = refs.brandSets[brandName] ? [...refs.brandSets[brandName]] : [];
   refs.brandSets[brandName] = addUniqueSorted(prev, [setName]);
   refs.sets = addUniqueSorted(refs.sets, [setName]);
-  if (!refs.setVariations[setName]) {
-    refs.setVariations[setName] = [];
+  const key = brandSetKey(brandName, setName);
+  if (!refs.setVariations[key]) {
+    refs.setVariations[key] = [];
   }
   return refs;
 }
 
 export function addVariation(
   refs: References,
+  brand: string,
   set: string,
   variation: string
 ): References {
+  const brandName = normLabel(brand);
   const setName = normLabel(set);
   const name = normLabel(variation);
-  if (!setName || !name) return refs;
-  const prev = refs.setVariations[setName] ? [...refs.setVariations[setName]] : [];
-  refs.setVariations[setName] = addUniqueSorted(prev, [name]);
-  refs.sets = addUniqueSorted(refs.sets, [setName]);
+  if (!brandName || !setName || !name) return refs;
+  addSet(refs, brandName, setName);
+  const key = brandSetKey(brandName, setName);
+  const prev = refs.setVariations[key] ? [...refs.setVariations[key]] : [];
+  refs.setVariations[key] = addUniqueSorted(prev, [name]);
   refs.variations = addUniqueSorted(refs.variations, [name]);
   return refs;
 }
@@ -237,6 +331,12 @@ function pruneVariationsGlobal(refs: References, variation: string): void {
   }
 }
 
+function pruneSetGlobal(refs: References, setName: string): void {
+  if (brandsOwningSet(refs, setName).length === 0) {
+    refs.sets = removeFromSorted(refs.sets, setName);
+  }
+}
+
 export function removePlayer(refs: References, player: string): References {
   const name = normLabel(player);
   if (!name) return refs;
@@ -254,8 +354,20 @@ export function removeTeam(refs: References, team: string): References {
 export function removeBrand(refs: References, brand: string): References {
   const name = normLabel(brand);
   if (!name) return refs;
+  const sets = refs.brandSets[name] ?? [];
   refs.brands = removeFromSorted(refs.brands, name);
   delete refs.brandSets[name];
+
+  for (const setName of sets) {
+    const key = brandSetKey(name, setName);
+    const variationsInSet = refs.setVariations[key] ?? [];
+    delete refs.setVariations[key];
+    for (const variation of variationsInSet) {
+      pruneVariationsGlobal(refs, variation);
+    }
+    pruneSetGlobal(refs, setName);
+  }
+
   return refs;
 }
 
@@ -278,33 +390,34 @@ export function removeSet(
     }
   }
 
-  refs.sets = removeFromSorted(refs.sets, setName);
-
-  const variationsInSet = refs.setVariations[setName] ?? [];
-  delete refs.setVariations[setName];
+  const key = brandSetKey(brandName, setName);
+  const variationsInSet = refs.setVariations[key] ?? [];
+  delete refs.setVariations[key];
   for (const variation of variationsInSet) {
     pruneVariationsGlobal(refs, variation);
   }
+
+  pruneSetGlobal(refs, setName);
 
   return refs;
 }
 
 export function removeVariation(
   refs: References,
+  brand: string,
   set: string,
   variation: string
 ): References {
+  const brandName = normLabel(brand);
   const setName = normLabel(set);
   const name = normLabel(variation);
-  if (!setName || !name) return refs;
+  if (!brandName || !setName || !name) return refs;
 
-  if (refs.setVariations[setName]) {
-    refs.setVariations[setName] = removeFromSorted(
-      refs.setVariations[setName],
-      name
-    );
-    if (refs.setVariations[setName].length === 0) {
-      delete refs.setVariations[setName];
+  const key = brandSetKey(brandName, setName);
+  if (refs.setVariations[key]) {
+    refs.setVariations[key] = removeFromSorted(refs.setVariations[key], name);
+    if (refs.setVariations[key].length === 0) {
+      delete refs.setVariations[key];
     }
   }
 
@@ -347,7 +460,9 @@ export function syncReferencesFromCard(
   if (card.year) addYear(refs, card.year);
   if (card.brand) addBrand(refs, card.brand);
   if (card.brand && card.set) addSet(refs, card.brand, card.set);
-  if (card.set && card.variation) addVariation(refs, card.set, card.variation);
+  if (card.brand && card.set && card.variation) {
+    addVariation(refs, card.brand, card.set, card.variation);
+  }
   syncCardAttributeReferences(refs, card);
   return refs;
 }

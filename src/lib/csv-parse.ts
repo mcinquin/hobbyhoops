@@ -1,7 +1,7 @@
 import { parse } from "csv-parse/sync";
 import {
   uniqueBrandSetEntries,
-  uniqueSetVariationEntries,
+  uniqueBrandSetVariationEntries,
   uniqueStrings,
 } from "./reference-mutations";
 
@@ -58,25 +58,37 @@ export function parseBrandSetRows(text: string): { brand: string; set: string }[
 
 export function parseSetVariationRows(
   text: string
-): { set: string; variation: string }[] {
+): { brand: string; set: string; variation: string }[] {
   const rows = parseDelimitedRows(text);
   if (rows.length === 0) return [];
 
   const header = rows[0].map((cell) => cell.toLowerCase());
+  const brandIndex = header.findIndex((cell) =>
+    ["brand", "marque"].includes(cell)
+  );
   const setIndex = header.findIndex((cell) => ["set"].includes(cell));
-  const variationIndex = header.findIndex((cell) => ["variation"].includes(cell));
-  const start = setIndex >= 0 && variationIndex >= 0 ? 1 : 0;
+  const variationIndex = header.findIndex((cell) =>
+    ["variation"].includes(cell)
+  );
+  const hasHeader =
+    brandIndex >= 0 && setIndex >= 0 && variationIndex >= 0;
+  const start = hasHeader ? 1 : 0;
 
-  return uniqueSetVariationEntries(
+  return uniqueBrandSetVariationEntries(
     rows.slice(start).flatMap((row) => {
-      if (setIndex >= 0 && variationIndex >= 0) {
+      if (hasHeader) {
+        const brand = row[brandIndex] ?? "";
         const set = row[setIndex] ?? "";
         const variation = row[variationIndex] ?? "";
-        return set && variation ? [{ set, variation }] : [];
+        return brand && set && variation
+          ? [{ brand, set, variation }]
+          : [];
       }
-      if (row.length >= 2) {
-        const [set, variation] = row;
-        return set && variation ? [{ set, variation }] : [];
+      if (row.length >= 3) {
+        const [brand, set, variation] = row;
+        return brand && set && variation
+          ? [{ brand, set, variation }]
+          : [];
       }
       return [];
     })

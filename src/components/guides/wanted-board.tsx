@@ -3,6 +3,7 @@
 import { useCallback, useId, useMemo, useState } from "react";
 import { createWantedEntry, deleteWantedEntry } from "@/lib/guides-client";
 import type { WantedBlock, WantedEntry } from "@/lib/types";
+import { formatBrandSetLabel } from "@/lib/reference-mutations";
 import { ColumnFilterCombobox } from "@/components/column-filter-combobox";
 import { FilterChipButton } from "@/components/filter-chip-button";
 import { SearchField } from "@/components/search-field";
@@ -16,12 +17,18 @@ interface WantedBoardProps {
   initialBlocks: WantedBlock[];
 }
 
-type WantedRow = WantedEntry & { set: string };
+type WantedRow = WantedEntry & { brand: string; set: string };
 
 type WantedSetGroup = {
+  brand: string;
   set: string;
+  label: string;
   entries: WantedRow[];
 };
+
+function blockKey(brand: string, set: string): string {
+  return `${brand}\u0000${set}`;
+}
 
 function compareWantedRows(a: WantedRow, b: WantedRow): number {
   const variationCmp = a.variation.localeCompare(b.variation);
@@ -38,6 +45,7 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
   const [search, setSearch] = useState("");
   const [setFilter, setSetFilter] = useState("");
   const [variationFilter, setVariationFilter] = useState("");
+  const [brand, setBrand] = useState("");
   const [setName, setSetName] = useState("");
   const [variation, setVariation] = useState("");
   const [slot, setSlot] = useState("");
@@ -49,15 +57,32 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
   const rows = useMemo(
     (): WantedRow[] =>
       blocks.flatMap((block) =>
-        block.entries.map((entry) => ({ ...entry, set: block.set }))
+        block.entries.map((entry) => ({
+          ...entry,
+          brand: block.brand,
+          set: block.set,
+        }))
       ),
     [blocks]
   );
 
-  const setNames = useMemo(
+  const setOptions = useMemo(() => {
+    const options = new Map<string, { brand: string; set: string; label: string }>();
+    for (const block of blocks) {
+      const key = blockKey(block.brand, block.set);
+      options.set(key, {
+        brand: block.brand,
+        set: block.set,
+        label: formatBrandSetLabel(block.brand, block.set),
+      });
+    }
+    return [...options.values()].sort((a, b) => a.label.localeCompare(b.label));
+  }, [blocks]);
+
+  const brandSuggestions = useMemo(
     () =>
-      [...new Set(blocks.map((block) => block.set))].sort((a, b) =>
-        a.localeCompare(b)
+      [...new Set(blocks.map((block) => block.brand).filter(Boolean))].sort(
+        (a, b) => a.localeCompare(b)
       ),
     [blocks]
   );
@@ -65,14 +90,15 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
   const setCounts = useMemo(() => {
     const counts = new Map<string, number>();
     for (const row of rows) {
-      counts.set(row.set, (counts.get(row.set) ?? 0) + 1);
+      const key = blockKey(row.brand, row.set);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
     }
     return counts;
   }, [rows]);
 
   const variations = useMemo(() => {
     const source = setFilter
-      ? rows.filter((row) => row.set === setFilter)
+      ? rows.filter((row) => blockKey(row.brand, row.set) === setFilter)
       : rows;
     return [...new Set(source.map((row) => row.variation))].sort((a, b) =>
       a.localeCompare(b)
@@ -82,7 +108,9 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
   const filteredRows = useMemo(() => {
     let result = rows;
     if (setFilter) {
-      result = result.filter((row) => row.set === setFilter);
+      result = result.filter(
+        (row) => blockKey(row.brand, row.set) === setFilter
+      );
     }
     if (variationFilter) {
       result = result.filter((row) => row.variation === variationFilter);
@@ -93,36 +121,44 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
         (row) =>
           row.player.toLowerCase().includes(q) ||
           row.variation.toLowerCase().includes(q) ||
-          row.set.toLowerCase().includes(q)
+          row.set.toLowerCase().includes(q) ||
+          row.brand.toLowerCase().includes(q)
       );
     }
     return result;
   }, [rows, search, setFilter, variationFilter]);
 
   const groupedSets = useMemo((): WantedSetGroup[] => {
-    const bySet = new Map<string, WantedRow[]>();
+    const byKey = new Map<string, WantedRow[]>();
     for (const row of filteredRows) {
-      const list = bySet.get(row.set);
+      const key = blockKey(row.brand, row.set);
+      const list = byKey.get(key);
       if (list) {
         list.push(row);
       } else {
-        bySet.set(row.set, [row]);
+        byKey.set(key, [row]);
       }
     }
 
-    return [...bySet.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([set, entries]) => ({
-        set,
-        entries: [...entries].sort(compareWantedRows),
-      }));
+    return [...byKey.entries()]
+      .map(([key, entries]) => {
+        const [brandName, setLabel] = key.split("\u0000");
+        return {
+          brand: brandName,
+          set: setLabel,
+          label: formatBrandSetLabel(brandName, setLabel),
+          entries: [...entries].sort(compareWantedRows),
+        };
+      })
+      .sort((a, b) => a.label.localeCompare(b.label));
   }, [filteredRows]);
 
   async function handleAdd() {
+    const trimmedBrand = brand.trim();
     const trimmedSet = setName.trim();
     const trimmedVariation = variation.trim();
     const trimmedPlayer = player.trim();
-    if (!trimmedSet || !trimmedVariation || !trimmedPlayer) {
+    if (!trimmedBrand || !trimmedSet || !trimmedVariation || !trimmedPlayer) {
       setFormError(t("guides.wanted.fieldsRequired"));
       return;
     }
@@ -139,6 +175,7 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
     setLoading(true);
     try {
       const nextBlocks = await createWantedEntry({
+        brand: trimmedBrand,
         set: trimmedSet,
         variation: trimmedVariation,
         player: trimmedPlayer,
@@ -178,7 +215,23 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
       <div className="space-y-3 rounded-lg border border-border bg-card p-4">
         <p className="text-sm font-medium">{t("guides.wanted.addEntry")}</p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-1 sm:col-span-2">
+          <div className="space-y-1">
+            <Label htmlFor="wanted-brand">{t("guides.wanted.brand")}</Label>
+            <Input
+              id="wanted-brand"
+              list="wanted-brand-suggestions"
+              value={brand}
+              onChange={(e) => setBrand(e.target.value)}
+              placeholder={t("guides.wanted.brandPlaceholder")}
+              disabled={loading}
+            />
+            <datalist id="wanted-brand-suggestions">
+              {brandSuggestions.map((name) => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
+          </div>
+          <div className="space-y-1">
             <Label htmlFor="wanted-set">{t("guides.wanted.set")}</Label>
             <Input
               id="wanted-set"
@@ -189,8 +242,8 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
               disabled={loading}
             />
             <datalist id="wanted-set-suggestions">
-              {setNames.map((name) => (
-                <option key={name} value={name} />
+              {setOptions.map((option) => (
+                <option key={blockKey(option.brand, option.set)} value={option.set} />
               ))}
             </datalist>
           </div>
@@ -247,7 +300,7 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
         </div>
       </div>
 
-      {setNames.length > 0 ? (
+      {setOptions.length > 0 ? (
         <div
           className="flex flex-wrap gap-2"
           role="group"
@@ -260,20 +313,23 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
               setSetFilter("");
             }}
           />
-          {setNames.map((name) => (
-            <FilterChipButton
-              key={name}
-              label={t("guides.wanted.setChip", {
-                set: name,
-                count: setCounts.get(name) ?? 0,
-              })}
-              pressed={setFilter === name}
-              onPressedChange={(pressed) => {
-                setSetFilter(pressed ? name : "");
-                setVariationFilter("");
-              }}
-            />
-          ))}
+          {setOptions.map((option) => {
+            const key = blockKey(option.brand, option.set);
+            return (
+              <FilterChipButton
+                key={key}
+                label={t("guides.wanted.setChip", {
+                  set: option.label,
+                  count: setCounts.get(key) ?? 0,
+                })}
+                pressed={setFilter === key}
+                onPressedChange={(pressed) => {
+                  setSetFilter(pressed ? key : "");
+                  setVariationFilter("");
+                }}
+              />
+            );
+          })}
         </div>
       ) : null}
 
@@ -309,8 +365,10 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
         <div className="space-y-6">
           {groupedSets.map((group) => (
             <WantedSetSection
-              key={group.set}
+              key={blockKey(group.brand, group.set)}
+              brand={group.brand}
               set={group.set}
+              label={group.label}
               entries={group.entries}
               loading={loading}
               onDelete={handleDelete}
@@ -323,12 +381,16 @@ export function WantedBoard({ initialBlocks }: WantedBoardProps) {
 }
 
 function WantedSetSection({
+  brand,
   set,
+  label,
   entries,
   loading,
   onDelete,
 }: {
+  brand: string;
   set: string;
+  label: string;
   entries: WantedRow[];
   loading: boolean;
   onDelete: (id: number) => void | Promise<void>;
@@ -340,7 +402,7 @@ function WantedSetSection({
     <section aria-labelledby={headingId}>
       <div className="mb-3 flex items-baseline justify-between gap-3 border-b border-border pb-2">
         <h2 id={headingId} className="text-sm font-medium text-foreground">
-          {set}
+          {label}
         </h2>
         <p className="text-xs text-muted-foreground">
           {t("guides.wanted.setCount", { count: entries.length })}
@@ -371,7 +433,7 @@ function WantedSetSection({
                 disabled={loading}
                 aria-label={t("guides.wanted.deleteEntry", {
                   player: entry.player,
-                  set: entry.set,
+                  set: formatBrandSetLabel(brand, set),
                 })}
                 onClick={() => void onDelete(entry.id)}
               >

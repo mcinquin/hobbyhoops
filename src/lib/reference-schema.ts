@@ -13,6 +13,7 @@ const brandSetEntrySchema = z
 
 const setVariationEntrySchema = z
   .object({
+    brand: label,
     set: label,
     variation: label,
   })
@@ -57,6 +58,7 @@ export const referencePatchSchema = z.discriminatedUnion("action", [
   z
     .object({
       action: z.literal("addVariation"),
+      brand: label,
       set: label,
       variation: label,
     })
@@ -131,6 +133,7 @@ export const referencePatchSchema = z.discriminatedUnion("action", [
   z
     .object({
       action: z.literal("removeVariation"),
+      brand: label,
       set: label,
       variation: label,
     })

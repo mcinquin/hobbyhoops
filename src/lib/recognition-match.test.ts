@@ -10,7 +10,7 @@ const references: References = {
   brands: ["Panini", "Topps"],
   sets: ["Prizm", "Donruss"],
   brandSets: { Panini: ["Prizm", "Donruss"], Topps: [] },
-  setVariations: { Prizm: ["Silver", "Emergent"] },
+  setVariations: { ["Panini\u0000Prizm"]: ["Silver", "Emergent"] },
   variations: ["Silver", "Emergent", "Holo"],
   gradings: ["Ungraded"],
   protections: [],
