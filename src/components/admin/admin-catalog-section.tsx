@@ -18,8 +18,13 @@ import { AdminFeedback } from "@/components/admin/admin-feedback";
 import { AutocompleteCombobox } from "@/components/autocomplete-combobox";
 import { FilterableListBrowser } from "@/components/filterable-list-browser";
 import {
+  brandSetKey,
+  formatBrandSetLabel,
+  parseBrandSetKey,
+} from "@/lib/reference-mutations";
+import {
   setsLinkedToBrand,
-  variationsLinkedToSet,
+  variationsLinkedToBrandSet,
 } from "@/lib/reference-suggestions";
 import { useTranslations } from "@/i18n/client";
 
@@ -55,8 +60,13 @@ export function AdminCatalogSection({
   );
 
   const variationsForSet = useMemo(
-    () => variationsLinkedToSet(references, setForVariation),
-    [references, setForVariation]
+    () =>
+      variationsLinkedToBrandSet(
+        references,
+        brandForVariation,
+        setForVariation
+      ),
+    [references, brandForVariation, setForVariation]
   );
 
   const brandSetEntries = useMemo(() => {
@@ -76,18 +86,31 @@ export function AdminCatalogSection({
   }, [references]);
 
   const setVariationEntries = useMemo(() => {
-    const entries: { key: string; set: string; variation: string }[] = [];
-    for (const setName of references.sets) {
-      for (const variationName of references.setVariations[setName] ?? []) {
+    const entries: {
+      key: string;
+      brand: string;
+      set: string;
+      variation: string;
+    }[] = [];
+    for (const [scopedKey, variations] of Object.entries(
+      references.setVariations
+    )) {
+      const parsed = parseBrandSetKey(scopedKey);
+      if (!parsed) continue;
+      for (const variationName of variations) {
         entries.push({
-          key: `${setName}\u0000${variationName}`,
-          set: setName,
+          key: `${brandSetKey(parsed.brand, parsed.set)}\u0000${variationName}`,
+          brand: parsed.brand,
+          set: parsed.set,
           variation: variationName,
         });
       }
     }
-    return entries.sort((a, b) =>
-      a.set.localeCompare(b.set) || a.variation.localeCompare(b.variation)
+    return entries.sort(
+      (a, b) =>
+        a.brand.localeCompare(b.brand) ||
+        a.set.localeCompare(b.set) ||
+        a.variation.localeCompare(b.variation)
     );
   }, [references]);
 
@@ -329,6 +352,7 @@ export function AdminCatalogSection({
                       }
                       const refs = await patchReferences({
                         action: "addVariation",
+                        brand: brandForVariation,
                         set: setForVariation,
                         variation,
                       });
@@ -366,7 +390,9 @@ export function AdminCatalogSection({
               <AdminDeletableList
                 items={setVariationEntries}
                 getKey={(entry) => entry.key}
-                renderLabel={(entry) => `${entry.set} · ${entry.variation}`}
+                renderLabel={(entry) =>
+                  `${formatBrandSetLabel(entry.brand, entry.set)} · ${entry.variation}`
+                }
                 emptyLabel={t("admin.catalog.noVariations")}
                 disabled={loading}
                 onDelete={async (entry) => {
@@ -374,6 +400,7 @@ export function AdminCatalogSection({
                     () =>
                       patchReferences({
                         action: "removeVariation",
+                        brand: entry.brand,
                         set: entry.set,
                         variation: entry.variation,
                       }),

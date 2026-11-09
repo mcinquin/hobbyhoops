@@ -2,6 +2,7 @@ import { API_FETCH_OPTS, parseApiErrorMessage } from "@/lib/api-fetch";
 import type { FrNbaPlayer, FrNbaPlayerWrite, WantedBlock } from "@/lib/types";
 
 export async function createWantedEntry(body: {
+  brand: string;
   set: string;
   variation: string;
   player: string;

@@ -3,6 +3,7 @@ import type {
   RecognizedCard,
 } from "@/lib/card-recognition/types";
 import type { References } from "@/lib/types";
+import { brandSetKey } from "@/lib/reference-mutations";
 import { normalizeVariationLabel } from "@/lib/variation-label";
 
 /** Folding accents/casse/ponctuation pour comparer des libellés. */
@@ -72,9 +73,10 @@ export function buildCardSuggestion(
   }
 
   const normalizedVariation = normalizeVariationLabel(recognized.variation);
-  const variationCandidates = set.matched
-    ? (references.setVariations[set.value] ?? [])
-    : references.variations;
+  const variationCandidates =
+    set.matched && brand.matched
+      ? (references.setVariations[brandSetKey(brand.value, set.value)] ?? [])
+      : references.variations;
   let variation = matchLabel(normalizedVariation, variationCandidates);
   if (!variation.matched && set.matched) {
     variation = matchLabel(normalizedVariation, references.variations);

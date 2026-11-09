@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
     user: gate.username,
     id: entry.id,
     player: entry.player,
+    brand: parsed.data.brand,
     set: parsed.data.set,
   });
   return NextResponse.json(
@@ -99,6 +100,7 @@ export async function DELETE(request: NextRequest) {
     user: gate.username,
     id: existing.id,
     player: existing.player,
+    brand: existing.brand,
     set: existing.set,
   });
 

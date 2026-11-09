@@ -25,7 +25,7 @@ import { AdminFeedback } from "@/components/admin/admin-feedback";
 import { useTranslations } from "@/i18n/client";
 import {
   setsLinkedToBrand,
-  variationsLinkedToSet,
+  variationsLinkedToBrandSet,
 } from "@/lib/reference-suggestions";
 import { patchReferences } from "@/lib/references-client";
 import {
@@ -205,8 +205,8 @@ function CardFormFields({
   );
 
   const variationsForSet = useMemo(
-    () => variationsLinkedToSet(references, setKey),
-    [references, setKey]
+    () => variationsLinkedToBrandSet(references, brandKey, setKey),
+    [brandKey, references, setKey]
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -293,7 +293,11 @@ function CardFormFields({
   const updateSet = (value: string) => {
     setForm((prev) => {
       const s = value.trim();
-      const available = variationsLinkedToSet(references, s);
+      const available = variationsLinkedToBrandSet(
+        references,
+        (prev.brand ?? "").trim(),
+        s
+      );
       let nextVariation = prev.variation ?? "";
       if (s && available.length > 0 && nextVariation && !available.includes(nextVariation)) {
         nextVariation = "";

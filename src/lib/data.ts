@@ -409,6 +409,7 @@ export function getReferences(): References {
 }
 
 export function createWantedEntry(input: {
+  brand: string;
   set: string;
   variation: string;
   slot: number | null;

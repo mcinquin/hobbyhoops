@@ -14,7 +14,7 @@ import {
   removeTeam,
   removeVariation,
   uniqueBrandSetEntries,
-  uniqueSetVariationEntries,
+  uniqueBrandSetVariationEntries,
   uniqueStrings,
   uniqueYears,
 } from "@/lib/reference-mutations";
@@ -71,16 +71,16 @@ async function applyReferencePatch(body: ReferencePatchBody) {
     }
     case "addVariation":
       return mutateReferences((state) => {
-        addVariation(state, body.set, body.variation);
+        addVariation(state, body.brand, body.set, body.variation);
       });
     case "addVariations": {
-      const entries = uniqueSetVariationEntries(body.entries);
+      const entries = uniqueBrandSetVariationEntries(body.entries);
       if (entries.length === 0) {
         return null;
       }
       return mutateReferences((state) => {
         for (const entry of entries) {
-          addVariation(state, entry.set, entry.variation);
+          addVariation(state, entry.brand, entry.set, entry.variation);
         }
       });
     }
@@ -141,7 +141,7 @@ async function applyReferencePatch(body: ReferencePatchBody) {
       });
     case "removeVariation":
       return mutateReferences((state) => {
-        removeVariation(state, body.set, body.variation);
+        removeVariation(state, body.brand, body.set, body.variation);
       });
     default:
       return null;

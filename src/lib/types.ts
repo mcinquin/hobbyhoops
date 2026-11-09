@@ -33,6 +33,7 @@ export interface ReferencesFilterIndex {
   years: string[];
   brands: string[];
   brandSets: Record<string, string[]>;
+  /** Clés `${brand}\u0000${set}` → variations. */
   setVariations: Record<string, string[]>;
 }
 
@@ -49,6 +50,7 @@ export interface WantedEntry {
 }
 
 export interface WantedBlock {
+  brand: string;
   set: string;
   variations: string[];
   entries: WantedEntry[];
@@ -93,7 +95,10 @@ export interface References {
   sets: string[];
   /** Sets connus par marque (nom de marque exact comme sur les cartes). */
   brandSets: Record<string, string[]>;
-  /** Variations connues par set (nom de set exact comme sur les cartes). */
+  /**
+   * Variations connues par marque+set.
+   * Clé interne : `${brand}\u0000${set}` (voir brandSetKey).
+   */
   setVariations: Record<string, string[]>;
   variations: string[];
   gradings: string[];

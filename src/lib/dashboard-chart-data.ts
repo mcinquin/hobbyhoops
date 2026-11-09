@@ -1,4 +1,5 @@
 import type { References } from "./types";
+import { formatBrandSetLabel } from "./reference-mutations";
 
 export type ChartCountDatum = { name: string; count: number };
 
@@ -34,17 +35,16 @@ export function buildChartCountData(
   }));
 }
 
-/** Tous les sets connus dans les références (liste globale + sets par marque). */
+/** Tous les couples marque+set connus dans les références. */
 export function referenceSetNames(references: References): string[] {
   const names = new Set<string>();
-  for (const set of references.sets) {
-    const trimmed = set.trim();
-    if (trimmed) names.add(trimmed);
-  }
-  for (const sets of Object.values(references.brandSets)) {
+  for (const [brand, sets] of Object.entries(references.brandSets)) {
+    const brandName = brand.trim();
+    if (!brandName) continue;
     for (const set of sets) {
-      const trimmed = set.trim();
-      if (trimmed) names.add(trimmed);
+      const setName = set.trim();
+      if (!setName) continue;
+      names.add(formatBrandSetLabel(brandName, setName));
     }
   }
   return [...names];

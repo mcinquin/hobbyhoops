@@ -42,6 +42,7 @@ const frNbaHoldingSchema = z
 
 export const wantedCreateSchema = z
   .object({
+    brand: label,
     set: label,
     variation: label,
     player: label,
