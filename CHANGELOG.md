@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/mcinquin/hobbyhoops/compare/v2.2.28...v2.3.0) (2026-11-09)
+
+
+### Features
+
+* **set:** fix issue with set unicity ([ad1f124](https://github.com/mcinquin/hobbyhoops/commit/ad1f12460795c0767e237575313d15aa26c234cf))
+
 ## [2.2.28](https://github.com/mcinquin/hobbyhoops/compare/v2.2.27...v2.2.28) (2026-11-09)
 
 
