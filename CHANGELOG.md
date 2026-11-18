@@ -1,3 +1,10 @@
+## [2.3.6](https://github.com/mcinquin/hobbyhoops/compare/v2.3.5...v2.3.6) (2026-11-18)
+
+
+### Dependencies
+
+* **deps-dev:** bump lint-staged ([eade469](https://github.com/mcinquin/hobbyhoops/commit/eade469ba0aabcc55202817df69e51b8e504fc86))
+
 ## [2.3.5](https://github.com/mcinquin/hobbyhoops/compare/v2.3.4...v2.3.5) (2026-11-17)
 
 
