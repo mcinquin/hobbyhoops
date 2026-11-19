@@ -71,7 +71,7 @@ export interface FrNbaHolding {
   rookie: boolean;
 }
 
-export type FrNbaHoldingInput = Omit<FrNbaHolding, "id">;
+type FrNbaHoldingInput = Omit<FrNbaHolding, "id">;
 
 export interface FrNbaPlayer {
   id: number;
@@ -119,9 +119,9 @@ export interface CollectionStats {
   wnba: number;
 }
 
-export type CardLeague = "nba" | "wnba";
+type CardLeague = "nba" | "wnba";
 
-export interface LeagueCountRow {
+interface LeagueCountRow {
   league: CardLeague;
   count: number;
 }

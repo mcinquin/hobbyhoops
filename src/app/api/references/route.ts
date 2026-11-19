@@ -27,7 +27,7 @@ import { getRequestTranslator } from "@/i18n/request";
 import type { Translator } from "@/i18n/translator";
 import { parseJsonBody } from "@/lib/parse-json-body";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
-import { rejectWriteRateLimit } from "@/lib/api-write-rate-limit";
+import { rejectRateLimit } from "@/lib/api-rate-limit";
 import { auditReferencePatch } from "@/lib/audit-log";
 
 export async function GET(request: NextRequest) {
@@ -179,7 +179,7 @@ export async function PATCH(request: NextRequest) {
   if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
 
-  const rateLimited = rejectWriteRateLimit(
+  const rateLimited = rejectRateLimit(
     request,
     `references:write:${gate.userId}`,
     { limit: 30, windowMs: 15 * 60 * 1000 }

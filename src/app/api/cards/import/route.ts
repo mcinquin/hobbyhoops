@@ -6,7 +6,7 @@ import { requireAuth } from "@/lib/auth-api";
 import { getRequestTranslator } from "@/i18n/request";
 import { parseJsonBody } from "@/lib/parse-json-body";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
-import { rejectWriteRateLimit } from "@/lib/api-write-rate-limit";
+import { rejectRateLimit } from "@/lib/api-rate-limit";
 import { auditLog } from "@/lib/audit-log";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
   if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
 
-  const rateLimited = rejectWriteRateLimit(
+  const rateLimited = rejectRateLimit(
     request,
     `cards:import:${gate.userId}`,
     { limit: 20, windowMs: 15 * 60 * 1000 }

@@ -3,7 +3,7 @@ import { prepareCardWriteInput } from "@/lib/card-write";
 import type { Card } from "@/lib/types";
 
 /** Colonnes canoniques (en-tête export et référence import). */
-export const CARD_CSV_COLUMNS = [
+const CARD_CSV_COLUMNS = [
   "id",
   "player",
   "team",
@@ -29,7 +29,7 @@ export const CARD_CSV_COLUMNS = [
   "notes",
 ] as const;
 
-export type CardCsvColumn = (typeof CARD_CSV_COLUMNS)[number];
+type CardCsvColumn = (typeof CARD_CSV_COLUMNS)[number];
 
 export const CARD_CSV_HEADER = CARD_CSV_COLUMNS.join(",");
 
@@ -102,7 +102,7 @@ const COLUMN_ALIASES: Record<string, CardCsvColumn> = {
 
 export type CardCsvImportMode = "create" | "upsert";
 
-export interface CardCsvImportRowError {
+interface CardCsvImportRowError {
   row: number;
   message: string;
 }
@@ -188,7 +188,7 @@ export function cardsToCsv(cards: Card[]): string {
   return `\uFEFF${lines.join("\n")}\n`;
 }
 
-export interface ParsedCardCsvRow {
+interface ParsedCardCsvRow {
   rowNumber: number;
   values: Partial<Record<CardCsvColumn, string>>;
 }

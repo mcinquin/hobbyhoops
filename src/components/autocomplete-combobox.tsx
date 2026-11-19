@@ -4,7 +4,7 @@ import { useId, useMemo, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-export interface AutocompleteComboboxProps {
+interface AutocompleteComboboxProps {
   id?: string;
   value: string;
   onChange: (value: string) => void;

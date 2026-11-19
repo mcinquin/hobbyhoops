@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-api";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
-import { rejectWriteRateLimit } from "@/lib/api-write-rate-limit";
+import { rejectRateLimit } from "@/lib/api-rate-limit";
 import { readCard } from "@/lib/data";
 import { cardIdSchema } from "@/lib/card-schema";
 import {
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
   if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
 
-  const rateLimited = rejectWriteRateLimit(
+  const rateLimited = rejectRateLimit(
     request,
     `cards:photo:${gate.userId}`,
     { limit: 60, windowMs: 15 * 60 * 1000 }
@@ -131,7 +131,7 @@ export async function DELETE(request: NextRequest) {
   if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
 
-  const rateLimited = rejectWriteRateLimit(
+  const rateLimited = rejectRateLimit(
     request,
     `cards:photo:${gate.userId}`,
     { limit: 60, windowMs: 15 * 60 * 1000 }

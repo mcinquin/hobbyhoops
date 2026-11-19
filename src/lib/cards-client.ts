@@ -65,7 +65,7 @@ export async function fetchCardById(id: string): Promise<Card> {
   return (await res.json()) as Card;
 }
 
-export interface AdminSnapshot {
+interface AdminSnapshot {
   references: References;
   totalCount: number;
 }
@@ -132,7 +132,7 @@ export async function uploadCardPhoto(
   return payload.url;
 }
 
-export type RecognizePhotoSource =
+type RecognizePhotoSource =
   | File
   | { cardId: string; side: "front" | "back" };
 

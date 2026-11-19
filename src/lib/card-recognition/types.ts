@@ -1,5 +1,4 @@
-export const RECOGNITION_CONFIDENCES = ["high", "medium", "low"] as const;
-export type RecognitionConfidence = (typeof RECOGNITION_CONFIDENCES)[number];
+export type RecognitionConfidence = "high" | "medium" | "low";
 
 /**
  * Résultat de reconnaissance normalisé, indépendant du fournisseur

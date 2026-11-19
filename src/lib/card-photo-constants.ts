@@ -1,4 +1,4 @@
-export const CARD_PHOTO_SIDES = ["front", "back"] as const;
+const CARD_PHOTO_SIDES = ["front", "back"] as const;
 export type CardPhotoSide = (typeof CARD_PHOTO_SIDES)[number];
 
 /** Limite par fichier (photos téléphone / scanner). */

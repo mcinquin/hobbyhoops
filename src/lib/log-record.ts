@@ -1,12 +1,12 @@
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
-export type SerializedError = {
+type SerializedError = {
   type: string;
   message: string;
   stack?: string;
 };
 
-export function serializeError(error: unknown): SerializedError {
+function serializeError(error: unknown): SerializedError {
   if (error instanceof Error) {
     return {
       type: error.name,

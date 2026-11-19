@@ -13,7 +13,7 @@ function asNullableString(value: unknown): string | null {
   return trimmed ? trimmed : null;
 }
 
-export function joinGrading(company: string, note: string): string {
+function joinGrading(company: string, note: string): string {
   if (company === "Ungraded") {
     return "Ungraded";
   }

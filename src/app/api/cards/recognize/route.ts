@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-api";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
-import { rejectWriteRateLimit } from "@/lib/api-write-rate-limit";
+import { rejectRateLimit } from "@/lib/api-rate-limit";
 import { auditLog } from "@/lib/audit-log";
 import {
   identifyCard,
@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Chaque appel consomme le quota CardSight (750/mois en gratuit).
-  const rateLimited = rejectWriteRateLimit(
+  const rateLimited = rejectRateLimit(
     request,
     `cards:recognize:${gate.userId}`,
     { limit: 25, windowMs: 15 * 60 * 1000 }
