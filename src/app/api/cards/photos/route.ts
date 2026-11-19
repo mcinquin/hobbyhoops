@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-api";
-import { rejectCrossSiteMutation } from "@/lib/request-guard";
-import { rejectRateLimit } from "@/lib/api-rate-limit";
 import { readCard } from "@/lib/data";
 import { cardIdSchema } from "@/lib/card-schema";
 import {
@@ -12,8 +9,11 @@ import {
 } from "@/lib/card-photo-storage";
 import { getRequestTranslator } from "@/i18n/request";
 import { auditLog } from "@/lib/audit-log";
+import { guardMutation } from "@/lib/api-mutation";
 
 export const dynamic = "force-dynamic";
+
+const CARD_PHOTOS_WRITE_LIMIT = { scope: "cards:photo", limit: 60 };
 
 function errorForCode(
   code: string,
@@ -39,20 +39,9 @@ function errorForCode(
 
 /** POST multipart: file + side (front|back) + cardId */
 export async function POST(request: NextRequest) {
-  const gate = requireAuth(request);
-  if (gate instanceof NextResponse) return gate;
-  const crossSite = rejectCrossSiteMutation(request, {
-    requireFetchMetadata: true,
-  });
-  if (crossSite) return crossSite;
-  const t = getRequestTranslator(request);
-
-  const rateLimited = rejectRateLimit(
-    request,
-    `cards:photo:${gate.userId}`,
-    { limit: 60, windowMs: 15 * 60 * 1000 }
-  );
-  if (rateLimited) return rateLimited;
+  const guard = guardMutation(request, CARD_PHOTOS_WRITE_LIMIT);
+  if (guard instanceof NextResponse) return guard;
+  const { session, t } = guard;
 
   let form: FormData;
   try {
@@ -112,7 +101,7 @@ export async function POST(request: NextRequest) {
   }
 
   auditLog("card.photo.upload", {
-    user: gate.username,
+    user: session.username,
     id: cardIdParsed.data,
     side: sideRaw,
     bytes: saved.bytes,
@@ -123,20 +112,9 @@ export async function POST(request: NextRequest) {
 
 /** DELETE ?cardId=&side= — retire le fichier d’une face */
 export async function DELETE(request: NextRequest) {
-  const gate = requireAuth(request);
-  if (gate instanceof NextResponse) return gate;
-  const crossSite = rejectCrossSiteMutation(request, {
-    requireFetchMetadata: true,
-  });
-  if (crossSite) return crossSite;
-  const t = getRequestTranslator(request);
-
-  const rateLimited = rejectRateLimit(
-    request,
-    `cards:photo:${gate.userId}`,
-    { limit: 60, windowMs: 15 * 60 * 1000 }
-  );
-  if (rateLimited) return rateLimited;
+  const guard = guardMutation(request, CARD_PHOTOS_WRITE_LIMIT);
+  if (guard instanceof NextResponse) return guard;
+  const { session, t } = guard;
 
   const cardIdParsed = cardIdSchema.safeParse(
     request.nextUrl.searchParams.get("cardId") ?? ""
@@ -158,7 +136,7 @@ export async function DELETE(request: NextRequest) {
 
   deleteCardPhotoSide(cardIdParsed.data, sideRaw);
   auditLog("card.photo.delete", {
-    user: gate.username,
+    user: session.username,
     id: cardIdParsed.data,
     side: sideRaw,
   });

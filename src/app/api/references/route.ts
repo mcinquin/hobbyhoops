@@ -19,16 +19,14 @@ import {
   uniqueYears,
 } from "@/lib/reference-mutations";
 import {
-  formatZodError,
   referencePatchSchema,
   type ReferencePatchBody,
 } from "@/lib/reference-schema";
-import { getRequestTranslator } from "@/i18n/request";
 import type { Translator } from "@/i18n/translator";
-import { parseJsonBody } from "@/lib/parse-json-body";
-import { rejectCrossSiteMutation } from "@/lib/request-guard";
-import { rejectRateLimit } from "@/lib/api-rate-limit";
 import { auditReferencePatch } from "@/lib/audit-log";
+import { guardMutation, parseBody } from "@/lib/api-mutation";
+
+const REFERENCES_WRITE_LIMIT = { scope: "references:write", limit: 30 };
 
 export async function GET(request: NextRequest) {
   const gate = requireAuth(request);
@@ -171,31 +169,12 @@ function emptyBatchError(
 }
 
 export async function PATCH(request: NextRequest) {
-  const gate = requireAuth(request);
-  if (gate instanceof NextResponse) return gate;
-  const crossSite = rejectCrossSiteMutation(request, {
-    requireFetchMetadata: true,
-  });
-  if (crossSite) return crossSite;
-  const t = getRequestTranslator(request);
+  const guard = guardMutation(request, REFERENCES_WRITE_LIMIT);
+  if (guard instanceof NextResponse) return guard;
+  const { session, t } = guard;
 
-  const rateLimited = rejectRateLimit(
-    request,
-    `references:write:${gate.userId}`,
-    { limit: 30, windowMs: 15 * 60 * 1000 }
-  );
-  if (rateLimited) return rateLimited;
-
-  const parsedBody = await parseJsonBody(request);
-  if (!parsedBody.ok) return parsedBody.response;
-
-  const parsed = referencePatchSchema.safeParse(parsedBody.data);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: formatZodError(parsed.error, t) },
-      { status: 400 }
-    );
-  }
+  const parsed = await parseBody(request, referencePatchSchema, t);
+  if (!parsed.ok) return parsed.response;
 
   const refs = await applyReferencePatch(parsed.data);
   if (!refs) {
@@ -205,7 +184,7 @@ export async function PATCH(request: NextRequest) {
     );
   }
 
-  auditReferencePatch(gate.username, parsed.data);
+  auditReferencePatch(session.username, parsed.data);
 
   return NextResponse.json(refs);
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import type { DuplicateCardGroup } from "@/lib/types";
+import { useState } from "react";
+import { useAdminResource } from "@/hooks/use-admin-resource";
+import { duplicateGroupsSchema } from "@/lib/admin-resource-schemas";
 import { Button } from "@/components/ui/button";
 import { CardBadges } from "@/components/card-badges";
 import { useCardBadgeLabels } from "@/hooks/use-card-badge-labels";
@@ -13,52 +14,19 @@ export function AdminToolsSection() {
   const t = useTranslations();
   const { locale } = useI18n();
   const badgeLabels = useCardBadgeLabels();
-  const [groups, setGroups] = useState<DuplicateCardGroup[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: duplicates,
+    loading,
+    error,
+    reload: loadDuplicates,
+  } = useAdminResource(
+    "/api/admin/duplicates",
+    duplicateGroupsSchema,
+    t("admin.tools.duplicatesLoadError")
+  );
+  const groups = duplicates?.groups ?? [];
   const [backingUp, setBackingUp] = useState(false);
   const [backupError, setBackupError] = useState<string | null>(null);
-
-  const loadDuplicates = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch("/api/admin/duplicates", {
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("load");
-      const data = (await response.json()) as { groups: DuplicateCardGroup[] };
-      setGroups(data.groups);
-    } catch {
-      setError(t("admin.tools.duplicatesLoadError"));
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
-
-  useEffect(() => {
-    let active = true;
-    fetch("/api/admin/duplicates", { credentials: "include" })
-      .then(async (response) => {
-        if (!active) return;
-        if (!response.ok) throw new Error("load");
-        const data = (await response.json()) as {
-          groups: DuplicateCardGroup[];
-        };
-        setGroups(data.groups);
-        setError(null);
-      })
-      .catch(() => {
-        if (!active) return;
-        setError(t("admin.tools.duplicatesLoadError"));
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [t]);
 
   async function downloadBackup() {
     setBackingUp(true);
@@ -129,7 +97,7 @@ export function AdminToolsSection() {
             variant="outline"
             size="sm"
             disabled={loading}
-            onClick={() => void loadDuplicates()}
+            onClick={loadDuplicates}
           >
             <RefreshCw
               className={`mr-1 h-4 w-4 ${loading ? "animate-spin" : ""}`}
@@ -138,7 +106,7 @@ export function AdminToolsSection() {
           </Button>
         </div>
 
-        {loading ? (
+        {loading && !duplicates ? (
           <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
         ) : error ? (
           <p className="text-sm text-destructive">{error}</p>
