@@ -18,14 +18,12 @@ import {
   cardCreateSchema,
   cardIdSchema,
   cardUpdateSchema,
-  formatZodError,
 } from "@/lib/card-schema";
-import { getRequestTranslator } from "@/i18n/request";
-import { parseJsonBody } from "@/lib/parse-json-body";
-import { rejectCrossSiteMutation } from "@/lib/request-guard";
-import { rejectWriteRateLimit } from "@/lib/api-write-rate-limit";
+import { guardMutation, parseBody } from "@/lib/api-mutation";
 
 export const dynamic = "force-dynamic";
+
+const CARDS_WRITE_LIMIT = { scope: "cards:write", limit: 120 };
 
 export async function GET(request: NextRequest) {
   const gate = requireAuth(request);
@@ -37,32 +35,18 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const gate = requireAuth(request);
-  if (gate instanceof NextResponse) return gate;
-  const crossSite = rejectCrossSiteMutation(request, {
-    requireFetchMetadata: true,
+  const guard = guardMutation(request, CARDS_WRITE_LIMIT);
+  if (guard instanceof NextResponse) return guard;
+  const { session, t } = guard;
+
+  const parsed = await parseBody(request, cardCreateSchema, t, {
+    prepare: (data) => {
+      const prepared = prepareCardWriteInput(data);
+      delete prepared.id;
+      return prepared;
+    },
   });
-  if (crossSite) return crossSite;
-  const t = getRequestTranslator(request);
-
-  const rateLimited = rejectWriteRateLimit(request, `cards:write:${gate.userId}`, {
-    limit: 120,
-    windowMs: 15 * 60 * 1000,
-  });
-  if (rateLimited) return rateLimited;
-
-  const parsedBody = await parseJsonBody(request);
-  if (!parsedBody.ok) return parsedBody.response;
-
-  const prepared = prepareCardWriteInput(parsedBody.data);
-  delete prepared.id;
-  const parsed = cardCreateSchema.safeParse(prepared);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: formatZodError(parsed.error, t) },
-      { status: 400 }
-    );
-  }
+  if (!parsed.ok) return parsed.response;
 
   const newCard = normalizeCardSerialFields({
     ...parsed.data,
@@ -74,39 +58,21 @@ export async function POST(request: NextRequest) {
     syncReferencesFromCard(refs, created);
   });
   auditLog("card.create", {
-    user: gate.username,
+    user: session.username,
     ...auditCardFields(created),
   });
   return NextResponse.json(created, { status: 201 });
 }
 
 export async function PUT(request: NextRequest) {
-  const gate = requireAuth(request);
-  if (gate instanceof NextResponse) return gate;
-  const crossSite = rejectCrossSiteMutation(request, {
-    requireFetchMetadata: true,
+  const guard = guardMutation(request, CARDS_WRITE_LIMIT);
+  if (guard instanceof NextResponse) return guard;
+  const { session, t } = guard;
+
+  const parsed = await parseBody(request, cardUpdateSchema, t, {
+    prepare: prepareCardWriteInput,
   });
-  if (crossSite) return crossSite;
-  const t = getRequestTranslator(request);
-
-  const rateLimited = rejectWriteRateLimit(request, `cards:write:${gate.userId}`, {
-    limit: 120,
-    windowMs: 15 * 60 * 1000,
-  });
-  if (rateLimited) return rateLimited;
-
-  const parsedBody = await parseJsonBody(request);
-  if (!parsedBody.ok) return parsedBody.response;
-
-  const parsed = cardUpdateSchema.safeParse(
-    prepareCardWriteInput(parsedBody.data)
-  );
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: formatZodError(parsed.error, t) },
-      { status: 400 }
-    );
-  }
+  if (!parsed.ok) return parsed.response;
 
   const saved = editCardRecord(normalizeCardSerialFields(parsed.data));
   if (!saved) {
@@ -117,26 +83,16 @@ export async function PUT(request: NextRequest) {
     syncReferencesFromCard(refs, saved);
   });
   auditLog("card.update", {
-    user: gate.username,
+    user: session.username,
     ...auditCardFields(saved),
   });
   return NextResponse.json(saved);
 }
 
 export async function DELETE(request: NextRequest) {
-  const gate = requireAuth(request);
-  if (gate instanceof NextResponse) return gate;
-  const crossSite = rejectCrossSiteMutation(request, {
-    requireFetchMetadata: true,
-  });
-  if (crossSite) return crossSite;
-  const t = getRequestTranslator(request);
-
-  const rateLimited = rejectWriteRateLimit(request, `cards:write:${gate.userId}`, {
-    limit: 120,
-    windowMs: 15 * 60 * 1000,
-  });
-  if (rateLimited) return rateLimited;
+  const guard = guardMutation(request, CARDS_WRITE_LIMIT);
+  if (guard instanceof NextResponse) return guard;
+  const { session, t } = guard;
 
   const { searchParams } = new URL(request.url);
   const idParsed = cardIdSchema.safeParse(searchParams.get("id") ?? "");
@@ -159,7 +115,7 @@ export async function DELETE(request: NextRequest) {
   }
 
   auditLog("card.delete", {
-    user: gate.username,
+    user: session.username,
     ...auditCardFields(existing),
   });
 

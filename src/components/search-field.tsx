@@ -12,6 +12,7 @@ interface SearchFieldProps {
   className?: string;
 }
 
+/** Labelled search input with a search icon. */
 export function SearchField({
   value,
   onChange,

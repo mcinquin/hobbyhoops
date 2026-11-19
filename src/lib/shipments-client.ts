@@ -1,6 +1,7 @@
 import { API_FETCH_OPTS, parseApiErrorMessage } from "@/lib/api-fetch";
 import type { Shipment, ShipmentStatus } from "@/lib/types";
 
+/** Client: loads shipments, optionally including received ones. */
 export async function fetchShipments(includeReceived = false): Promise<Shipment[]> {
   const query = includeReceived ? "?includeReceived=1" : "";
   const res = await fetch(`/api/shipments${query}`, API_FETCH_OPTS);
@@ -12,6 +13,7 @@ export async function fetchShipments(includeReceived = false): Promise<Shipment[
   return (await res.json()) as Shipment[];
 }
 
+/** Client: creates a shipment and returns it. */
 export async function createShipment(body: {
   platform?: Shipment["platform"];
   orderId: string;
@@ -40,6 +42,7 @@ export async function createShipment(body: {
   return data.shipment;
 }
 
+/** Client: applies a partial update to a shipment and returns it. */
 export async function updateShipment(body: {
   id: string;
   platform?: Shipment["platform"];
@@ -72,6 +75,7 @@ export async function updateShipment(body: {
   return data.shipment;
 }
 
+/** Client: deletes a shipment. */
 export async function deleteShipment(id: string): Promise<void> {
   const res = await fetch(`/api/shipments?id=${encodeURIComponent(id)}`, {
     method: "DELETE",

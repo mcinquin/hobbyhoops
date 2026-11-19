@@ -1,12 +1,12 @@
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
-export type SerializedError = {
+type SerializedError = {
   type: string;
   message: string;
   stack?: string;
 };
 
-export function serializeError(error: unknown): SerializedError {
+function serializeError(error: unknown): SerializedError {
   if (error instanceof Error) {
     return {
       type: error.name,
@@ -21,6 +21,7 @@ export function serializeError(error: unknown): SerializedError {
   };
 }
 
+/** Formats a log record as one JSON line. */
 export function formatLogRecord(
   level: LogLevel,
   scope: string,
@@ -41,6 +42,7 @@ export function formatLogRecord(
   return JSON.stringify(payload);
 }
 
+/** Writes a formatted log record to the console method matching its level. */
 export function writeLogRecord(
   level: LogLevel,
   scope: string,

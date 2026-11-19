@@ -6,6 +6,7 @@ interface PageHeaderProps {
   actions?: ReactNode;
 }
 
+/** Page title with optional subtitle and actions. */
 export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   return (
     <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">

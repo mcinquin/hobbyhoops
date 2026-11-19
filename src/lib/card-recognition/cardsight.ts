@@ -17,6 +17,7 @@ const REQUEST_TIMEOUT_MS = 30_000;
 /** Tier gratuit CardSight ; l'API ne renvoie pas la limite du plan. */
 const DEFAULT_MONTHLY_QUOTA = 750;
 
+/** Whether `CARDSIGHT_API_KEY` is set. */
 export function isCardRecognitionConfigured(): boolean {
   return Boolean(process.env.CARDSIGHT_API_KEY?.trim());
 }
@@ -206,7 +207,7 @@ export function parseCardSightResponse(payload: unknown): RecognizedCard | null 
 
 /* ---------- Abonnement / usage ---------- */
 
-export interface CardSightUsage {
+interface CardSightUsage {
   /** Appels cumulés (toutes clés) sur la période de facturation en cours. */
   totalCalls: number;
   /** Clé API courante, toujours masquée localement (jamais la valeur brute). */
@@ -259,79 +260,28 @@ export function parseCardSightSubscription(payload: unknown): CardSightUsage {
   };
 }
 
-/** Usage du compte CardSight (période de facturation = mois calendaire). */
-export async function fetchCardSightUsage(): Promise<CardSightUsage> {
+function requireCardSightApiKey(): string {
   const apiKey = process.env.CARDSIGHT_API_KEY?.trim();
   if (!apiKey) {
     throw new RecognitionError("unconfigured", "CARDSIGHT_API_KEY is not set");
   }
-
-  let response: Response;
-  try {
-    response = await fetch(CARDSIGHT_SUBSCRIPTION_URL, {
-      headers: { "X-API-Key": apiKey },
-      cache: "no-store",
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-    });
-  } catch (error) {
-    if (error instanceof Error && error.name === "TimeoutError") {
-      throw new RecognitionError("timeout", "CardSight request timed out");
-    }
-    throw new RecognitionError(
-      "network",
-      error instanceof Error ? error.message : "CardSight network error"
-    );
-  }
-
-  if (response.status === 401 || response.status === 403) {
-    throw new RecognitionError("auth", "CardSight rejected the API key");
-  }
-  if (response.status === 429) {
-    throw new RecognitionError("quota", "CardSight rate limit reached");
-  }
-  if (!response.ok) {
-    throw new RecognitionError("network", `CardSight HTTP ${response.status}`);
-  }
-
-  let payload: unknown;
-  try {
-    payload = await response.json();
-  } catch {
-    throw new RecognitionError("parse", "CardSight returned invalid JSON");
-  }
-  const usage = parseCardSightSubscription(payload);
-  // Source de vérité pour l’affichage : la clé locale, jamais celle renvoyée par CardSight.
-  return { ...usage, keyMasked: maskApiKey(apiKey) };
+  return apiKey;
 }
 
-/* ---------- Appel réseau ---------- */
-
 /**
- * Identifie une carte de basket à partir d'une image (recto).
- * Renvoie null quand CardSight ne détecte aucune carte exploitable.
+ * Appelle l’API CardSight et renvoie le JSON de réponse.
+ * Traduit les échecs réseau / HTTP / JSON en `RecognitionError`.
  */
-export async function identifyCard(
-  image: Buffer,
-  mime: string
-): Promise<RecognizedCard | null> {
-  const apiKey = process.env.CARDSIGHT_API_KEY?.trim();
-  if (!apiKey) {
-    throw new RecognitionError("unconfigured", "CARDSIGHT_API_KEY is not set");
-  }
-
-  const body = new FormData();
-  body.set(
-    "image",
-    new Blob([new Uint8Array(image)], { type: mime }),
-    "card.jpg"
-  );
-
+async function cardSightRequestJson(
+  url: string,
+  apiKey: string,
+  init: Pick<RequestInit, "method" | "body"> = {}
+): Promise<unknown> {
   let response: Response;
   try {
-    response = await fetch(CARDSIGHT_IDENTIFY_URL, {
-      method: "POST",
+    response = await fetch(url, {
+      ...init,
       headers: { "X-API-Key": apiKey },
-      body,
       cache: "no-store",
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
@@ -358,18 +308,48 @@ export async function identifyCard(
     throw new RecognitionError("timeout", "CardSight timed out (HTTP 408)");
   }
   if (!response.ok) {
-    throw new RecognitionError(
-      "network",
-      `CardSight HTTP ${response.status}`
-    );
+    throw new RecognitionError("network", `CardSight HTTP ${response.status}`);
   }
 
-  let payload: unknown;
   try {
-    payload = await response.json();
+    return await response.json();
   } catch {
     throw new RecognitionError("parse", "CardSight returned invalid JSON");
   }
+}
+
+/** Usage du compte CardSight (période de facturation = mois calendaire). */
+export async function fetchCardSightUsage(): Promise<CardSightUsage> {
+  const apiKey = requireCardSightApiKey();
+  const payload = await cardSightRequestJson(CARDSIGHT_SUBSCRIPTION_URL, apiKey);
+  const usage = parseCardSightSubscription(payload);
+  // Source de vérité pour l’affichage : la clé locale, jamais celle renvoyée par CardSight.
+  return { ...usage, keyMasked: maskApiKey(apiKey) };
+}
+
+/* ---------- Appel réseau ---------- */
+
+/**
+ * Identifie une carte de basket à partir d'une image (recto).
+ * Renvoie null quand CardSight ne détecte aucune carte exploitable.
+ */
+export async function identifyCard(
+  image: Buffer,
+  mime: string
+): Promise<RecognizedCard | null> {
+  const apiKey = requireCardSightApiKey();
+
+  const body = new FormData();
+  body.set(
+    "image",
+    new Blob([new Uint8Array(image)], { type: mime }),
+    "card.jpg"
+  );
+
+  const payload = await cardSightRequestJson(CARDSIGHT_IDENTIFY_URL, apiKey, {
+    method: "POST",
+    body,
+  });
 
   const recognized = parseCardSightResponse(payload);
   log.info({

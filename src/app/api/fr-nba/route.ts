@@ -7,16 +7,14 @@ import {
 import { requireAuth } from "@/lib/auth-api";
 import { auditLog } from "@/lib/audit-log";
 import {
-  formatZodError,
   frNbaUpdateSchema,
   frNbaWriteSchema,
 } from "@/lib/guide-schema";
-import { getRequestTranslator } from "@/i18n/request";
-import { parseJsonBody } from "@/lib/parse-json-body";
-import { rejectCrossSiteMutation } from "@/lib/request-guard";
-import { rejectWriteRateLimit } from "@/lib/api-write-rate-limit";
+import { guardMutation, parseBody } from "@/lib/api-mutation";
 
 export const dynamic = "force-dynamic";
+
+const FR_NBA_WRITE_LIMIT = { scope: "fr-nba:write", limit: 60 };
 
 export async function GET(request: NextRequest) {
   const gate = requireAuth(request);
@@ -25,34 +23,16 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const gate = requireAuth(request);
-  if (gate instanceof NextResponse) return gate;
-  const crossSite = rejectCrossSiteMutation(request, {
-    requireFetchMetadata: true,
-  });
-  if (crossSite) return crossSite;
-  const t = getRequestTranslator(request);
+  const guard = guardMutation(request, FR_NBA_WRITE_LIMIT);
+  if (guard instanceof NextResponse) return guard;
+  const { session, t } = guard;
 
-  const rateLimited = rejectWriteRateLimit(request, `fr-nba:write:${gate.userId}`, {
-    limit: 60,
-    windowMs: 15 * 60 * 1000,
-  });
-  if (rateLimited) return rateLimited;
-
-  const parsedBody = await parseJsonBody(request);
-  if (!parsedBody.ok) return parsedBody.response;
-
-  const parsed = frNbaWriteSchema.safeParse(parsedBody.data);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: formatZodError(parsed.error, t) },
-      { status: 400 }
-    );
-  }
+  const parsed = await parseBody(request, frNbaWriteSchema, t);
+  if (!parsed.ok) return parsed.response;
 
   const player = createFrNbaPlayer(parsed.data);
   auditLog("fr-nba.create", {
-    user: gate.username,
+    user: session.username,
     id: player.id,
     player: player.player,
     holdings: player.holdings.length,
@@ -62,30 +42,12 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  const gate = requireAuth(request);
-  if (gate instanceof NextResponse) return gate;
-  const crossSite = rejectCrossSiteMutation(request, {
-    requireFetchMetadata: true,
-  });
-  if (crossSite) return crossSite;
-  const t = getRequestTranslator(request);
+  const guard = guardMutation(request, FR_NBA_WRITE_LIMIT);
+  if (guard instanceof NextResponse) return guard;
+  const { session, t } = guard;
 
-  const rateLimited = rejectWriteRateLimit(request, `fr-nba:write:${gate.userId}`, {
-    limit: 60,
-    windowMs: 15 * 60 * 1000,
-  });
-  if (rateLimited) return rateLimited;
-
-  const parsedBody = await parseJsonBody(request);
-  if (!parsedBody.ok) return parsedBody.response;
-
-  const parsed = frNbaUpdateSchema.safeParse(parsedBody.data);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: formatZodError(parsed.error, t) },
-      { status: 400 }
-    );
-  }
+  const parsed = await parseBody(request, frNbaUpdateSchema, t);
+  if (!parsed.ok) return parsed.response;
 
   const { id, ...body } = parsed.data;
   const updated = editFrNbaPlayer(id, body);
@@ -97,7 +59,7 @@ export async function PUT(request: NextRequest) {
   }
 
   auditLog("fr-nba.update", {
-    user: gate.username,
+    user: session.username,
     id: updated.id,
     player: updated.player,
     holdings: updated.holdings.length,

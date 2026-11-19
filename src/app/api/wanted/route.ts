@@ -2,13 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { createWantedEntry, getWantedBlocks, readWantedEntry, removeWantedEntry } from "@/lib/data";
 import { requireAuth } from "@/lib/auth-api";
 import { auditLog } from "@/lib/audit-log";
-import { formatZodError, wantedCreateSchema } from "@/lib/guide-schema";
-import { getRequestTranslator } from "@/i18n/request";
-import { parseJsonBody } from "@/lib/parse-json-body";
-import { rejectCrossSiteMutation } from "@/lib/request-guard";
-import { rejectWriteRateLimit } from "@/lib/api-write-rate-limit";
+import { wantedCreateSchema } from "@/lib/guide-schema";
+import { guardMutation, parseBody } from "@/lib/api-mutation";
 
 export const dynamic = "force-dynamic";
+
+const WANTED_WRITE_LIMIT = { scope: "wanted:write", limit: 60 };
 
 export async function GET(request: NextRequest) {
   const gate = requireAuth(request);
@@ -17,34 +16,16 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const gate = requireAuth(request);
-  if (gate instanceof NextResponse) return gate;
-  const crossSite = rejectCrossSiteMutation(request, {
-    requireFetchMetadata: true,
-  });
-  if (crossSite) return crossSite;
-  const t = getRequestTranslator(request);
+  const guard = guardMutation(request, WANTED_WRITE_LIMIT);
+  if (guard instanceof NextResponse) return guard;
+  const { session, t } = guard;
 
-  const rateLimited = rejectWriteRateLimit(request, `wanted:write:${gate.userId}`, {
-    limit: 60,
-    windowMs: 15 * 60 * 1000,
-  });
-  if (rateLimited) return rateLimited;
-
-  const parsedBody = await parseJsonBody(request);
-  if (!parsedBody.ok) return parsedBody.response;
-
-  const parsed = wantedCreateSchema.safeParse(parsedBody.data);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: formatZodError(parsed.error, t) },
-      { status: 400 }
-    );
-  }
+  const parsed = await parseBody(request, wantedCreateSchema, t);
+  if (!parsed.ok) return parsed.response;
 
   const entry = createWantedEntry(parsed.data);
   auditLog("wanted.add", {
-    user: gate.username,
+    user: session.username,
     id: entry.id,
     player: entry.player,
     brand: parsed.data.brand,
@@ -57,19 +38,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const gate = requireAuth(request);
-  if (gate instanceof NextResponse) return gate;
-  const crossSite = rejectCrossSiteMutation(request, {
-    requireFetchMetadata: true,
-  });
-  if (crossSite) return crossSite;
-  const t = getRequestTranslator(request);
-
-  const rateLimited = rejectWriteRateLimit(request, `wanted:write:${gate.userId}`, {
-    limit: 60,
-    windowMs: 15 * 60 * 1000,
-  });
-  if (rateLimited) return rateLimited;
+  const guard = guardMutation(request, WANTED_WRITE_LIMIT);
+  if (guard instanceof NextResponse) return guard;
+  const { session, t } = guard;
 
   const idRaw = new URL(request.url).searchParams.get("id");
   const id = Number.parseInt(idRaw ?? "", 10);
@@ -97,7 +68,7 @@ export async function DELETE(request: NextRequest) {
   }
 
   auditLog("wanted.delete", {
-    user: gate.username,
+    user: session.username,
     id: existing.id,
     player: existing.player,
     brand: existing.brand,

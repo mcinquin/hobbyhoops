@@ -16,6 +16,7 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
+/** Authenticated layout: sidebar, mobile header and main content. */
 export function AppShell({ username, children }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const t = useTranslations();

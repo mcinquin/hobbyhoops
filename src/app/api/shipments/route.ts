@@ -9,16 +9,14 @@ import {
 import { requireAuth } from "@/lib/auth-api";
 import { auditLog, auditShipmentUpdateFields } from "@/lib/audit-log";
 import {
-  formatZodError,
   shipmentCreateSchema,
   shipmentUpdateSchema,
 } from "@/lib/shipment-schema";
-import { getRequestTranslator } from "@/i18n/request";
-import { parseJsonBody } from "@/lib/parse-json-body";
-import { rejectCrossSiteMutation } from "@/lib/request-guard";
-import { rejectWriteRateLimit } from "@/lib/api-write-rate-limit";
+import { guardMutation, parseBody } from "@/lib/api-mutation";
 
 export const dynamic = "force-dynamic";
+
+const SHIPMENTS_WRITE_LIMIT = { scope: "shipments:write", limit: 60 };
 
 export async function GET(request: NextRequest) {
   const gate = requireAuth(request);
@@ -31,38 +29,16 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const gate = requireAuth(request);
-  if (gate instanceof NextResponse) return gate;
-  const crossSite = rejectCrossSiteMutation(request, {
-    requireFetchMetadata: true,
-  });
-  if (crossSite) return crossSite;
-  const t = getRequestTranslator(request);
+  const guard = guardMutation(request, SHIPMENTS_WRITE_LIMIT);
+  if (guard instanceof NextResponse) return guard;
+  const { session, t } = guard;
 
-  const rateLimited = rejectWriteRateLimit(
-    request,
-    `shipments:write:${gate.userId}`,
-    {
-      limit: 60,
-      windowMs: 15 * 60 * 1000,
-    }
-  );
-  if (rateLimited) return rateLimited;
-
-  const parsedBody = await parseJsonBody(request);
-  if (!parsedBody.ok) return parsedBody.response;
-
-  const parsed = shipmentCreateSchema.safeParse(parsedBody.data);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: formatZodError(parsed.error, t) },
-      { status: 400 }
-    );
-  }
+  const parsed = await parseBody(request, shipmentCreateSchema, t);
+  if (!parsed.ok) return parsed.response;
 
   const shipment = createShipment(parsed.data);
   auditLog("shipment.create", {
-    user: gate.username,
+    user: session.username,
     id: shipment.id,
     platform: shipment.platform,
     status: shipment.status,
@@ -72,34 +48,12 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const gate = requireAuth(request);
-  if (gate instanceof NextResponse) return gate;
-  const crossSite = rejectCrossSiteMutation(request, {
-    requireFetchMetadata: true,
-  });
-  if (crossSite) return crossSite;
-  const t = getRequestTranslator(request);
+  const guard = guardMutation(request, SHIPMENTS_WRITE_LIMIT);
+  if (guard instanceof NextResponse) return guard;
+  const { session, t } = guard;
 
-  const rateLimited = rejectWriteRateLimit(
-    request,
-    `shipments:write:${gate.userId}`,
-    {
-      limit: 60,
-      windowMs: 15 * 60 * 1000,
-    }
-  );
-  if (rateLimited) return rateLimited;
-
-  const parsedBody = await parseJsonBody(request);
-  if (!parsedBody.ok) return parsedBody.response;
-
-  const parsed = shipmentUpdateSchema.safeParse(parsedBody.data);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: formatZodError(parsed.error, t) },
-      { status: 400 }
-    );
-  }
+  const parsed = await parseBody(request, shipmentUpdateSchema, t);
+  if (!parsed.ok) return parsed.response;
 
   const { id, ...patch } = parsed.data;
   const shipment = editShipment(id, patch);
@@ -111,7 +65,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   auditLog("shipment.update", {
-    user: gate.username,
+    user: session.username,
     id: shipment.id,
     ...auditShipmentUpdateFields(patch),
   });
@@ -120,23 +74,9 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const gate = requireAuth(request);
-  if (gate instanceof NextResponse) return gate;
-  const crossSite = rejectCrossSiteMutation(request, {
-    requireFetchMetadata: true,
-  });
-  if (crossSite) return crossSite;
-  const t = getRequestTranslator(request);
-
-  const rateLimited = rejectWriteRateLimit(
-    request,
-    `shipments:write:${gate.userId}`,
-    {
-      limit: 60,
-      windowMs: 15 * 60 * 1000,
-    }
-  );
-  if (rateLimited) return rateLimited;
+  const guard = guardMutation(request, SHIPMENTS_WRITE_LIMIT);
+  if (guard instanceof NextResponse) return guard;
+  const { session, t } = guard;
 
   const id = new URL(request.url).searchParams.get("id")?.trim();
   if (!id) {
@@ -162,7 +102,7 @@ export async function DELETE(request: NextRequest) {
   }
 
   auditLog("shipment.delete", {
-    user: gate.username,
+    user: session.username,
     id: existing.id,
     platform: existing.platform,
     description: existing.description,

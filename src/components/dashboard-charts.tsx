@@ -93,6 +93,7 @@ function subscribeMobile(cb: () => void) {
 const getMobileSnapshot = () => window.matchMedia(MOBILE_MQ).matches;
 const getMobileServerSnapshot = () => false;
 
+/** Dashboard charts (brands, years, sets, top players, acquisitions). */
 export function DashboardCharts({ chartData }: DashboardChartsProps) {
   const t = useTranslations();
   const router = useRouter();

@@ -2,7 +2,7 @@ import type { CardListItem } from "@/lib/types";
 
 export type MarketPlatformId = "ebay" | "point130" | "cardladder" | "comc";
 
-export interface CardMarketLink {
+interface CardMarketLink {
   id: MarketPlatformId;
   href: string;
 }
@@ -23,6 +23,7 @@ export function cardComparableSalesQuery(card: CardListItem): string {
     .join(" ");
 }
 
+/** eBay sold listings search for basketball cards. */
 export function ebaySoldListingsUrl(searchQuery: string): string {
   const q = encodeURIComponent(searchQuery.trim() || "NBA trading card");
   return `https://www.ebay.com/sch/i.html?_nkw=${q}&_sacat=261328&LH_Sold=1&LH_Complete=1&_sop=13`;
@@ -34,6 +35,7 @@ export function point130SoldUrl(searchQuery: string): string {
   return `https://130point.com/cards/?search=${q}`;
 }
 
+/** Card Ladder sales history search. */
 export function cardLadderSalesHistoryUrl(searchQuery: string): string {
   const q = encodeURIComponent(searchQuery.trim() || "NBA trading card");
   return `https://app.cardladder.com/sales-history?q=${q}`;
@@ -45,6 +47,7 @@ export function comcSearchUrl(searchQuery: string): string {
   return `https://www.comc.com/Cards,=${encodeURIComponent(term)}`;
 }
 
+/** Comparable-sales links (eBay, 130point, Card Ladder, COMC) for a card. */
 export function buildCardMarketLinks(card: CardListItem): CardMarketLink[] {
   const query = cardComparableSalesQuery(card);
   return [

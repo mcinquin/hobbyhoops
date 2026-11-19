@@ -1,3 +1,4 @@
+/** Loading placeholder for the dashboard. */
 export function DashboardPageSkeleton() {
   return (
     <div className="min-w-0 animate-pulse space-y-6 sm:space-y-8">
@@ -27,6 +28,7 @@ export function DashboardPageSkeleton() {
   );
 }
 
+/** Loading placeholder for table pages (header, filters, rows). */
 export function TablePageSkeleton() {
   return (
     <div className="min-w-0 animate-pulse space-y-6">
@@ -56,6 +58,7 @@ export function TablePageSkeleton() {
   );
 }
 
+/** Loading placeholder for a chart card. */
 export function ChartSkeleton() {
   return (
     <div className="grid min-w-0 gap-4 md:grid-cols-2">

@@ -15,6 +15,7 @@ interface BatchTextImportProps {
   onSubmit: (text: string) => Promise<void>;
 }
 
+/** Textarea for pasting several values (one per line or CSV) and submitting them at once. */
 export function BatchTextImport({
   label,
   description,

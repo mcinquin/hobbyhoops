@@ -14,6 +14,7 @@ interface CardMarketLinksProps {
   className?: string;
 }
 
+/** Links to comparable sales on market sites for a card. */
 export function CardMarketLinks({ card, className }: CardMarketLinksProps) {
   const t = useTranslations();
   const links = buildCardMarketLinks(card);

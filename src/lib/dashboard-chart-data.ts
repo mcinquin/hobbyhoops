@@ -1,7 +1,7 @@
 import type { References } from "./types";
 import { formatBrandSetLabel } from "./reference-mutations";
 
-export type ChartCountDatum = { name: string; count: number };
+type ChartCountDatum = { name: string; count: number };
 
 /** Entrées affichables sur le dashboard (sans compteur à zéro). */
 export function chartDataWithCards(data: ChartCountDatum[]): ChartCountDatum[] {

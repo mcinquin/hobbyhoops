@@ -3,6 +3,7 @@ import { getRequestTranslator } from "@/i18n/request";
 
 const DEFAULT_MAX_JSON_BYTES = 512_000;
 
+/** Reads a JSON request body capped at `maxBytes`; returns the data or a 400/413 response. */
 export async function parseJsonBody(
   request: NextRequest,
   maxBytes = DEFAULT_MAX_JSON_BYTES

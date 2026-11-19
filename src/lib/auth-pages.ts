@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getRequestTranslator } from "@/i18n/request";
 import { authConfigError } from "@/lib/auth-config";
 
+/** 503 plain-text page response when authentication is misconfigured, else null. */
 export function authMisconfiguredPageResponse(
   request: NextRequest
 ): NextResponse | null {

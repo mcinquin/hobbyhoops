@@ -39,6 +39,7 @@ const STATUS_COLORS: Record<ShipmentStatus, string> = {
   dispute: "border-red-500/40 bg-red-500/10 text-red-500",
 };
 
+/** Shipment summary card with tracking, protection and actions. */
 export function ShipmentCard({
   shipment,
   loading,

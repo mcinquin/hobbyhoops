@@ -1,6 +1,7 @@
 import { getMessages } from "./messages";
 import type { Locale } from "./config";
 
+/** Translation function for a locale: resolves dotted keys and `{param}` placeholders. */
 export function createTranslator(locale: Locale) {
   const messages = getMessages(locale);
 

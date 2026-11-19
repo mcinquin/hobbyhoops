@@ -33,6 +33,7 @@ function normalizeAuditFields(
   return normalized;
 }
 
+/** Writes an audit event (`action` + flat fields) to the audit logger. */
 export function auditLog(
   action: string,
   fields: Record<string, string | number | boolean | null | undefined>
@@ -40,6 +41,7 @@ export function auditLog(
   auditLogger.info({ msg: action, ...normalizeAuditFields(fields) });
 }
 
+/** Fields identifying a card in audit events. */
 export function auditCardFields(
   card: Pick<Card, "id" | "player" | "year" | "brand" | "set" | "variation">
 ): Record<string, string> {
@@ -53,6 +55,7 @@ export function auditCardFields(
   };
 }
 
+/** Writes the audit event matching a references PATCH action. */
 export function auditReferencePatch(
   user: string,
   body: ReferencePatchBody
@@ -148,6 +151,7 @@ export function auditReferencePatch(
   }
 }
 
+/** Audit fields for a shipment update: whitelisted keys present in the patch. */
 export function auditShipmentUpdateFields(
   patch: Record<string, unknown>
 ): Record<string, string | number | boolean | null | undefined> {

@@ -3,6 +3,7 @@ export const API_FETCH_OPTS = {
   cache: "no-store" as const,
 };
 
+/** Error message from an API JSON error body, or `fallback`. */
 export async function parseApiErrorMessage(
   res: Response,
   fallback: string

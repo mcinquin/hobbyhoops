@@ -61,6 +61,7 @@ interface AdminCardsSectionProps {
   reloadToken?: number;
 }
 
+/** Admin cards tab: filterable card list with create, edit and delete. */
 export function AdminCardsSection({
   references,
   onReferencesChange,
@@ -99,14 +100,6 @@ export function AdminCardsSection({
     () => variationsForFilters(references, filters.brand, filters.set),
     [references, filters.brand, filters.set]
   );
-
-  // Keep URL hygiene only: set requires a brand. Never validate partial
-  // keystrokes against suggestions — that wiped in-progress typing.
-  useEffect(() => {
-    if (!filters.brand.trim() && filters.set) {
-      applyAdminFilters({ set: "", variation: "" }, { immediate: true });
-    }
-  }, [applyAdminFilters, filters.brand, filters.set]);
 
   const displayedCards = pageData?.cards ?? [];
   const selectedTags = useMemo(

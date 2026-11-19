@@ -61,6 +61,7 @@ interface CardTableProps {
   referenceFilters: ReferencesFilterIndex;
 }
 
+/** Collection table with URL-synced filters, sorting and server pagination. */
 export function CardTable({
   cards,
   totalCount,
@@ -213,14 +214,6 @@ export function CardTable({
       ),
     [referenceFilters, urlFilters.brand, urlFilters.set]
   );
-
-  // URL hygiene only: set requires a brand. Never wipe partial typing
-  // by exact/substring-matching suggestions (that fought the combobox draft).
-  useEffect(() => {
-    if (!urlFilters.brand.trim() && urlFilters.set) {
-      updateFilters({ set: "", variation: "" }, { immediate: true });
-    }
-  }, [urlFilters.brand, urlFilters.set, updateFilters]);
 
   useEffect(() => {
     const targets: number[] = [];

@@ -18,6 +18,7 @@ type CardPhotoFieldProps = {
   disabled?: boolean;
 };
 
+/** Photo picker for one side of a card, with preview and clear. */
 export function CardPhotoField({
   side,
   label,

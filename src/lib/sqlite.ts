@@ -4,6 +4,7 @@ import Database from "better-sqlite3";
 
 export type AppDatabase = Database.Database;
 
+/** Opens a SQLite database with the app's connection pragmas. */
 export function createDatabase(filePath: string): AppDatabase {
   const db = new Database(filePath);
   db.pragma("busy_timeout = 5000");
@@ -11,6 +12,7 @@ export function createDatabase(filePath: string): AppDatabase {
   return db;
 }
 
+/** Runs `fn` in an immediate transaction; rolls back and rethrows on error. */
 export function runInTransaction<T>(db: AppDatabase, fn: () => T): T {
   db.exec("BEGIN IMMEDIATE");
   try {

@@ -21,6 +21,7 @@ const STEPS: ShipmentStatus[] = [
   "delivered",
 ];
 
+/** Step indicator for a shipment's status. */
 export function ShipmentTimeline({ status, labels }: ShipmentTimelineProps) {
   const activeIndex = timelineStepIndex(status);
   const isDispute = status === "dispute";

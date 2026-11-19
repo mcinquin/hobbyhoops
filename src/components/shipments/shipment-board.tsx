@@ -38,6 +38,7 @@ function parsePriceToCents(value: string): number | null {
   return Math.round(amount * 100);
 }
 
+/** Shipments page: list, filters, create / edit form and receive flow. */
 export function ShipmentBoard({ initialShipments, references }: ShipmentBoardProps) {
   const t = useTranslations();
   const [shipments, setShipments] = useState(initialShipments);

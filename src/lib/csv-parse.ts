@@ -7,6 +7,7 @@ import {
 
 const DELIMITERS = [",", ";", "\t", "|"] as const;
 
+/** Parses CSV-like text (BOM, `,` `;` or tab delimiters) into trimmed rows. */
 export function parseDelimitedRows(text: string): string[][] {
   return parse(text, {
     bom: true,
@@ -17,6 +18,7 @@ export function parseDelimitedRows(text: string): string[][] {
   }) as string[][];
 }
 
+/** Unique values of the first column, or of a recognised header column (player, team, brand…). */
 export function parseSingleColumnValues(text: string): string[] {
   const rows = parseDelimitedRows(text);
   if (rows.length === 0) return [];
@@ -31,6 +33,7 @@ export function parseSingleColumnValues(text: string): string[] {
   return uniqueStrings(rows.slice(start).map((row) => row[column] ?? ""));
 }
 
+/** Unique brand + set pairs, using `brand` / `set` headers when present. */
 export function parseBrandSetRows(text: string): { brand: string; set: string }[] {
   const rows = parseDelimitedRows(text);
   if (rows.length === 0) return [];
@@ -56,6 +59,7 @@ export function parseBrandSetRows(text: string): { brand: string; set: string }[
   );
 }
 
+/** Unique brand + set + variation triples, using headers when present. */
 export function parseSetVariationRows(
   text: string
 ): { brand: string; set: string; variation: string }[] {
