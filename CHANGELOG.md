@@ -1,3 +1,9 @@
+## [2.3.8](https://github.com/mcinquin/hobbyhoops/compare/v2.3.7...v2.3.8) (2026-11-19)
+
+### Bug Fixes
+
+* **tracking:** fix issue with tracking app ([fa5349e](https://github.com/mcinquin/hobbyhoops/commit/fa5349e8701f7dff04ebcc40e85342c577d2b94b))
+
 ## [2.3.7](https://github.com/mcinquin/hobbyhoops/compare/v2.3.6...v2.3.7) (2026-11-19)
 
 ### Dependencies
