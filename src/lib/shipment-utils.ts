@@ -244,6 +244,8 @@ export type DetectedCarrier =
   | "mondialrelay"
   | "speedpak"
   | "ebay_standard"
+  | "ebay_international"
+  | "epostglobal"
   | "usps"
   | "ups"
   | "fedex"
@@ -255,6 +257,16 @@ export type DetectedCarrier =
  * Ex. ESUS364299104 — ne pas confondre avec SpeedPAK (ES + 26 car. alphanum.).
  */
 const EBAY_STANDARD_PATTERN = /^ES[A-Z]{2}\d{7,14}$/;
+
+/**
+ * eBay International Shipping (eIS, vendeurs US) : EE + pays d'origine + chiffres,
+ * suffixe optionnel (ex. EEUS035694194FR0). Le format SpeedPAK Economy
+ * commence aussi par EE mais fait 28 car. et n'a pas de code pays.
+ */
+const EBAY_INTERNATIONAL_PATTERN = /^EE[A-Z]{2}\d{7,14}[A-Z0-9]{0,4}$/;
+
+/** ePost Global (envois US → international) : EPG + chiffres (ex. EPG011024036782505). */
+const EPOST_GLOBAL_PATTERN = /^EPG\d{12,18}$/;
 
 /** Préfixes SpeedPAK / Orange Connex (eBay Chine → Europe). */
 const SPEEDPAK_PREFIXES = [
@@ -282,6 +294,13 @@ export function detectCarrier(trackingNumber: string): DetectedCarrier {
   if (EBAY_STANDARD_PATTERN.test(normalized)) {
     return "ebay_standard";
   }
+
+  // eBay International Shipping — avant SpeedPAK (même préfixe EE).
+  if (EBAY_INTERNATIONAL_PATTERN.test(normalized)) {
+    return "ebay_international";
+  }
+
+  if (EPOST_GLOBAL_PATTERN.test(normalized)) return "epostglobal";
 
   // SpeedPAK / Orange Connex — format officiel long (ES/EE/EX/EM + ≥20 car.).
   if (/^(ES|EE|EX|EM)[A-Z0-9]{20,30}$/.test(normalized)) {
@@ -339,6 +358,21 @@ function buildParcelsAppUrl(
   return `https://parcelsapp.com/${lang}/tracking/${code}`;
 }
 
+/** Code transporteur 17TRACK d'Orange Connex (SpeedPAK) — l'auto-détection échoue. */
+const SEVENTEEN_TRACK_ORANGE_CONNEX = "190205";
+
+function build17TrackUrl(
+  trackingNumber: string,
+  locale: "fr" | "en" = "fr",
+  carrierCode?: string
+): string {
+  const code = encodeURIComponent(trackingNumber.trim());
+  const lang = locale === "fr" ? "fr" : "en";
+  const fc = carrierCode ? `&fc=${carrierCode}` : "";
+  return `https://t.17track.net/${lang}#nums=${code}${fc}`;
+}
+
+/** URL de suivi du colis, selon le transporteur stocké ou détecté. */
 export function buildTrackingUrl(
   trackingNumber: string,
   carrier?: string | null,
@@ -359,10 +393,15 @@ export function buildTrackingUrl(
     case "mondialrelay":
       return `https://www.mondialrelay.fr/suivi-de-colis/?numeroExpedition=${code}`;
     case "speedpak":
-      // SpeedPAK (Orange Connex) — ParcelsApp détecte SpeedPAK ;
-      // sur 17track le transporteur s’appelle « Orange Connex » (code 190205)
-      // et n’est plus listé sous SpeedPAK, donc l’auto-détection échoue.
-      return buildParcelsAppUrl(trimmed, locale);
+      // SpeedPAK (Orange Connex) — ParcelsApp n'a pas de données ; 17TRACK
+      // fonctionne en forçant le transporteur Orange Connex.
+      return build17TrackUrl(trimmed, locale, SEVENTEEN_TRACK_ORANGE_CONNEX);
+    case "epostglobal":
+      // ePost Global — ParcelsApp n'a pas de données, 17TRACK oui.
+      return build17TrackUrl(trimmed, locale);
+    case "ebay_international":
+      // eIS — acheminé par Asendia USA ; aucun agrégateur n'a de données.
+      return `https://a1.asendiausa.com/tracking/?trackingnumber=${code}`;
     case "ebay_standard":
       // eBay Standard Delivery / Envelope — suivi propriétaire, agrégateur multi-transporteurs.
       return buildParcelsAppUrl(trimmed, locale);

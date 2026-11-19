@@ -99,6 +99,15 @@ describe("detectCarrier", () => {
     expect(detectCarrier("ESUS354796430")).toBe("ebay_standard");
   });
 
+  it("detects eBay International Shipping (EEUS…), not SpeedPAK", () => {
+    expect(detectCarrier("EEUS035694194FR0")).toBe("ebay_international");
+    expect(detectCarrier("EEUS035694194")).toBe("ebay_international");
+  });
+
+  it("detects ePost Global (EPG…)", () => {
+    expect(detectCarrier("EPG011024036782505")).toBe("epostglobal");
+  });
+
   it("does not treat short ES+country numbers as SpeedPAK", () => {
     expect(detectCarrier("ESCA12345678")).toBe("ebay_standard");
   });
@@ -113,21 +122,33 @@ describe("buildTrackingUrl", () => {
     expect(buildTrackingUrl("12345678")).toContain("mondialrelay.fr");
   });
 
-  it("builds ParcelsApp URL for SpeedPAK / Orange Connex", () => {
-    expect(buildTrackingUrl("LK123456789CN", null, "fr")).toContain(
-      "parcelsapp.com/fr/tracking/"
+  it("builds 17TRACK URL with Orange Connex carrier for SpeedPAK", () => {
+    expect(buildTrackingUrl("LK123456789CN", null, "fr")).toBe(
+      "https://t.17track.net/fr#nums=LK123456789CN&fc=190205"
     );
   });
 
-  it("builds ParcelsApp URL for official SpeedPAK ES numbers", () => {
+  it("builds 17TRACK URL for official SpeedPAK ES numbers", () => {
     expect(
-      buildTrackingUrl("ES10024287564060001010001D0N", null, "fr")
-    ).toContain("parcelsapp.com/fr/tracking/");
+      buildTrackingUrl("ES10024287564060001010001D0N", null, "en")
+    ).toBe("https://t.17track.net/en#nums=ES10024287564060001010001D0N&fc=190205");
   });
 
   it("builds ParcelsApp URL for eBay Standard Delivery", () => {
     expect(buildTrackingUrl("ESUS364299104", null, "fr")).toContain(
       "parcelsapp.com/fr/tracking/"
+    );
+  });
+
+  it("builds Asendia USA URL for eBay International Shipping", () => {
+    expect(buildTrackingUrl("EEUS035694194FR0", null, "fr")).toBe(
+      "https://a1.asendiausa.com/tracking/?trackingnumber=EEUS035694194FR0"
+    );
+  });
+
+  it("builds 17TRACK URL for ePost Global", () => {
+    expect(buildTrackingUrl("EPG011024036782505", null, "fr")).toBe(
+      "https://t.17track.net/fr#nums=EPG011024036782505"
     );
   });
 
