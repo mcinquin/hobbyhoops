@@ -20,6 +20,7 @@ type I18nContextValue = {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
+/** Provides the locale and its translator to client components. */
 export function LocaleProvider({
   locale,
   children,
@@ -56,6 +57,7 @@ export function LocaleProvider({
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
 
+/** Current locale and translator; must be used inside `LocaleProvider`. */
 export function useI18n(): I18nContextValue {
   const ctx = useContext(I18nContext);
   if (!ctx) {
@@ -64,6 +66,7 @@ export function useI18n(): I18nContextValue {
   return ctx;
 }
 
+/** Translator for the current locale. */
 export function useTranslations(): Translator {
   return useI18n().t;
 }

@@ -41,6 +41,7 @@ function getDataRoot(): string {
   return path.dirname(resolved);
 }
 
+/** Directory holding card photos (`<data dir>/card-photos/<cardId>/`). */
 export function getCardPhotosRoot(): string {
   return path.join(getDataRoot(), "card-photos");
 }
@@ -52,6 +53,7 @@ function cardPhotoDir(cardId: string): string {
   return path.join(getCardPhotosRoot(), cardId);
 }
 
+/** Detects JPEG / PNG / GIF / WebP from the file's magic bytes; null when unrecognised. */
 export function sniffImageMime(buffer: Buffer): string | null {
   if (buffer.length < 12) return null;
 
@@ -253,6 +255,7 @@ type ReadCardPhotoResult =
   | { ok: true; buffer: Buffer; contentType: string; mtimeMs: number }
   | { ok: false };
 
+/** Reads a stored photo after validating the card id and file name (no path traversal). */
 export function readCardPhotoFile(
   cardId: string,
   filename: string
@@ -284,6 +287,7 @@ export function readCardPhotoFile(
   };
 }
 
+/** Deletes the stored file(s) for one side of a card, whatever the extension. */
 export function deleteCardPhotoSide(cardId: string, side: CardPhotoSide): void {
   if (!CARD_ID_RE.test(cardId)) return;
   const dir = path.join(getCardPhotosRoot(), cardId);
@@ -302,6 +306,7 @@ export function deleteCardPhotoSide(cardId: string, side: CardPhotoSide): void {
   }
 }
 
+/** Deletes the photo directory of a card. */
 export function deleteAllCardPhotos(cardId: string): void {
   if (!CARD_ID_RE.test(cardId)) return;
   const dir = path.join(getCardPhotosRoot(), cardId);
@@ -309,6 +314,7 @@ export function deleteAllCardPhotos(cardId: string): void {
   fs.rmSync(dir, { recursive: true, force: true });
 }
 
+/** Deletes the file behind a local `/api/card-photos/...` URL; external URLs are ignored. */
 export function deleteLocalPhotoIfStored(url: string | null | undefined): void {
   if (!url || !isLocalCardPhotoUrl(url)) return;
   const match = url.match(

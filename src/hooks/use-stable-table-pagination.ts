@@ -16,6 +16,10 @@ type StablePaginationState = {
   resetKey: string;
 };
 
+/**
+ * Client-side table pagination that returns to the first page when `resetKey` changes
+ * and clamps the page index when rows disappear (adjusted during render, no effect).
+ */
 export function useStableTablePagination({
   pageSize,
   resetKey,

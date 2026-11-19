@@ -91,6 +91,7 @@ interface AdminWorkspaceProps {
   totalCardCount: number;
 }
 
+/** Admin page shell: tab navigation and shared references / card count state. */
 export function AdminWorkspace({
   initialReferences,
   totalCardCount,

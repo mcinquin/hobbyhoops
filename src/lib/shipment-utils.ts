@@ -29,6 +29,10 @@ export const SHIPMENT_PLATFORMS: ShipmentPlatform[] = [
   "other",
 ];
 
+/**
+ * Normalises a stored or legacy shipment date to ISO `YYYY-MM-DD`, or null when empty or
+ * invalid.
+ */
 export function normalizeShipmentDate(
   value: string | null | undefined
 ): string | null {
@@ -43,6 +47,7 @@ export function normalizeShipmentDate(
   return parseDateInputToIso(trimmed, "fr");
 }
 
+/** Localised display label for a shipment date (`—` when missing). */
 export function formatShipmentDateLabel(
   value: string | null | undefined,
   locale: DateLocale = "fr"
@@ -52,6 +57,7 @@ export function formatShipmentDateLabel(
   return formatIsoDateLabel(normalized, locale);
 }
 
+/** Shipment date formatted for a localised date text input (empty when missing). */
 export function formatShipmentDateForInput(
   value: string | null | undefined,
   locale: DateLocale = "fr"
@@ -61,6 +67,7 @@ export function formatShipmentDateForInput(
   return formatIsoDateForInput(normalized, locale);
 }
 
+/** Parses a localised date input back to ISO, or null when invalid. */
 export function parseShipmentDateInput(
   value: string | null | undefined,
   locale: DateLocale = "fr"
@@ -154,6 +161,10 @@ function buildActiveProtection(
   };
 }
 
+/**
+ * eBay Money Back Guarantee window computed from the expected delivery date; null
+ * without a date.
+ */
 export function computeEbayProtection(
   expectedDelivery: string | null,
   status: ShipmentStatus
@@ -196,6 +207,10 @@ function vintedClaimStart(
   return delivery;
 }
 
+/**
+ * Vinted buyer protection window computed from the expected delivery date; null without
+ * a date.
+ */
 export function computeVintedProtection(
   expectedDelivery: string | null,
   status: ShipmentStatus
@@ -286,6 +301,7 @@ const SPEEDPAK_PREFIXES = [
   "SF",
 ] as const;
 
+/** Guesses the carrier from a tracking number format (`unknown` when nothing matches). */
 export function detectCarrier(trackingNumber: string): DetectedCarrier {
   const normalized = trackingNumber.trim().toUpperCase().replace(/\s+/g, "");
   if (!normalized) return "unknown";
@@ -419,6 +435,7 @@ export function buildTrackingUrl(
   }
 }
 
+/** eBay order details URL (or the purchase history without order id); null for other platforms. */
 export function buildEbayOrderUrl(
   platform: ShipmentPlatform,
   orderId: string | null
@@ -445,6 +462,7 @@ function buildVintedDisputeUrl(platform: ShipmentPlatform): string | null {
   return "https://www.vinted.fr/help/912";
 }
 
+/** Order URL for the shipment's platform, when supported. */
 export function buildPlatformOrderUrl(
   platform: ShipmentPlatform,
   orderId: string | null
@@ -452,12 +470,14 @@ export function buildPlatformOrderUrl(
   return buildEbayOrderUrl(platform, orderId) ?? buildVintedOrderUrl(platform);
 }
 
+/** Dispute / claim URL for the shipment's platform, when supported. */
 export function buildPlatformDisputeUrl(
   platform: ShipmentPlatform
 ): string | null {
   return buildEbayDisputeUrl(platform) ?? buildVintedDisputeUrl(platform);
 }
 
+/** Whether the shipment still needs attention (anything not received). */
 export function isActiveShipment(status: ShipmentStatus): boolean {
   return status !== "received";
 }
@@ -481,6 +501,10 @@ function statusSortWeight(status: ShipmentStatus): number {
   }
 }
 
+/**
+ * Sort comparator: active protections ending soonest first, then claim window before
+ * awaiting delivery, then status weight, then newest order.
+ */
 export function compareShipmentsByUrgency(a: Shipment, b: Shipment): number {
   const protectionA = getShipmentProtection(a);
   const protectionB = getShipmentProtection(b);
@@ -503,6 +527,7 @@ export function compareShipmentsByUrgency(a: Shipment, b: Shipment): number {
   return b.orderedAt.localeCompare(a.orderedAt);
 }
 
+/** Localised price label from cents, or null when the price is unknown. */
 export function formatPriceLabel(
   priceCents: number | null,
   currency: string,
@@ -516,6 +541,7 @@ export function formatPriceLabel(
   }).format(amount);
 }
 
+/** Index of the status in the shipment timeline (pending → shipped → … → received). */
 export function timelineStepIndex(status: ShipmentStatus): number {
   switch (status) {
     case "pending":
@@ -546,6 +572,7 @@ interface ShipmentAlertSummary {
   preview: ShipmentAlertItem[];
 }
 
+/** Whether a protection needs action: warning, critical or expired, once delivery is due. */
 export function isUrgentProtection(protection: ShipmentProtectionInfo): boolean {
   if (protection.phase === "awaiting_delivery") return false;
   return (
@@ -555,6 +582,7 @@ export function isUrgentProtection(protection: ShipmentProtectionInfo): boolean 
   );
 }
 
+/** Buyer protection window for the shipment's platform, or null when not applicable. */
 export function getShipmentProtection(
   shipment: Shipment
 ): ShipmentProtectionInfo | null {
@@ -567,6 +595,10 @@ export function getShipmentProtection(
   return null;
 }
 
+/**
+ * Active shipments needing attention, most urgent first, with up to `previewLimit` items
+ * for previews.
+ */
 export function buildShipmentAlertSummary(
   shipments: Shipment[],
   previewLimit = 4

@@ -36,6 +36,7 @@ function useFrNbaHoldingLabels(): FrNbaHoldingLabels {
   );
 }
 
+/** Chips listing a FR-NBA player's holdings. */
 export function FrNbaHoldingChips({
   holdings,
   className,

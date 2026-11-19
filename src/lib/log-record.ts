@@ -21,6 +21,7 @@ function serializeError(error: unknown): SerializedError {
   };
 }
 
+/** Formats a log record as one JSON line. */
 export function formatLogRecord(
   level: LogLevel,
   scope: string,
@@ -41,6 +42,7 @@ export function formatLogRecord(
   return JSON.stringify(payload);
 }
 
+/** Writes a formatted log record to the console method matching its level. */
 export function writeLogRecord(
   level: LogLevel,
   scope: string,

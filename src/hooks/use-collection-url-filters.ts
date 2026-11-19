@@ -18,6 +18,10 @@ type UseCollectionUrlFiltersOptions = {
   fixedPageSize?: number;
 };
 
+/**
+ * Collection filters stored in the URL: parsed state plus debounced (or immediate)
+ * updates, sort and tag toggles.
+ */
 export function useCollectionUrlFilters(
   options?: UseCollectionUrlFiltersOptions
 ) {

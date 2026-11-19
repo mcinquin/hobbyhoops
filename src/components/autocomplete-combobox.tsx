@@ -22,6 +22,7 @@ interface AutocompleteComboboxProps {
   listClassName?: string;
 }
 
+/** Free-text input with filtered suggestions; typing is not restricted to the list. */
 export function AutocompleteCombobox({
   id,
   value,

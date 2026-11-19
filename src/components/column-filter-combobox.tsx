@@ -13,6 +13,7 @@ interface ColumnFilterComboboxProps {
   clearOptionLabel?: string;
 }
 
+/** Debounced filter input with suggestions, used for collection column filters. */
 export function ColumnFilterCombobox({
   debounceMs = 300,
   ...props

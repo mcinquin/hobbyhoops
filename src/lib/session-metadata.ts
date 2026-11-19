@@ -12,6 +12,7 @@ export function summarizeUserAgent(userAgent: string | null | undefined): string
   return "browser";
 }
 
+/** Raw `User-Agent` header, or null. */
 export function readRequestUserAgent(
   request: Pick<Request, "headers">
 ): string | null {

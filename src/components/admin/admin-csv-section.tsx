@@ -35,6 +35,7 @@ interface AdminCsvSectionProps {
   onImported: () => void | Promise<void>;
 }
 
+/** Admin CSV tab: collection export and import. */
 export function AdminCsvSection({
   references,
   onImported,

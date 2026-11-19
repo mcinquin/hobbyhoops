@@ -11,6 +11,7 @@ interface PlayerStatChipsProps {
   variant?: "short" | "long";
 }
 
+/** Rookie / auto / memo / serial counters for a player. */
 export function PlayerStatChips({
   rookies,
   autos,

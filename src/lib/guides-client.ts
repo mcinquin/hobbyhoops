@@ -1,6 +1,7 @@
 import { API_FETCH_OPTS, parseApiErrorMessage } from "@/lib/api-fetch";
 import type { FrNbaPlayer, FrNbaPlayerWrite, WantedBlock } from "@/lib/types";
 
+/** Client: adds a Wanted board entry and returns the updated board. */
 export async function createWantedEntry(body: {
   brand: string;
   set: string;
@@ -23,6 +24,7 @@ export async function createWantedEntry(body: {
   return data.blocks;
 }
 
+/** Client: removes a Wanted board entry and returns the updated board. */
 export async function deleteWantedEntry(id: number): Promise<WantedBlock[]> {
   const res = await fetch(`/api/wanted?id=${id}`, {
     method: "DELETE",
@@ -37,6 +39,7 @@ export async function deleteWantedEntry(id: number): Promise<WantedBlock[]> {
   return data.blocks;
 }
 
+/** Client: creates (no id) or updates a FR-NBA checklist player. */
 export async function saveFrNbaPlayer(
   body: FrNbaPlayerWrite & { id?: number }
 ): Promise<FrNbaPlayer> {

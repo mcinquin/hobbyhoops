@@ -8,6 +8,7 @@ interface AdminPlayersSectionProps {
   onReferencesChange: (references: References) => void;
 }
 
+/** Admin players tab: player name references. */
 export function AdminPlayersSection({
   references,
   onReferencesChange,

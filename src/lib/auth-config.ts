@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getRequestTranslator } from "@/i18n/request";
 import { getAuthSecret } from "@/lib/auth-secret";
 
+/** Error message when authentication is misconfigured (invalid `AUTH_SECRET`), else null. */
 export function authConfigError(): string | null {
   try {
     getAuthSecret();
@@ -12,6 +13,7 @@ export function authConfigError(): string | null {
   }
 }
 
+/** 503 JSON response for API routes when authentication is misconfigured, else null. */
 export function authMisconfiguredResponse(
   request: NextRequest
 ): NextResponse | null {

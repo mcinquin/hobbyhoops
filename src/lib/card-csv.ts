@@ -183,6 +183,7 @@ function cardToCsvRow(card: Card): string[] {
   ];
 }
 
+/** Serialises cards to CSV (UTF-8 BOM for spreadsheet apps). */
 export function cardsToCsv(cards: Card[]): string {
   const lines = [CARD_CSV_HEADER, ...cards.map((card) => cardToCsvRow(card).map(escapeCsvCell).join(","))];
   return `\uFEFF${lines.join("\n")}\n`;
@@ -193,6 +194,7 @@ interface ParsedCardCsvRow {
   values: Partial<Record<CardCsvColumn, string>>;
 }
 
+/** Parses CSV text into rows keyed by known columns, with their original line numbers. */
 export function parseCardCsv(text: string): ParsedCardCsvRow[] {
   const rows = parseDelimitedRows(text);
   if (rows.length === 0) return [];
@@ -215,6 +217,7 @@ export function parseCardCsv(text: string): ParsedCardCsvRow[] {
   });
 }
 
+/** Converts a parsed CSV row to a card write payload (the id is kept for upserts only). */
 export function csvRowToWritePayload(
   row: Partial<Record<CardCsvColumn, string>>,
   mode: CardCsvImportMode

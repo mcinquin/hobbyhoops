@@ -24,6 +24,7 @@ const SLIDING_RENEW_BEFORE_DAYS = 7;
 export const SESSION_MAX_AGE_SEC = SESSION_DAYS * 24 * 60 * 60;
 const SLIDING_RENEW_BEFORE_SEC = SLIDING_RENEW_BEFORE_DAYS * 24 * 60 * 60;
 
+/** Creates a stored session for the user and returns its signed token. */
 export async function createSessionToken(
   userId: string,
   username: string,
@@ -47,6 +48,7 @@ export async function createSessionToken(
   return encodeSessionToken({ userId, username, exp, sid });
 }
 
+/** Verifies a token's signature and that its stored session is still valid; null otherwise. */
 export function verifySessionToken(
   token: string | undefined | null
 ): SessionPayload | null {
@@ -58,6 +60,11 @@ export function verifySessionToken(
   return payload;
 }
 
+/**
+ * Verifies the token, records activity and, near expiry, extends the session (sliding
+ * expiry).
+ * Returns the new token when one was issued.
+ */
 export function maybeRefreshSessionToken(
   token: string | undefined | null
 ): { session: SessionPayload | null; refreshedToken: string | null } {
@@ -90,6 +97,7 @@ export function maybeRefreshSessionToken(
   };
 }
 
+/** Cookie options for the session cookie (http-only, `secure` depending on the request). */
 export function sessionCookieOptions(
   maxAgeSec: number,
   request?: Pick<Request, "headers">
@@ -103,6 +111,7 @@ export function sessionCookieOptions(
   };
 }
 
+/** Sets the refreshed session cookie on `response` when the token was renewed. */
 export function applySessionRefreshToResponse(
   response: NextResponse,
   request: NextRequest,

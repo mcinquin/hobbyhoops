@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+/** Trimmed username when it is 3–32 characters of letters, digits, `_` or `-`; else null. */
 export function normalizeUsername(raw: string): string | null {
   const u = raw.trim();
   if (u.length < 3 || u.length > 32) return null;
@@ -14,6 +15,7 @@ type AuthValidationError = {
   params?: Record<string, string | number>;
 };
 
+/** i18n error for a password that does not meet the policy, or null when valid. */
 export function validateNewPassword(p: string): AuthValidationError | null {
   if (p.length < MIN_PASSWORD_LENGTH) {
     return { key: "errors.passwordMin", params: { min: MIN_PASSWORD_LENGTH } };

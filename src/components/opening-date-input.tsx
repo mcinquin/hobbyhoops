@@ -14,6 +14,7 @@ interface OpeningDateInputProps {
   disabled?: boolean;
 }
 
+/** `LocaleDateInput` for card opening dates. */
 export function OpeningDateInput(props: OpeningDateInputProps) {
   return (
     <LocaleDateInput

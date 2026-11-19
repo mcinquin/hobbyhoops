@@ -17,6 +17,7 @@ const REQUEST_TIMEOUT_MS = 30_000;
 /** Tier gratuit CardSight ; l'API ne renvoie pas la limite du plan. */
 const DEFAULT_MONTHLY_QUOTA = 750;
 
+/** Whether `CARDSIGHT_API_KEY` is set. */
 export function isCardRecognitionConfigured(): boolean {
   return Boolean(process.env.CARDSIGHT_API_KEY?.trim());
 }

@@ -3,6 +3,7 @@
 import { useTranslations } from "@/i18n/client";
 import { TablePageSkeleton } from "@/components/skeletons/page-skeletons";
 
+/** Loading placeholder shown while an admin tab chunk loads. */
 export function AdminTabLoading() {
   const t = useTranslations();
   return (

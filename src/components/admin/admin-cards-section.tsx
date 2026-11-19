@@ -61,6 +61,7 @@ interface AdminCardsSectionProps {
   reloadToken?: number;
 }
 
+/** Admin cards tab: filterable card list with create, edit and delete. */
 export function AdminCardsSection({
   references,
   onReferencesChange,

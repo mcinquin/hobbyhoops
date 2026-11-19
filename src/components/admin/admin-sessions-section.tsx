@@ -15,6 +15,7 @@ function formatSessionDate(timestamp: number, locale: string): string {
   }).format(new Date(timestamp * 1000));
 }
 
+/** Active sessions of the current user, with revoke actions. */
 export function AdminSessionsSection() {
   const { locale } = useI18n();
   const t = useTranslations();

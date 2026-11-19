@@ -39,6 +39,7 @@ interface AdminReferenceListSectionProps {
   filterableListClassName?: string;
 }
 
+/** Generic admin tab for a single reference list (add one, batch import, filter, delete). */
 export function AdminReferenceListSection({
   onReferencesChange,
   introKey,

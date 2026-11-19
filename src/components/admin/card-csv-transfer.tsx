@@ -20,6 +20,7 @@ interface CardCsvTransferProps {
   onImported: () => void;
 }
 
+/** CSV export (filtered or all) and import (create or upsert) controls. */
 export function CardCsvTransfer({
   filters,
   disabled,

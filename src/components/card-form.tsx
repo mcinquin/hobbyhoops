@@ -96,6 +96,7 @@ const emptyCard: Partial<Card> = {
   notes: "",
 };
 
+/** Create / edit card dialog, with photo upload and CardSight prefill. */
 export function CardForm({
   card,
   references,

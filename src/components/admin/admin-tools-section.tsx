@@ -10,6 +10,7 @@ import { formatOpeningDateLabel } from "@/lib/opening-date";
 import { useI18n, useTranslations } from "@/i18n/client";
 import { Download, Loader2, RefreshCw } from "lucide-react";
 
+/** Admin tools tab: database backup download and duplicate detection. */
 export function AdminToolsSection() {
   const t = useTranslations();
   const { locale } = useI18n();

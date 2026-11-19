@@ -49,6 +49,7 @@ export function getPublicOrigin(request: NextRequest): string {
   return new URL(request.url).origin;
 }
 
+/** Absolute URL for `pathname` on the public origin (honours proxy headers when trusted). */
 export function buildPublicRequestUrl(
   request: NextRequest,
   pathname: string

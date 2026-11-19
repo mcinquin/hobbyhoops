@@ -117,6 +117,7 @@ export function isStoredSessionValid(
   return true;
 }
 
+/** Records activity on a non-expired session. */
 export function touchStoredSession(sessionId: string, userId: string): void {
   getDb()
     .prepare(
@@ -125,6 +126,10 @@ export function touchStoredSession(sessionId: string, userId: string): void {
     .run(nowSeconds(), sessionId, userId, nowSeconds());
 }
 
+/**
+ * Extends a session only if its expiry is still `currentExp` (avoids concurrent double
+ * refresh).
+ */
 export function extendStoredSessionExp(
   sessionId: string,
   userId: string,
@@ -141,6 +146,7 @@ export function extendStoredSessionExp(
   return result.changes > 0;
 }
 
+/** Non-expired sessions of a user, most recently active first. */
 export function listStoredSessionsForUser(
   userId: string
 ): StoredSessionSummary[] {

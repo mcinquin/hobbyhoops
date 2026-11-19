@@ -23,6 +23,7 @@ interface AdminDeletableListProps<T> {
   className?: string;
 }
 
+/** Generic admin list where each item has a confirmed delete action. */
 export function AdminDeletableList<T>({
   items,
   getKey,

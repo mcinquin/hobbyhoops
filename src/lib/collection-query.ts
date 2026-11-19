@@ -122,6 +122,7 @@ export function withBrandScopedFilters<T extends Pick<CollectionListQuery, "bran
   return { ...query, set: "", variation: "" };
 }
 
+/** Parses and validates collection filters from URL params, with safe defaults. */
 export function parseCollectionSearchParams(
   params: URLSearchParams
 ): CollectionListQuery {
@@ -152,6 +153,7 @@ export function parseCollectionSearchParams(
   });
 }
 
+/** Parameterised SQL `WHERE` clause for the collection filters (full-text search included). */
 export function buildCollectionWhereClause(
   query: CollectionListQuery
 ): CollectionSqlClause {
