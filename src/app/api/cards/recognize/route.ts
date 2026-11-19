@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-api";
-import { rejectCrossSiteMutation } from "@/lib/request-guard";
-import { rejectRateLimit } from "@/lib/api-rate-limit";
 import { auditLog } from "@/lib/audit-log";
 import {
   identifyCard,
@@ -19,6 +16,7 @@ import { cardIdSchema } from "@/lib/card-schema";
 import { getReferences, readCard } from "@/lib/data";
 import { buildCardSuggestion } from "@/lib/recognition-match";
 import { getRequestTranslator } from "@/i18n/request";
+import { guardMutation } from "@/lib/api-mutation";
 
 export const dynamic = "force-dynamic";
 
@@ -188,13 +186,13 @@ async function imageFromStoredPhoto(
  * ou JSON `{ cardId, side }` (photo déjà stockée sur le serveur).
  */
 export async function POST(request: NextRequest) {
-  const gate = requireAuth(request);
-  if (gate instanceof NextResponse) return gate;
-  const crossSite = rejectCrossSiteMutation(request, {
-    requireFetchMetadata: true,
+  // Chaque appel consomme le quota CardSight (750/mois en gratuit).
+  const guard = guardMutation(request, {
+    scope: "cards:recognize",
+    limit: 25,
   });
-  if (crossSite) return crossSite;
-  const t = getRequestTranslator(request);
+  if (guard instanceof NextResponse) return guard;
+  const { session, t } = guard;
 
   if (!isCardRecognitionConfigured()) {
     return NextResponse.json(
@@ -202,14 +200,6 @@ export async function POST(request: NextRequest) {
       { status: 503 }
     );
   }
-
-  // Chaque appel consomme le quota CardSight (750/mois en gratuit).
-  const rateLimited = rejectRateLimit(
-    request,
-    `cards:recognize:${gate.userId}`,
-    { limit: 25, windowMs: 15 * 60 * 1000 }
-  );
-  if (rateLimited) return rateLimited;
 
   const contentType = request.headers.get("content-type") ?? "";
   const source = contentType.includes("multipart/form-data")
@@ -221,7 +211,7 @@ export async function POST(request: NextRequest) {
     const recognized = await identifyCard(source.buffer, source.mime);
 
     auditLog("card.recognize", {
-      user: gate.username,
+      user: session.username,
       matched: recognized != null,
       confidence: recognized?.confidence ?? null,
     });

@@ -111,6 +111,17 @@ function escapeLike(value: string): string {
   return value.replace(/[%_\\]/g, "\\$&");
 }
 
+/**
+ * Set (and its variation) filters are scoped to a brand: without a brand they
+ * are dropped, whether they come from the URL or from a filter update.
+ */
+export function withBrandScopedFilters<T extends Pick<CollectionListQuery, "brand" | "set" | "variation">>(
+  query: T
+): T {
+  if (query.brand.trim() || !query.set) return query;
+  return { ...query, set: "", variation: "" };
+}
+
 export function parseCollectionSearchParams(
   params: URLSearchParams
 ): CollectionListQuery {
@@ -125,7 +136,7 @@ export function parseCollectionSearchParams(
   const sort = sortKeySchema.catch("player").parse(params.get("sort") ?? "player");
   const sortDesc = params.get("sortDir") === "desc";
 
-  return {
+  return withBrandScopedFilters({
     search: filterValueSchema.parse(params.get("q") ?? ""),
     player: filterValueSchema.parse(params.get("player") ?? ""),
     team: filterValueSchema.parse(params.get("team") ?? ""),
@@ -138,7 +149,7 @@ export function parseCollectionSearchParams(
     pageSize,
     sort,
     sortDesc,
-  };
+  });
 }
 
 export function buildCollectionWhereClause(

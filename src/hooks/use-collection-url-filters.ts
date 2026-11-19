@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { collectionQueryToSearchParams } from "@/lib/cards-client";
 import {
   parseCollectionSearchParams,
+  withBrandScopedFilters,
   type CollectionListQuery,
   type CollectionSortKey,
   type CollectionTagValue,
@@ -65,12 +66,12 @@ export function useCollectionUrlFilters(
             (key) => key !== "page" && key !== "sort" && key !== "sortDesc"
           ));
 
-      const next: CollectionListQuery = {
+      const next: CollectionListQuery = withBrandScopedFilters({
         ...filters,
         ...patch,
         page: shouldResetPage ? 1 : (patch.page ?? filters.page),
         ...(fixedPageSize !== undefined ? { pageSize: fixedPageSize } : {}),
-      };
+      });
 
       if (debounceRef.current) clearTimeout(debounceRef.current);
       if (opts?.immediate) {

@@ -214,14 +214,6 @@ export function CardTable({
     [referenceFilters, urlFilters.brand, urlFilters.set]
   );
 
-  // URL hygiene only: set requires a brand. Never wipe partial typing
-  // by exact/substring-matching suggestions (that fought the combobox draft).
-  useEffect(() => {
-    if (!urlFilters.brand.trim() && urlFilters.set) {
-      updateFilters({ set: "", variation: "" }, { immediate: true });
-    }
-  }, [urlFilters.brand, urlFilters.set, updateFilters]);
-
   useEffect(() => {
     const targets: number[] = [];
     if (urlFilters.page > 1) targets.push(urlFilters.page - 1);

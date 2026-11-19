@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import type { SiteInfo } from "@/lib/site-info-types";
+import { useAdminResource } from "@/hooks/use-admin-resource";
+import { siteInfoSchema } from "@/lib/admin-resource-schemas";
 import { InfoRow, InfoSection } from "@/components/admin/admin-info-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -52,50 +52,16 @@ function BoolBadge({
 export function AdminSiteInfoSection() {
   const t = useTranslations();
   const { locale } = useI18n();
-  const [info, setInfo] = useState<SiteInfo | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadInfo = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch("/api/admin/site-info", {
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("load");
-      setInfo((await response.json()) as SiteInfo);
-    } catch {
-      setError(t("admin.siteInfo.loadError"));
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
-
-  useEffect(() => {
-    let active = true;
-
-    fetch("/api/admin/site-info", { credentials: "include" })
-      .then(async (response) => {
-        if (!active) return;
-        if (!response.ok) throw new Error("load");
-        const data = (await response.json()) as SiteInfo;
-        setInfo(data);
-        setError(null);
-      })
-      .catch(() => {
-        if (!active) return;
-        setError(t("admin.siteInfo.loadError"));
-      })
-      .finally(() => {
-        if (!active) return;
-        setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [t]);
+  const {
+    data: info,
+    loading,
+    error,
+    reload: loadInfo,
+  } = useAdminResource(
+    "/api/admin/site-info",
+    siteInfoSchema,
+    t("admin.siteInfo.loadError")
+  );
 
   const unitLabels = {
     b: t("admin.siteInfo.bytes"),
@@ -116,7 +82,7 @@ export function AdminSiteInfoSection() {
     return (
       <div className="space-y-3 rounded-lg border border-border bg-card p-6 text-center">
         <p className="text-sm text-destructive">{error}</p>
-        <Button type="button" size="sm" variant="outline" onClick={() => void loadInfo()}>
+        <Button type="button" size="sm" variant="outline" onClick={() => loadInfo()}>
           {t("common.retry")}
         </Button>
       </div>
@@ -136,7 +102,7 @@ export function AdminSiteInfoSection() {
           size="sm"
           variant="outline"
           disabled={loading}
-          onClick={() => void loadInfo()}
+          onClick={() => loadInfo()}
         >
           <RefreshCw className={`mr-1 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           {t("admin.siteInfo.refresh")}
