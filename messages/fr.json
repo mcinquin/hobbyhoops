@@ -211,6 +211,8 @@
       "mondialrelay": "Mondial Relay",
       "speedpak": "SpeedPAK",
       "ebay_standard": "eBay Standard Delivery",
+      "ebay_international": "eBay International Shipping",
+      "epostglobal": "ePost Global",
       "usps": "USPS",
       "ups": "UPS",
       "fedex": "FedEx",
