@@ -683,7 +683,15 @@ function frNbaPlayerToRow(
   };
 }
 
-export function insertFrNbaPlayer(player: FrNbaPlayerWrite): FrNbaPlayer {
+/**
+ * Shared FR-NBA write path: `writeIdentity` stores the player row and returns
+ * its id (or null when nothing matched), then holdings are replaced in the
+ * same transaction.
+ */
+function writeFrNbaPlayer(
+  player: FrNbaPlayerWrite,
+  writeIdentity: (db: AppDatabase, row: Record<string, SqlInputValue>) => number | null
+): FrNbaPlayer | null {
   const db = getDb();
   const { holdings, ...identity } = player;
   const row = frNbaPlayerToRow(identity);
@@ -693,16 +701,8 @@ export function insertFrNbaPlayer(player: FrNbaPlayerWrite): FrNbaPlayer {
     rookie,
   }));
   return runInTransaction(db, () => {
-    const result = db
-      .prepare(
-        `INSERT INTO fr_nba_players (
-          player, draft_year, drafted_by, rpa
-        ) VALUES (
-          @player, @draft_year, @drafted_by, @rpa
-        )`
-      )
-      .run(row);
-    const id = Number(result.lastInsertRowid);
+    const id = writeIdentity(db, row);
+    if (id === null) return null;
     const savedHoldings = replaceFrNbaHoldings(db, id, normalizedHoldings);
     return {
       id,
@@ -715,19 +715,30 @@ export function insertFrNbaPlayer(player: FrNbaPlayerWrite): FrNbaPlayer {
   });
 }
 
+/** Inserts a FR-NBA player with its holdings. */
+export function insertFrNbaPlayer(player: FrNbaPlayerWrite): FrNbaPlayer {
+  const saved = writeFrNbaPlayer(player, (db, row) => {
+    const result = db
+      .prepare(
+        `INSERT INTO fr_nba_players (
+          player, draft_year, drafted_by, rpa
+        ) VALUES (
+          @player, @draft_year, @drafted_by, @rpa
+        )`
+      )
+      .run(row);
+    return Number(result.lastInsertRowid);
+  });
+  if (!saved) throw new Error("FR-NBA player insert returned no row");
+  return saved;
+}
+
+/** Updates a FR-NBA player and replaces its holdings; null when the id is unknown. */
 export function updateFrNbaPlayer(
   id: number,
   player: FrNbaPlayerWrite
 ): FrNbaPlayer | null {
-  const db = getDb();
-  const { holdings, ...identity } = player;
-  const row = frNbaPlayerToRow(identity);
-  const normalizedHoldings = holdings.map(({ type, autoStyle, rookie }) => ({
-    type,
-    autoStyle,
-    rookie,
-  }));
-  return runInTransaction(db, () => {
+  return writeFrNbaPlayer(player, (db, row) => {
     const result = db
       .prepare(
         `UPDATE fr_nba_players SET
@@ -738,16 +749,7 @@ export function updateFrNbaPlayer(
         WHERE id = @id`
       )
       .run({ ...row, id });
-    if (result.changes === 0) return null;
-    const savedHoldings = replaceFrNbaHoldings(db, id, normalizedHoldings);
-    return {
-      id,
-      player: identity.player.trim(),
-      draftYear: identity.draftYear.trim(),
-      draftedBy: identity.draftedBy.trim(),
-      rpa: identity.rpa,
-      holdings: savedHoldings,
-    };
+    return result.changes === 0 ? null : id;
   });
 }
 
@@ -886,20 +888,22 @@ function cardToRow(card: Card): Record<string, SqlInputValue> {
   };
 }
 
+const CARD_INSERT_SQL = `
+  INSERT INTO cards (
+    id, player, team, year, brand, set_name, variation,
+    autograph, memorabilia, serial_number, serial_current, serial_total,
+    card_number, grading, opening_date, protection, storage, photo_front, photo_back,
+    tradable, rookie, wnba, notes, opening_date_sort, search_text
+  ) VALUES (
+    @id, @player, @team, @year, @brand, @set_name, @variation,
+    @autograph, @memorabilia, @serial_number, @serial_current, @serial_total,
+    @card_number, @grading, @opening_date, @protection, @storage, @photo_front, @photo_back,
+    @tradable, @rookie, @wnba, @notes, @opening_date_sort, @search_text
+  )
+`;
+
 function importCards(db: AppDatabase, cards: Card[]): void {
-  const insert = db.prepare(`
-    INSERT INTO cards (
-      id, player, team, year, brand, set_name, variation,
-      autograph, memorabilia, serial_number, serial_current, serial_total,
-      card_number, grading, opening_date, protection, storage, photo_front, photo_back,
-      tradable, rookie, wnba, notes, opening_date_sort, search_text
-    ) VALUES (
-      @id, @player, @team, @year, @brand, @set_name, @variation,
-      @autograph, @memorabilia, @serial_number, @serial_current, @serial_total,
-      @card_number, @grading, @opening_date, @protection, @storage, @photo_front, @photo_back,
-      @tradable, @rookie, @wnba, @notes, @opening_date_sort, @search_text
-    )
-  `);
+  const insert = db.prepare(CARD_INSERT_SQL);
 
   runInTransaction(db, () => {
     db.prepare("DELETE FROM cards").run();
@@ -1584,20 +1588,6 @@ export function countCards(whereSql: string, params: (string | number)[]): numbe
   const row = getDb().prepare(sql).get(...params) as { count: number };
   return row.count;
 }
-
-const CARD_INSERT_SQL = `
-  INSERT INTO cards (
-    id, player, team, year, brand, set_name, variation,
-    autograph, memorabilia, serial_number, serial_current, serial_total,
-    card_number, grading, opening_date, protection, storage, photo_front, photo_back,
-    tradable, rookie, wnba, notes, opening_date_sort, search_text
-  ) VALUES (
-    @id, @player, @team, @year, @brand, @set_name, @variation,
-    @autograph, @memorabilia, @serial_number, @serial_current, @serial_total,
-    @card_number, @grading, @opening_date, @protection, @storage, @photo_front, @photo_back,
-    @tradable, @rookie, @wnba, @notes, @opening_date_sort, @search_text
-  )
-`;
 
 const CARD_UPDATE_SQL = `
   UPDATE cards SET

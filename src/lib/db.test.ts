@@ -8,6 +8,7 @@ import {
   getDb,
   getNextCardId,
   insertCard,
+  insertFrNbaPlayer,
   queryCardsPage,
   readCardById,
   readCollectionStats,
@@ -15,6 +16,7 @@ import {
   readRecentCards,
   readReferencesState,
   updateCard,
+  updateFrNbaPlayer,
   writeReferencesState,
 } from "@/lib/db";
 import { createEmptyReferences } from "@/lib/reference-mutations";
@@ -71,6 +73,46 @@ describe("card CRUD", () => {
       if (fs.existsSync(file)) fs.unlinkSync(file);
     }
     delete process.env.HOBBYHOOPS_DB_PATH;
+  });
+
+  it("inserts and updates a FR-NBA player with its holdings", () => {
+    const created = insertFrNbaPlayer({
+      player: "  Victor Wembanyama ",
+      draftYear: "2023",
+      draftedBy: "Spurs",
+      rpa: null,
+      holdings: [{ type: "auto", autoStyle: "on_card", rookie: true }],
+    });
+    expect(created.id).toBeGreaterThan(0);
+    expect(created.player).toBe("Victor Wembanyama");
+    expect(created.holdings).toHaveLength(1);
+    expect(created.holdings[0]).toMatchObject({ type: "auto", rookie: true });
+
+    const updated = updateFrNbaPlayer(created.id, {
+      player: "Victor Wembanyama",
+      draftYear: "2023",
+      draftedBy: "Spurs",
+      rpa: true,
+      holdings: [
+        { type: "simple", autoStyle: null, rookie: false },
+        { type: "patch", autoStyle: null, rookie: true },
+      ],
+    });
+    expect(updated?.rpa).toBe(true);
+    expect(updated?.holdings.map((holding) => holding.type)).toEqual([
+      "simple",
+      "patch",
+    ]);
+
+    expect(
+      updateFrNbaPlayer(created.id + 999, {
+        player: "Nobody",
+        draftYear: "",
+        draftedBy: "",
+        rpa: null,
+        holdings: [],
+      })
+    ).toBeNull();
   });
 
   it("inserts, updates and deletes a card", () => {
