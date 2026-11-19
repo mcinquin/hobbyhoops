@@ -1,3 +1,9 @@
+## [2.3.9](https://github.com/mcinquin/hobbyhoops/compare/v2.3.8...v2.3.9) (2026-11-19)
+
+### Dependencies
+
+* **deps:** bump better-sqlite3 from 13.0.3 to 13.2.0 ([270dce7](https://github.com/mcinquin/hobbyhoops/commit/270dce78498c7a81c09e6f5ed1e23f88c150125b))
+
 ## [2.3.8](https://github.com/mcinquin/hobbyhoops/compare/v2.3.7...v2.3.8) (2026-11-19)
 
 ### Bug Fixes
