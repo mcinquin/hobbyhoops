@@ -21,10 +21,12 @@ export interface FrNbaHoldingLabels {
   rookie: string;
 }
 
+/** Whether a holding type carries an autograph style (auto and RPA). */
 export function holdingNeedsAutoStyle(type: FrNbaHoldingType): boolean {
   return type === "auto" || type === "rpa";
 }
 
+/** Display label for a holding: type, then autograph style and rookie flag when relevant. */
 export function formatFrNbaHoldingLabel(
   holding: FrNbaHolding,
   labels: FrNbaHoldingLabels
@@ -42,6 +44,7 @@ export function formatFrNbaHoldingLabel(
   return parts.join(" · ");
 }
 
+/** Whether the player has at least one holding of `type`. */
 export function playerHasHoldingType(
   player: FrNbaPlayer,
   type: FrNbaHoldingType
@@ -49,6 +52,7 @@ export function playerHasHoldingType(
   return player.holdings.some((holding) => holding.type === type);
 }
 
+/** Whether the player has an autographed holding with the given style. */
 export function playerHasAutoStyle(
   player: FrNbaPlayer,
   style: FrNbaAutoStyle
@@ -59,6 +63,7 @@ export function playerHasAutoStyle(
   );
 }
 
+/** Whether the player has at least one rookie holding. */
 export function playerHasRookieHolding(player: FrNbaPlayer): boolean {
   return player.holdings.some((holding) => holding.rookie);
 }
@@ -79,7 +84,7 @@ export function compareFrNbaPlayersByMissingHoldings(
   return a.player.localeCompare(b.player, undefined, { sensitivity: "base" });
 }
 
-export interface FrNbaCollectionStats {
+interface FrNbaCollectionStats {
   total: number;
   rpaAcquired: number;
   rpaMissing: number;
@@ -87,6 +92,7 @@ export interface FrNbaCollectionStats {
   holdingsCount: number;
 }
 
+/** Checklist counters: RPA objective acquired / missing, players with an Immaculate, holdings. */
 export function computeFrNbaCollectionStats(
   players: FrNbaPlayer[]
 ): FrNbaCollectionStats {
@@ -143,6 +149,7 @@ export function legacyFrNbaRowToHoldings(input: {
   return holdings;
 }
 
+/** RPA objective derived from the legacy rookie / auto / patch columns (migration). */
 export function deriveRpaObjectiveFromLegacy(input: {
   rookieCard: boolean | null;
   auto: string | null;
@@ -167,6 +174,7 @@ function normalizeLegacyAutoStyle(
   return null;
 }
 
+/** Autograph style read from the database or legacy labels, or null when unknown. */
 export function normalizeFrNbaAutoStyleDb(
   value: string | null | undefined
 ): FrNbaAutoStyle | null {
@@ -177,6 +185,7 @@ export function normalizeFrNbaAutoStyleDb(
   return null;
 }
 
+/** Autograph style as stored in the database. */
 export function frNbaAutoStyleToDb(
   value: FrNbaAutoStyle | null
 ): string | null {

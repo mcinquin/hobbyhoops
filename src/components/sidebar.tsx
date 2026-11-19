@@ -27,6 +27,7 @@ interface SidebarProps {
   className?: string;
 }
 
+/** Navigation sidebar with user menu and logout. */
 export function Sidebar({ username, onNavigate, className }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();

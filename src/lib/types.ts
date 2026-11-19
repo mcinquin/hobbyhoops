@@ -71,7 +71,7 @@ export interface FrNbaHolding {
   rookie: boolean;
 }
 
-export type FrNbaHoldingInput = Omit<FrNbaHolding, "id">;
+type FrNbaHoldingInput = Omit<FrNbaHolding, "id">;
 
 export interface FrNbaPlayer {
   id: number;
@@ -108,6 +108,9 @@ export interface References {
 
 export type ChartCountRow = { name: string; count: number };
 
+/** Set chart entry: display label plus the raw brand / set used for drill-down filters. */
+export type SetChartCountRow = ChartCountRow & { brand: string; set: string };
+
 export interface CollectionStats {
   total: number;
   autographs: number;
@@ -119,9 +122,9 @@ export interface CollectionStats {
   wnba: number;
 }
 
-export type CardLeague = "nba" | "wnba";
+type CardLeague = "nba" | "wnba";
 
-export interface LeagueCountRow {
+interface LeagueCountRow {
   league: CardLeague;
   count: number;
 }
@@ -149,7 +152,7 @@ export interface CardsPageResult {
 export interface DashboardChartData {
   brandData: ChartCountRow[];
   yearData: ChartCountRow[];
-  setData: ChartCountRow[];
+  setData: SetChartCountRow[];
   playerData: ChartCountRow[];
   acquisitionData: ChartCountRow[];
   leagueData: LeagueCountRow[];

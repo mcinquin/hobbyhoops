@@ -21,6 +21,7 @@ const rootLogger = pino({
   },
 });
 
+/** Server logger child for `scope`. */
 export function getLogger(scope: string): pino.Logger {
   return rootLogger.child({ scope });
 }

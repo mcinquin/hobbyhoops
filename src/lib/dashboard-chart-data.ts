@@ -1,10 +1,10 @@
-import type { References } from "./types";
+import type { References, SetChartCountRow } from "./types";
 import { formatBrandSetLabel } from "./reference-mutations";
 
-export type ChartCountDatum = { name: string; count: number };
+type ChartCountDatum = { name: string; count: number };
 
 /** Entrées affichables sur le dashboard (sans compteur à zéro). */
-export function chartDataWithCards(data: ChartCountDatum[]): ChartCountDatum[] {
+export function chartDataWithCards<T extends ChartCountDatum>(data: T[]): T[] {
   return data.filter((entry) => entry.count > 0);
 }
 
@@ -35,17 +35,60 @@ export function buildChartCountData(
   }));
 }
 
+/** Raw card count for one brand + set pair. */
+export type BrandSetCountRow = { brand: string; set: string; count: number };
+
 /** Tous les couples marque+set connus dans les références. */
-export function referenceSetNames(references: References): string[] {
-  const names = new Set<string>();
+export function referenceBrandSets(
+  references: References
+): { brand: string; set: string }[] {
+  const pairs: { brand: string; set: string }[] = [];
   for (const [brand, sets] of Object.entries(references.brandSets)) {
     const brandName = brand.trim();
     if (!brandName) continue;
     for (const set of sets) {
       const setName = set.trim();
-      if (!setName) continue;
-      names.add(formatBrandSetLabel(brandName, setName));
+      if (setName) pairs.push({ brand: brandName, set: setName });
     }
   }
-  return [...names];
+  return pairs;
+}
+
+/**
+ * Merges the reference brand+set pairs with SQL counts. Each entry keeps the raw
+ * `brand` / `set` (for collection filters) next to its `Brand · Set` display label.
+ */
+export function buildSetChartData(
+  referencePairs: readonly { brand: string; set: string }[],
+  counts: readonly BrandSetCountRow[]
+): SetChartCountRow[] {
+  const byLabel = new Map<string, SetChartCountRow>();
+  for (const { brand, set } of referencePairs) {
+    const name = formatBrandSetLabel(brand, set);
+    if (name && !byLabel.has(name)) {
+      byLabel.set(name, { name, brand: brand.trim(), set: set.trim(), count: 0 });
+    }
+  }
+  for (const row of counts) {
+    const brand = row.brand.trim();
+    const set = row.set.trim();
+    const name = formatBrandSetLabel(brand, set);
+    if (!name) continue;
+    const existing = byLabel.get(name);
+    byLabel.set(name, {
+      name,
+      brand: existing?.brand ?? brand,
+      set: existing?.set ?? set,
+      count: (existing?.count ?? 0) + row.count,
+    });
+  }
+  return [...byLabel.values()];
+}
+
+/** Collection URL filtered on one brand + set (the set filter requires its brand). */
+export function setCollectionHref(entry: { brand: string; set: string }): string {
+  const params = new URLSearchParams();
+  if (entry.brand) params.set("brand", entry.brand);
+  params.set("set", entry.set);
+  return `/collection?${params.toString()}`;
 }

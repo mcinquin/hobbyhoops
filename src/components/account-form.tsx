@@ -16,6 +16,7 @@ interface AccountFormProps {
   initialUsername: string;
 }
 
+/** Account settings: username and password change. */
 export function AccountForm({ initialUsername }: AccountFormProps) {
   const router = useRouter();
   const t = useTranslations();

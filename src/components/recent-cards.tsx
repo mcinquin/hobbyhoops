@@ -11,6 +11,7 @@ interface RecentCardsProps {
   emptyLabel?: string;
 }
 
+/** Dashboard list of the most recently opened cards. */
 export function RecentCards({
   cards,
   title,

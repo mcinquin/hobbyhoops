@@ -60,6 +60,7 @@ export function readSessionTokenPayload(
   }
 }
 
+/** Signs a session payload as `payload.signature` (base64url, HMAC with `AUTH_SECRET`). */
 export function encodeSessionToken(payload: SessionPayload): string {
   const payloadB64 = base64UrlEncode(
     Buffer.from(JSON.stringify(payload), "utf8")

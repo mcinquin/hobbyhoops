@@ -359,6 +359,7 @@ function FrNbaPlayerFormFields({
   );
 }
 
+/** Create / edit form for a FR-NBA checklist player and their holdings. */
 export function FrNbaPlayerForm({
   player,
   open,

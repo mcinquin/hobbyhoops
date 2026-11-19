@@ -21,7 +21,6 @@ const PUBLIC_API_PREFIXES = [
   "/api/auth/logout",
   "/api/auth/bootstrap",
   "/api/auth/me",
-  "/api/auth/needs-bootstrap",
   "/api/health",
   "/api/locale",
 ];
@@ -74,6 +73,10 @@ function isAuthenticated(request: NextRequest): boolean {
   return verifySessionToken(token) !== null;
 }
 
+/**
+ * Request proxy: CSP nonce, session check with sliding refresh, and redirects to /login
+ * for protected pages.
+ */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;

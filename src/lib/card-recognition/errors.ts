@@ -1,4 +1,4 @@
-export type RecognitionErrorCode =
+type RecognitionErrorCode =
   /** CARDSIGHT_API_KEY absente de l'environnement. */
   | "unconfigured"
   /** Clé API refusée par le fournisseur (401/403). */

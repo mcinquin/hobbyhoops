@@ -15,6 +15,7 @@ interface SortableTableHeadProps<TData extends RowData> {
   onSortToggle?: () => void;
 }
 
+/** Table header cell that toggles sorting and shows the sort direction. */
 export function SortableTableHead<TData extends RowData>({
   header,
   label,

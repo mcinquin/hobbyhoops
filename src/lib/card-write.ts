@@ -13,7 +13,7 @@ function asNullableString(value: unknown): string | null {
   return trimmed ? trimmed : null;
 }
 
-export function joinGrading(company: string, note: string): string {
+function joinGrading(company: string, note: string): string {
   if (company === "Ungraded") {
     return "Ungraded";
   }
@@ -27,6 +27,7 @@ export function joinGrading(company: string, note: string): string {
   return `${company}, ${trimmed}`;
 }
 
+/** Splits a stored grading label back into company and grade. */
 export function splitGrading(grading: string | undefined): {
   company: string;
   note: string;
@@ -47,6 +48,7 @@ export function splitGrading(grading: string | undefined): {
   return { company: company || "Ungraded", note };
 }
 
+/** Normalises untrusted card input (trimmed strings, booleans, numbers) before Zod validation. */
 export function prepareCardWriteInput(input: unknown): Record<string, unknown> {
   if (typeof input !== "object" || input === null || Array.isArray(input)) {
     return {};
@@ -92,6 +94,7 @@ export function prepareCardWriteInput(input: unknown): Record<string, unknown> {
   return prepared;
 }
 
+/** Builds the API payload from the card form state. */
 export function buildCardWritePayload(
   form: Partial<Card>,
   gradingNote: string
@@ -126,6 +129,7 @@ export function buildCardWritePayload(
   );
 }
 
+/** Client-side required-field check; returns an i18n error key, or null when valid. */
 export function validateCardWritePayload(payload: Record<string, unknown>): string | null {
   if (!asTrimmedString(payload.player)) {
     return "errors.playerRequired";

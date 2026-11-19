@@ -22,6 +22,10 @@ interface LocaleDateInputProps {
   disabled?: boolean;
 }
 
+/**
+ * Text date input in the user's locale format: inserts slashes while typing, accepts a
+ * pasted ISO date and reports a value as soon as the input parses (and again on blur).
+ */
 export function LocaleDateInput({
   id,
   label,

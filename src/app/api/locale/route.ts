@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { getRequestTranslator } from "@/i18n/request";
-import { isLocale, LOCALE_COOKIE } from "@/i18n/config";
+import { LOCALE_COOKIE, LOCALES } from "@/i18n/config";
 import { isCookieSecure } from "@/lib/auth-secret";
 import { parseJsonBody } from "@/lib/parse-json-body";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
+
+const localeBodySchema = z.object({ locale: z.enum(LOCALES) });
 
 export async function POST(request: NextRequest) {
   const crossSite = rejectCrossSiteMutation(request, {
@@ -15,16 +18,11 @@ export async function POST(request: NextRequest) {
   const parsedBody = await parseJsonBody(request, 4_096);
   if (!parsedBody.ok) return parsedBody.response;
 
-  const locale =
-    typeof parsedBody.data === "object" &&
-    parsedBody.data !== null &&
-    "locale" in parsedBody.data
-      ? (parsedBody.data as { locale?: string }).locale
-      : undefined;
-
-  if (!isLocale(locale)) {
+  const parsed = localeBodySchema.safeParse(parsedBody.data);
+  if (!parsed.success) {
     return NextResponse.json({ error: t("errors.invalidLocale") }, { status: 400 });
   }
+  const { locale } = parsed.data;
 
   const response = NextResponse.json({ ok: true, locale });
   response.cookies.set(LOCALE_COOKIE, locale, {

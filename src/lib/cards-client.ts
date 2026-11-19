@@ -19,6 +19,10 @@ export class UnauthorizedError extends Error {
   }
 }
 
+/**
+ * Serialises collection filters to URL params, omitting defaults (page size only when
+ * `persistPageSize`).
+ */
 export function collectionQueryToSearchParams(
   query: CollectionListQuery,
   options?: { persistPageSize?: boolean }
@@ -46,6 +50,7 @@ export function collectionQueryToSearchParams(
   return params;
 }
 
+/** Client: loads one page of the collection for the given filters. */
 export async function fetchCardsPage(
   query: CollectionListQuery
 ): Promise<CardsPageResult> {
@@ -57,6 +62,7 @@ export async function fetchCardsPage(
   return (await res.json()) as CardsPageResult;
 }
 
+/** Client: loads a full card by id. */
 export async function fetchCardById(id: string): Promise<Card> {
   const res = await fetch(`/api/cards/${encodeURIComponent(id)}`, API_FETCH_OPTS);
   if (!res.ok) {
@@ -65,11 +71,12 @@ export async function fetchCardById(id: string): Promise<Card> {
   return (await res.json()) as Card;
 }
 
-export interface AdminSnapshot {
+interface AdminSnapshot {
   references: References;
   totalCount: number;
 }
 
+/** Client: creates a card and returns it. */
 export async function createCard(card: Partial<Card>): Promise<Card> {
   const res = await fetch("/api/cards", {
     method: "POST",
@@ -83,6 +90,7 @@ export async function createCard(card: Partial<Card>): Promise<Card> {
   return (await res.json()) as Card;
 }
 
+/** Client: saves an existing card and returns it. */
 export async function updateCard(
   card: Partial<Card> & { id: string }
 ): Promise<Card> {
@@ -98,6 +106,7 @@ export async function updateCard(
   return (await res.json()) as Card;
 }
 
+/** Client: deletes a card. */
 export async function deleteCard(id: string): Promise<void> {
   const res = await fetch(`/api/cards?id=${encodeURIComponent(id)}`, {
     method: "DELETE",
@@ -108,6 +117,7 @@ export async function deleteCard(id: string): Promise<void> {
   }
 }
 
+/** Client: uploads the front or back photo of a card and returns its URL. */
 export async function uploadCardPhoto(
   cardId: string,
   side: "front" | "back",
@@ -132,7 +142,7 @@ export async function uploadCardPhoto(
   return payload.url;
 }
 
-export type RecognizePhotoSource =
+type RecognizePhotoSource =
   | File
   | { cardId: string; side: "front" | "back" };
 
@@ -166,6 +176,7 @@ export async function recognizeCardPhoto(
   return (await res.json()) as RecognizeApiResponse;
 }
 
+/** Client: deletes the stored front or back photo of a card. */
 export async function deleteCardPhotoFile(
   cardId: string,
   side: "front" | "back"
@@ -180,6 +191,10 @@ export async function deleteCardPhotoFile(
   }
 }
 
+/**
+ * Client: reloads the admin data (references and card count); throws `UnauthorizedError`
+ * on 401.
+ */
 export async function fetchAdminSnapshot(): Promise<AdminSnapshot> {
   const res = await fetch("/api/admin/data", API_FETCH_OPTS);
   if (res.status === 401) {
@@ -206,6 +221,7 @@ function filenameFromContentDisposition(header: string | null): string | null {
   return match?.[1] ?? null;
 }
 
+/** Client: downloads the filtered (or whole) collection as a CSV file. */
 export async function downloadCardsCsv(
   query: CollectionListQuery,
   scope: "filtered" | "all"
@@ -223,6 +239,7 @@ export async function downloadCardsCsv(
   triggerBrowserDownload(blob, filename);
 }
 
+/** Client: sends CSV text to the import endpoint; per-row errors are returned, not thrown. */
 export async function importCardsCsvFile(
   csv: string,
   mode: CardCsvImportMode

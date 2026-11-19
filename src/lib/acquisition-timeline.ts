@@ -1,11 +1,6 @@
 import type { ChartCountRow } from "./types";
 import { dateLocaleTag } from "./locale-date";
 
-/** Entier YYYYMM dérivé de opening_date_sort (YYYYMMDD). */
-export function openingDateSortToMonthKey(sortValue: number): number {
-  return Math.floor(sortValue / 100);
-}
-
 /** Libellé mois pour graphique (monthKey = YYYYMM). */
 export function formatAcquisitionMonthLabel(
   monthKey: number,
@@ -24,6 +19,7 @@ export function formatAcquisitionMonthLabel(
   }).format(date);
 }
 
+/** Turns `month_key` / `count` rows into chart data with localised month labels. */
 export function mapAcquisitionTimelineRows(
   rows: { month_key: number; count: number }[],
   locale: "fr" | "en"

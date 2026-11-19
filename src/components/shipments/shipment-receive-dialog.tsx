@@ -43,6 +43,7 @@ function buildProvenanceNote(
   return parts.join(" · ");
 }
 
+/** Marks a shipment as received and optionally creates the matching card. */
 export function ShipmentReceiveDialog({
   shipment,
   references,

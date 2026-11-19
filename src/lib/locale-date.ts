@@ -3,10 +3,12 @@ export type DateLocale = "fr" | "en";
 export const ISO_DATE_REGEX = /^(\d{4})-(\d{2})-(\d{2})$/;
 const SLASH_DATE_REGEX = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
 
+/** BCP 47 tag used for date formatting (`fr-FR` / `en-US`). */
 export function dateLocaleTag(locale: DateLocale): string {
   return locale === "fr" ? "fr-FR" : "en-US";
 }
 
+/** Whether day / month / year form a real calendar date (e.g. rejects 31/02). */
 export function isValidCalendarDate(
   day: number,
   month: number,
@@ -20,6 +22,7 @@ export function isValidCalendarDate(
   );
 }
 
+/** Parses `YYYY-MM-DD` to a local `Date`, or null when malformed or not a real date. */
 export function parseIsoDate(value: string): Date | null {
   const match = value.match(ISO_DATE_REGEX);
   if (!match) return null;
@@ -30,6 +33,7 @@ export function parseIsoDate(value: string): Date | null {
   return new Date(year, month - 1, day);
 }
 
+/** Today's local date as `YYYY-MM-DD`. */
 export function formatTodayIsoDate(): string {
   const now = new Date();
   const year = now.getFullYear();
@@ -105,6 +109,7 @@ export function parseDateInputToIso(
   return parseIsoDate(isoValue) ? isoValue : null;
 }
 
+/** Localised display label for an ISO date (`emptyLabel` when missing or invalid). */
 export function formatIsoDateLabel(
   iso: string | null | undefined,
   locale: DateLocale = "fr",
@@ -120,6 +125,7 @@ export function formatIsoDateLabel(
   }).format(parsed);
 }
 
+/** ISO date formatted for a localised date text input (empty when missing). */
 export function formatIsoDateForInput(
   iso: string | null | undefined,
   locale: DateLocale = "fr"

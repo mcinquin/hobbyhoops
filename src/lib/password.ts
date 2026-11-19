@@ -8,18 +8,20 @@ import {
 const SCRYPT_KEYLEN = 64;
 
 /** Paramètres scrypt explicites (alignés sur les défauts Node pour compatibilité des hash existants). */
-export const SCRYPT_OPTIONS: ScryptOptions = {
+const SCRYPT_OPTIONS: ScryptOptions = {
   N: 16384,
   r: 8,
   p: 1,
 };
 
+/** Hashes a password with scrypt and a random salt (`salt:hash`). */
 export function hashPassword(plain: string): string {
   const salt = randomBytes(16).toString("hex");
   const hash = scryptSync(plain, salt, SCRYPT_KEYLEN, SCRYPT_OPTIONS);
   return `${salt}:${hash.toString("hex")}`;
 }
 
+/** Checks a password against a `salt:hash` value (constant-time comparison). */
 export function verifyPassword(plain: string, stored: string): boolean {
   const parts = stored.split(":");
   if (parts.length !== 2) return false;

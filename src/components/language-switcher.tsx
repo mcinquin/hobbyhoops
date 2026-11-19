@@ -4,6 +4,7 @@ import { LOCALES } from "@/i18n/config";
 import { useI18n } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 
+/** FR / EN switch; stores the choice in the locale cookie and refreshes the page. */
 export function LanguageSwitcher({ className }: { className?: string }) {
   const { locale, setLocale, t } = useI18n();
 

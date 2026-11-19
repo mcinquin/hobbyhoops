@@ -39,6 +39,7 @@ function compareWantedRows(a: WantedRow, b: WantedRow): number {
   return a.player.localeCompare(b.player);
 }
 
+/** Wanted board: wanted players grouped by brand, set and variation. */
 export function WantedBoard({ initialBlocks }: WantedBoardProps) {
   const t = useTranslations();
   const [blocks, setBlocks] = useState(initialBlocks);

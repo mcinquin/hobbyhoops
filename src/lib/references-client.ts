@@ -1,6 +1,7 @@
 import { API_FETCH_OPTS, parseApiErrorMessage } from "@/lib/api-fetch";
 import { References } from "@/lib/types";
 
+/** Client: loads the references catalogue. */
 export async function fetchReferences(): Promise<References> {
   const res = await fetch("/api/references", API_FETCH_OPTS);
   if (!res.ok) {
@@ -11,6 +12,7 @@ export async function fetchReferences(): Promise<References> {
   return (await res.json()) as References;
 }
 
+/** Client: applies a references PATCH action and returns the updated catalogue. */
 export async function patchReferences(
   body: Record<string, unknown>
 ): Promise<References> {

@@ -1,5 +1,6 @@
 export const SESSION_COOKIE_NAME = "hh_session";
 
+/** `AUTH_SECRET` value; throws when it is missing or shorter than 32 characters. */
 export function getAuthSecret(): string {
   const secret = process.env.AUTH_SECRET?.trim();
   const minLength = 32;
@@ -18,6 +19,10 @@ function forwardedProtoIsHttps(headers: Headers): boolean | null {
   return forwarded.split(",")[0]?.trim().toLowerCase() === "https";
 }
 
+/**
+ * Whether cookies get the `Secure` flag: `COOKIE_SECURE`, else the forwarded protocol,
+ * else production.
+ */
 export function isCookieSecure(request?: Pick<Request, "headers">): boolean {
   const configured = process.env.COOKIE_SECURE?.trim().toLowerCase();
   if (configured === "true") return true;

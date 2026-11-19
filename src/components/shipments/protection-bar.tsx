@@ -15,6 +15,7 @@ interface ProtectionBarProps {
   };
 }
 
+/** Progress bar showing the remaining buyer protection time. */
 export function ProtectionBar({ protection, labels }: ProtectionBarProps) {
   if (!protection.isActive) return null;
 

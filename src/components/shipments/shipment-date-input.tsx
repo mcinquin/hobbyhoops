@@ -14,6 +14,7 @@ interface ShipmentDateInputProps {
   disabled?: boolean;
 }
 
+/** `LocaleDateInput` for shipment dates (ISO values). */
 export function ShipmentDateInput(props: ShipmentDateInputProps) {
   return (
     <LocaleDateInput

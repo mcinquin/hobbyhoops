@@ -9,8 +9,8 @@ import {
   type DateLocale,
 } from "./locale-date";
 
-export const EBAY_PROTECTION_DAYS = 30;
-export const VINTED_PROTECTION_DAYS = 2;
+const EBAY_PROTECTION_DAYS = 30;
+const VINTED_PROTECTION_DAYS = 2;
 
 export const SHIPMENT_STATUSES: ShipmentStatus[] = [
   "pending",
@@ -29,6 +29,10 @@ export const SHIPMENT_PLATFORMS: ShipmentPlatform[] = [
   "other",
 ];
 
+/**
+ * Normalises a stored or legacy shipment date to ISO `YYYY-MM-DD`, or null when empty or
+ * invalid.
+ */
 export function normalizeShipmentDate(
   value: string | null | undefined
 ): string | null {
@@ -43,6 +47,7 @@ export function normalizeShipmentDate(
   return parseDateInputToIso(trimmed, "fr");
 }
 
+/** Localised display label for a shipment date (`—` when missing). */
 export function formatShipmentDateLabel(
   value: string | null | undefined,
   locale: DateLocale = "fr"
@@ -52,6 +57,7 @@ export function formatShipmentDateLabel(
   return formatIsoDateLabel(normalized, locale);
 }
 
+/** Shipment date formatted for a localised date text input (empty when missing). */
 export function formatShipmentDateForInput(
   value: string | null | undefined,
   locale: DateLocale = "fr"
@@ -61,6 +67,7 @@ export function formatShipmentDateForInput(
   return formatIsoDateForInput(normalized, locale);
 }
 
+/** Parses a localised date input back to ISO, or null when invalid. */
 export function parseShipmentDateInput(
   value: string | null | undefined,
   locale: DateLocale = "fr"
@@ -70,9 +77,9 @@ export function parseShipmentDateInput(
 
 export { formatTodayIsoDate };
 
-export type ProtectionUrgency = "safe" | "warning" | "critical" | "expired";
+type ProtectionUrgency = "safe" | "warning" | "critical" | "expired";
 
-export type ShipmentProtectionPhase = "awaiting_delivery" | "claim_window";
+type ShipmentProtectionPhase = "awaiting_delivery" | "claim_window";
 
 export interface ShipmentProtectionInfo {
   platform: "ebay" | "vinted";
@@ -154,6 +161,10 @@ function buildActiveProtection(
   };
 }
 
+/**
+ * eBay Money Back Guarantee window computed from the expected delivery date; null
+ * without a date.
+ */
 export function computeEbayProtection(
   expectedDelivery: string | null,
   status: ShipmentStatus
@@ -196,6 +207,10 @@ function vintedClaimStart(
   return delivery;
 }
 
+/**
+ * Vinted buyer protection window computed from the expected delivery date; null without
+ * a date.
+ */
 export function computeVintedProtection(
   expectedDelivery: string | null,
   status: ShipmentStatus
@@ -237,13 +252,15 @@ export function computeVintedProtection(
   );
 }
 
-export type DetectedCarrier =
+type DetectedCarrier =
   | "laposte"
   | "colissimo"
   | "chronopost"
   | "mondialrelay"
   | "speedpak"
   | "ebay_standard"
+  | "ebay_international"
+  | "epostglobal"
   | "usps"
   | "ups"
   | "fedex"
@@ -255,6 +272,16 @@ export type DetectedCarrier =
  * Ex. ESUS364299104 — ne pas confondre avec SpeedPAK (ES + 26 car. alphanum.).
  */
 const EBAY_STANDARD_PATTERN = /^ES[A-Z]{2}\d{7,14}$/;
+
+/**
+ * eBay International Shipping (eIS, vendeurs US) : EE + pays d'origine + chiffres,
+ * suffixe optionnel (ex. EEUS035694194FR0). Le format SpeedPAK Economy
+ * commence aussi par EE mais fait 28 car. et n'a pas de code pays.
+ */
+const EBAY_INTERNATIONAL_PATTERN = /^EE[A-Z]{2}\d{7,14}[A-Z0-9]{0,4}$/;
+
+/** ePost Global (envois US → international) : EPG + chiffres (ex. EPG011024036782505). */
+const EPOST_GLOBAL_PATTERN = /^EPG\d{12,18}$/;
 
 /** Préfixes SpeedPAK / Orange Connex (eBay Chine → Europe). */
 const SPEEDPAK_PREFIXES = [
@@ -274,6 +301,7 @@ const SPEEDPAK_PREFIXES = [
   "SF",
 ] as const;
 
+/** Guesses the carrier from a tracking number format (`unknown` when nothing matches). */
 export function detectCarrier(trackingNumber: string): DetectedCarrier {
   const normalized = trackingNumber.trim().toUpperCase().replace(/\s+/g, "");
   if (!normalized) return "unknown";
@@ -282,6 +310,13 @@ export function detectCarrier(trackingNumber: string): DetectedCarrier {
   if (EBAY_STANDARD_PATTERN.test(normalized)) {
     return "ebay_standard";
   }
+
+  // eBay International Shipping — avant SpeedPAK (même préfixe EE).
+  if (EBAY_INTERNATIONAL_PATTERN.test(normalized)) {
+    return "ebay_international";
+  }
+
+  if (EPOST_GLOBAL_PATTERN.test(normalized)) return "epostglobal";
 
   // SpeedPAK / Orange Connex — format officiel long (ES/EE/EX/EM + ≥20 car.).
   if (/^(ES|EE|EX|EM)[A-Z0-9]{20,30}$/.test(normalized)) {
@@ -339,6 +374,21 @@ function buildParcelsAppUrl(
   return `https://parcelsapp.com/${lang}/tracking/${code}`;
 }
 
+/** Code transporteur 17TRACK d'Orange Connex (SpeedPAK) — l'auto-détection échoue. */
+const SEVENTEEN_TRACK_ORANGE_CONNEX = "190205";
+
+function build17TrackUrl(
+  trackingNumber: string,
+  locale: "fr" | "en" = "fr",
+  carrierCode?: string
+): string {
+  const code = encodeURIComponent(trackingNumber.trim());
+  const lang = locale === "fr" ? "fr" : "en";
+  const fc = carrierCode ? `&fc=${carrierCode}` : "";
+  return `https://t.17track.net/${lang}#nums=${code}${fc}`;
+}
+
+/** URL de suivi du colis, selon le transporteur stocké ou détecté. */
 export function buildTrackingUrl(
   trackingNumber: string,
   carrier?: string | null,
@@ -359,10 +409,15 @@ export function buildTrackingUrl(
     case "mondialrelay":
       return `https://www.mondialrelay.fr/suivi-de-colis/?numeroExpedition=${code}`;
     case "speedpak":
-      // SpeedPAK (Orange Connex) — ParcelsApp détecte SpeedPAK ;
-      // sur 17track le transporteur s’appelle « Orange Connex » (code 190205)
-      // et n’est plus listé sous SpeedPAK, donc l’auto-détection échoue.
-      return buildParcelsAppUrl(trimmed, locale);
+      // SpeedPAK (Orange Connex) — ParcelsApp n'a pas de données ; 17TRACK
+      // fonctionne en forçant le transporteur Orange Connex.
+      return build17TrackUrl(trimmed, locale, SEVENTEEN_TRACK_ORANGE_CONNEX);
+    case "epostglobal":
+      // ePost Global — ParcelsApp n'a pas de données, 17TRACK oui.
+      return build17TrackUrl(trimmed, locale);
+    case "ebay_international":
+      // eIS — acheminé par Asendia USA ; aucun agrégateur n'a de données.
+      return `https://a1.asendiausa.com/tracking/?trackingnumber=${code}`;
     case "ebay_standard":
       // eBay Standard Delivery / Envelope — suivi propriétaire, agrégateur multi-transporteurs.
       return buildParcelsAppUrl(trimmed, locale);
@@ -380,6 +435,7 @@ export function buildTrackingUrl(
   }
 }
 
+/** eBay order details URL (or the purchase history without order id); null for other platforms. */
 export function buildEbayOrderUrl(
   platform: ShipmentPlatform,
   orderId: string | null
@@ -391,21 +447,22 @@ export function buildEbayOrderUrl(
   return "https://www.ebay.fr/mye/myebay/purchase";
 }
 
-export function buildEbayDisputeUrl(platform: ShipmentPlatform): string | null {
+function buildEbayDisputeUrl(platform: ShipmentPlatform): string | null {
   if (platform !== "ebay") return null;
   return "https://www.ebay.fr/res/ItemNotReceived";
 }
 
-export function buildVintedOrderUrl(platform: ShipmentPlatform): string | null {
+function buildVintedOrderUrl(platform: ShipmentPlatform): string | null {
   if (platform !== "vinted") return null;
   return "https://www.vinted.fr/inbox";
 }
 
-export function buildVintedDisputeUrl(platform: ShipmentPlatform): string | null {
+function buildVintedDisputeUrl(platform: ShipmentPlatform): string | null {
   if (platform !== "vinted") return null;
   return "https://www.vinted.fr/help/912";
 }
 
+/** Order URL for the shipment's platform, when supported. */
 export function buildPlatformOrderUrl(
   platform: ShipmentPlatform,
   orderId: string | null
@@ -413,17 +470,19 @@ export function buildPlatformOrderUrl(
   return buildEbayOrderUrl(platform, orderId) ?? buildVintedOrderUrl(platform);
 }
 
+/** Dispute / claim URL for the shipment's platform, when supported. */
 export function buildPlatformDisputeUrl(
   platform: ShipmentPlatform
 ): string | null {
   return buildEbayDisputeUrl(platform) ?? buildVintedDisputeUrl(platform);
 }
 
+/** Whether the shipment still needs attention (anything not received). */
 export function isActiveShipment(status: ShipmentStatus): boolean {
   return status !== "received";
 }
 
-export function statusSortWeight(status: ShipmentStatus): number {
+function statusSortWeight(status: ShipmentStatus): number {
   switch (status) {
     case "dispute":
       return 0;
@@ -442,6 +501,10 @@ export function statusSortWeight(status: ShipmentStatus): number {
   }
 }
 
+/**
+ * Sort comparator: active protections ending soonest first, then claim window before
+ * awaiting delivery, then status weight, then newest order.
+ */
 export function compareShipmentsByUrgency(a: Shipment, b: Shipment): number {
   const protectionA = getShipmentProtection(a);
   const protectionB = getShipmentProtection(b);
@@ -464,6 +527,7 @@ export function compareShipmentsByUrgency(a: Shipment, b: Shipment): number {
   return b.orderedAt.localeCompare(a.orderedAt);
 }
 
+/** Localised price label from cents, or null when the price is unknown. */
 export function formatPriceLabel(
   priceCents: number | null,
   currency: string,
@@ -477,6 +541,7 @@ export function formatPriceLabel(
   }).format(amount);
 }
 
+/** Index of the status in the shipment timeline (pending → shipped → … → received). */
 export function timelineStepIndex(status: ShipmentStatus): number {
   switch (status) {
     case "pending":
@@ -495,18 +560,19 @@ export function timelineStepIndex(status: ShipmentStatus): number {
   }
 }
 
-export interface ShipmentAlertItem {
+interface ShipmentAlertItem {
   shipment: Shipment;
   protection: ShipmentProtectionInfo | null;
 }
 
-export interface ShipmentAlertSummary {
+interface ShipmentAlertSummary {
   activeCount: number;
   urgentCount: number;
   alerts: ShipmentAlertItem[];
   preview: ShipmentAlertItem[];
 }
 
+/** Whether a protection needs action: warning, critical or expired, once delivery is due. */
 export function isUrgentProtection(protection: ShipmentProtectionInfo): boolean {
   if (protection.phase === "awaiting_delivery") return false;
   return (
@@ -516,6 +582,7 @@ export function isUrgentProtection(protection: ShipmentProtectionInfo): boolean 
   );
 }
 
+/** Buyer protection window for the shipment's platform, or null when not applicable. */
 export function getShipmentProtection(
   shipment: Shipment
 ): ShipmentProtectionInfo | null {
@@ -528,6 +595,10 @@ export function getShipmentProtection(
   return null;
 }
 
+/**
+ * Active shipments needing attention, most urgent first, with up to `previewLimit` items
+ * for previews.
+ */
 export function buildShipmentAlertSummary(
   shipments: Shipment[],
   previewLimit = 4

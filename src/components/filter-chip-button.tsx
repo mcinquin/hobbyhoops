@@ -10,6 +10,7 @@ interface FilterChipButtonProps {
   className?: string;
 }
 
+/** Toggle chip for a boolean filter (`aria-pressed`). */
 export function FilterChipButton({
   label,
   pressed,

@@ -24,6 +24,7 @@ interface CardDetailProps {
   onClose: () => void;
 }
 
+/** Card details sheet; loads the full card (photos, notes) when opened. */
 export function CardDetail({ card, open, onClose }: CardDetailProps) {
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>

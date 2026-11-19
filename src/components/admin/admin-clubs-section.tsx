@@ -8,6 +8,7 @@ interface AdminClubsSectionProps {
   onReferencesChange: (references: References) => void;
 }
 
+/** Admin clubs tab: team references. */
 export function AdminClubsSection({
   references,
   onReferencesChange,

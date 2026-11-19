@@ -75,3 +75,20 @@ describe("parseCollectionSearchParams", () => {
     expect(params).toContain("donruss");
   });
 });
+
+describe("withBrandScopedFilters", () => {
+  it("drops set and variation without a brand", () => {
+    const query = parseCollectionSearchParams(
+      new URLSearchParams("set=Prizm&variation=Silver")
+    );
+    expect(query.set).toBe("");
+    expect(query.variation).toBe("");
+  });
+
+  it("keeps set and variation when a brand is present", () => {
+    const query = parseCollectionSearchParams(
+      new URLSearchParams("brand=Panini&set=Prizm&variation=Silver")
+    );
+    expect(query).toMatchObject({ brand: "Panini", set: "Prizm", variation: "Silver" });
+  });
+});

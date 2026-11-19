@@ -4,6 +4,7 @@ import { getPublicOrigin } from "@/lib/request-url";
 
 const SAFE_FETCH_SITES = new Set(["same-origin", "none"]);
 
+/** 403 response for cross-site mutating requests (Origin and Fetch Metadata checks), else null. */
 export function rejectCrossSiteMutation(
   request: NextRequest,
   options?: { requireFetchMetadata?: boolean }

@@ -3,7 +3,7 @@ import { prepareCardWriteInput } from "@/lib/card-write";
 import type { Card } from "@/lib/types";
 
 /** Colonnes canoniques (en-tête export et référence import). */
-export const CARD_CSV_COLUMNS = [
+const CARD_CSV_COLUMNS = [
   "id",
   "player",
   "team",
@@ -29,7 +29,7 @@ export const CARD_CSV_COLUMNS = [
   "notes",
 ] as const;
 
-export type CardCsvColumn = (typeof CARD_CSV_COLUMNS)[number];
+type CardCsvColumn = (typeof CARD_CSV_COLUMNS)[number];
 
 export const CARD_CSV_HEADER = CARD_CSV_COLUMNS.join(",");
 
@@ -102,7 +102,7 @@ const COLUMN_ALIASES: Record<string, CardCsvColumn> = {
 
 export type CardCsvImportMode = "create" | "upsert";
 
-export interface CardCsvImportRowError {
+interface CardCsvImportRowError {
   row: number;
   message: string;
 }
@@ -183,16 +183,18 @@ function cardToCsvRow(card: Card): string[] {
   ];
 }
 
+/** Serialises cards to CSV (UTF-8 BOM for spreadsheet apps). */
 export function cardsToCsv(cards: Card[]): string {
   const lines = [CARD_CSV_HEADER, ...cards.map((card) => cardToCsvRow(card).map(escapeCsvCell).join(","))];
   return `\uFEFF${lines.join("\n")}\n`;
 }
 
-export interface ParsedCardCsvRow {
+interface ParsedCardCsvRow {
   rowNumber: number;
   values: Partial<Record<CardCsvColumn, string>>;
 }
 
+/** Parses CSV text into rows keyed by known columns, with their original line numbers. */
 export function parseCardCsv(text: string): ParsedCardCsvRow[] {
   const rows = parseDelimitedRows(text);
   if (rows.length === 0) return [];
@@ -215,6 +217,7 @@ export function parseCardCsv(text: string): ParsedCardCsvRow[] {
   });
 }
 
+/** Converts a parsed CSV row to a card write payload (the id is kept for upserts only). */
 export function csvRowToWritePayload(
   row: Partial<Record<CardCsvColumn, string>>,
   mode: CardCsvImportMode

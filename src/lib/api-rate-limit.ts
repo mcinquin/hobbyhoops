@@ -3,7 +3,13 @@ import { NextResponse } from "next/server";
 import { getRequestTranslator } from "@/i18n/request";
 import { checkRateLimit } from "@/lib/rate-limit";
 
-export function rejectReadRateLimit(
+/**
+ * Applies a fixed-window rate limit to an API request (read or write).
+ *
+ * @returns `null` when the request is allowed, otherwise a localized 429
+ * response carrying a `Retry-After` header.
+ */
+export function rejectRateLimit(
   request: NextRequest,
   key: string,
   options: { limit: number; windowMs: number }

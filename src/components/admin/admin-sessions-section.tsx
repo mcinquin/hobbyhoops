@@ -1,18 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useAdminResource } from "@/hooks/use-admin-resource";
+import { sessionsListSchema } from "@/lib/admin-resource-schemas";
 import { Button } from "@/components/ui/button";
 import { AdminFeedback } from "@/components/admin/admin-feedback";
 import { useI18n, useTranslations } from "@/i18n/client";
-
-interface SessionEntry {
-  id: string;
-  createdAt: number;
-  lastSeenAt: number;
-  expiresAt: number;
-  device: string;
-  current: boolean;
-}
 
 function formatSessionDate(timestamp: number, locale: string): string {
   if (!timestamp) return "—";
@@ -22,56 +15,25 @@ function formatSessionDate(timestamp: number, locale: string): string {
   }).format(new Date(timestamp * 1000));
 }
 
+/** Active sessions of the current user, with revoke actions. */
 export function AdminSessionsSection() {
   const { locale } = useI18n();
   const t = useTranslations();
-  const [sessions, setSessions] = useState<SessionEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    data,
+    loading,
+    error: loadError,
+    reload: reloadSessions,
+  } = useAdminResource(
+    "/api/auth/sessions",
+    sessionsListSchema,
+    t("admin.siteInfo.sessions.loadFailed")
+  );
+  const sessions = data?.sessions ?? [];
   const [revokingId, setRevokingId] = useState<string | "others" | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [actionError, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [reloadToken, setReloadToken] = useState(0);
-
-  const reloadSessions = useCallback(() => {
-    setReloadToken((token) => token + 1);
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-
-    fetch("/api/auth/sessions", { credentials: "include" })
-      .then(async (res) => {
-        const data = (await res.json().catch(() => ({}))) as {
-          sessions?: SessionEntry[];
-          error?: string;
-        };
-        if (!active) return;
-        if (!res.ok) {
-          setError(
-            typeof data.error === "string"
-              ? data.error
-              : t("admin.siteInfo.sessions.loadFailed")
-          );
-          setSessions([]);
-          return;
-        }
-        setError(null);
-        setSessions(Array.isArray(data.sessions) ? data.sessions : []);
-      })
-      .catch(() => {
-        if (!active) return;
-        setError(t("admin.siteInfo.sessions.loadFailed"));
-        setSessions([]);
-      })
-      .finally(() => {
-        if (!active) return;
-        setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [reloadToken, t]);
+  const error = actionError ?? loadError;
 
   async function revokeSession(id: string) {
     setRevokingId(id);
@@ -144,7 +106,7 @@ export function AdminSessionsSection() {
         </p>
       </div>
 
-      {loading ? (
+      {loading && !data ? (
         <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
       ) : sessions.length === 0 ? (
         <p className="text-sm text-muted-foreground">

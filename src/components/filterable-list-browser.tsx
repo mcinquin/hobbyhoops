@@ -19,6 +19,7 @@ interface FilterableListBrowserProps {
   renderList?: (filtered: string[]) => ReactNode;
 }
 
+/** Searchable list of strings with counts and optional selection. */
 export function FilterableListBrowser({
   items,
   selectedItem,

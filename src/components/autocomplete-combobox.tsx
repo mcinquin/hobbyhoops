@@ -4,7 +4,7 @@ import { useId, useMemo, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-export interface AutocompleteComboboxProps {
+interface AutocompleteComboboxProps {
   id?: string;
   value: string;
   onChange: (value: string) => void;
@@ -22,6 +22,7 @@ export interface AutocompleteComboboxProps {
   listClassName?: string;
 }
 
+/** Free-text input with filtered suggestions; typing is not restricted to the list. */
 export function AutocompleteCombobox({
   id,
   value,

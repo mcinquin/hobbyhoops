@@ -9,6 +9,7 @@ interface AdminYearsSectionProps {
   onReferencesChange: (references: References) => void;
 }
 
+/** Admin years tab: year references. */
 export function AdminYearsSection({
   references,
   onReferencesChange,

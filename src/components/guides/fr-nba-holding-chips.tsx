@@ -14,7 +14,7 @@ interface FrNbaHoldingChipsProps {
   className?: string;
 }
 
-export function useFrNbaHoldingLabels(): FrNbaHoldingLabels {
+function useFrNbaHoldingLabels(): FrNbaHoldingLabels {
   const t = useTranslations();
 
   return useMemo(
@@ -36,6 +36,7 @@ export function useFrNbaHoldingLabels(): FrNbaHoldingLabels {
   );
 }
 
+/** Chips listing a FR-NBA player's holdings. */
 export function FrNbaHoldingChips({
   holdings,
   className,
