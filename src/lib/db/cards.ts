@@ -12,7 +12,7 @@ import type {
 } from "../types";
 import { normalizeCardSerialFields } from "../card-serial";
 import { COLLECTION_SORT_SQL } from "../collection-query";
-import { formatBrandSetLabel } from "../reference-mutations";
+import type { BrandSetCountRow } from "../dashboard-chart-data";
 import {
   PLAYER_CARD_STATS_AGG_SQL,
   CARD_LIST_COLUMNS,
@@ -235,8 +235,8 @@ export function readCardCountsByYear(): ChartCountRow[] {
   return readCardCountsByColumn("year");
 }
 
-/** Card count per brand + set, labelled `Brand Set`, for the dashboard charts. */
-export function readCardCountsBySet(): ChartCountRow[] {
+/** Card count per brand + set (raw values, no display label), for the dashboard charts. */
+export function readCardCountsBySet(): BrandSetCountRow[] {
   const rows = getDb()
     .prepare(
       `SELECT brand, set_name, COUNT(*) as count
@@ -244,9 +244,10 @@ export function readCardCountsBySet(): ChartCountRow[] {
        WHERE set_name IS NOT NULL AND set_name != ''
        GROUP BY brand, set_name`
     )
-    .all() as { brand: string; set_name: string; count: number }[];
+    .all() as { brand: string | null; set_name: string; count: number }[];
   return rows.map((row) => ({
-    name: formatBrandSetLabel(String(row.brand ?? ""), String(row.set_name)),
+    brand: String(row.brand ?? ""),
+    set: String(row.set_name),
     count: Number(row.count),
   }));
 }

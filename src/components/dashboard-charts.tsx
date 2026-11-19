@@ -1,6 +1,7 @@
 "use client";
 
-import type { DashboardChartData } from "@/lib/types";
+import type { DashboardChartData, SetChartCountRow } from "@/lib/types";
+import { setCollectionHref } from "@/lib/dashboard-chart-data";
 import type { KeyboardEvent } from "react";
 import { useMemo, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
@@ -42,8 +43,10 @@ const LEAGUE_COLORS: Record<"nba" | "wnba", string> = {
   wnba: "hsl(24, 95%, 53%)",
 };
 
+type DrillDownKey = "brand" | "year" | "player";
+
 function collectionHref(
-  key: "brand" | "set" | "year" | "player",
+  key: DrillDownKey,
   value: string
 ): string {
   const params = new URLSearchParams({ [key]: value });
@@ -105,29 +108,38 @@ export function DashboardCharts({ chartData }: DashboardChartsProps) {
     getMobileServerSnapshot
   );
 
-  function drillDown(
-    key: "brand" | "set" | "year" | "player",
-    entry: unknown
-  ): void {
+  function drillDown(key: DrillDownKey, entry: unknown): void {
     const name = getDatumName(entry);
     if (name) router.push(collectionHref(key, name));
   }
 
-  function openCollectionFilter(
-    key: "brand" | "set" | "year" | "player",
-    value: string
-  ): void {
+  function openCollectionFilter(key: DrillDownKey, value: string): void {
     router.push(collectionHref(key, value));
+  }
+
+  function openSetFilter(entry: SetChartCountRow): void {
+    router.push(setCollectionHref(entry));
+  }
+
+  /** Set bars carry their label only: resolve back to the raw brand + set. */
+  function drillDownSet(entry: unknown): void {
+    const name = getDatumName(entry);
+    const match = name ? setData.find((row) => row.name === name) : undefined;
+    if (match) openSetFilter(match);
+  }
+
+  function isActivationKey(event: KeyboardEvent<SVGElement>): boolean {
+    if (event.key !== "Enter" && event.key !== " ") return false;
+    event.preventDefault();
+    return true;
   }
 
   function handleChartKeyDown(
     event: KeyboardEvent<SVGElement>,
-    key: "brand" | "set" | "year" | "player",
+    key: DrillDownKey,
     value: string
   ): void {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    openCollectionFilter(key, value);
+    if (isActivationKey(event)) openCollectionFilter(key, value);
   }
 
   const { brandData, yearData, setData, playerData, acquisitionData, leagueData } =
@@ -319,7 +331,7 @@ export function DashboardCharts({ chartData }: DashboardChartsProps) {
               name={cardsLabel}
               radius={[4, 4, 0, 0]}
               className="cursor-pointer"
-              onClick={(entry) => drillDown("set", entry)}
+              onClick={(entry) => drillDownSet(entry)}
             >
               {displaySetData.map((entry, i) => (
                 <Cell
@@ -328,10 +340,10 @@ export function DashboardCharts({ chartData }: DashboardChartsProps) {
                   role="link"
                   tabIndex={0}
                   aria-label={`${entry.name} - ${entry.count} ${cardsLabel}`}
-                  onClick={() => openCollectionFilter("set", entry.name)}
-                  onKeyDown={(event) =>
-                    handleChartKeyDown(event, "set", entry.name)
-                  }
+                  onClick={() => openSetFilter(entry)}
+                  onKeyDown={(event) => {
+                    if (isActivationKey(event)) openSetFilter(entry);
+                  }}
                 />
               ))}
             </Bar>
