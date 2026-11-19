@@ -63,7 +63,8 @@ import {
 import {
   buildChartCountData,
   chartDataWithCards,
-  referenceSetNames,
+  referenceBrandSets,
+  buildSetChartData,
 } from "./dashboard-chart-data";
 import {
   CARD_CSV_MAX_ROWS,
@@ -165,7 +166,7 @@ export function getDashboardChartData(
   ).sort((a, b) => a.name.localeCompare(b.name));
 
   const setData = chartDataWithCards(
-    buildChartCountData(referenceSetNames(references), setCounts)
+    buildSetChartData(referenceBrandSets(references), setCounts)
   ).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
   const acquisitionData = mapAcquisitionTimelineRows(
