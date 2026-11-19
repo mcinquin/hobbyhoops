@@ -1,3 +1,9 @@
+## [2.3.10](https://github.com/mcinquin/hobbyhoops/compare/v2.3.9...v2.3.10) (2026-11-19)
+
+### Bug Fixes
+
+* **dashboard:** apply brand and set filters when drilling down from cards by set ([754cdce](https://github.com/mcinquin/hobbyhoops/commit/754cdceb86b393d0be207f81984c99284293e2dd)), closes [#287](https://github.com/mcinquin/hobbyhoops/issues/287)
+
 ## [2.3.9](https://github.com/mcinquin/hobbyhoops/compare/v2.3.8...v2.3.9) (2026-11-19)
 
 ### Dependencies
