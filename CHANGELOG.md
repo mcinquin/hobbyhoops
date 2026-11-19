@@ -1,3 +1,9 @@
+## [2.3.7](https://github.com/mcinquin/hobbyhoops/compare/v2.3.6...v2.3.7) (2026-11-19)
+
+### Dependencies
+
+* **deps-dev:** bump semantic-release ([760d3c0](https://github.com/mcinquin/hobbyhoops/commit/760d3c0a00c4fb2690ecda8af8ea2ea9db086a58))
+
 ## [2.3.6](https://github.com/mcinquin/hobbyhoops/compare/v2.3.5...v2.3.6) (2026-11-18)
 
 
