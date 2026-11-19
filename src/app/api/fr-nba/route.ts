@@ -14,7 +14,7 @@ import {
 import { getRequestTranslator } from "@/i18n/request";
 import { parseJsonBody } from "@/lib/parse-json-body";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
-import { rejectWriteRateLimit } from "@/lib/api-write-rate-limit";
+import { rejectRateLimit } from "@/lib/api-rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
 
-  const rateLimited = rejectWriteRateLimit(request, `fr-nba:write:${gate.userId}`, {
+  const rateLimited = rejectRateLimit(request, `fr-nba:write:${gate.userId}`, {
     limit: 60,
     windowMs: 15 * 60 * 1000,
   });
@@ -70,7 +70,7 @@ export async function PUT(request: NextRequest) {
   if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
 
-  const rateLimited = rejectWriteRateLimit(request, `fr-nba:write:${gate.userId}`, {
+  const rateLimited = rejectRateLimit(request, `fr-nba:write:${gate.userId}`, {
     limit: 60,
     windowMs: 15 * 60 * 1000,
   });

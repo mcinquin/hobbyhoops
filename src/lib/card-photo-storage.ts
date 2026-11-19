@@ -156,7 +156,7 @@ function resolveStoreableMime(
   return null;
 }
 
-export type SaveCardPhotoResult =
+type SaveCardPhotoResult =
   | { ok: true; url: string; bytes: number }
   | {
       ok: false;
@@ -249,7 +249,7 @@ export async function saveCardPhoto(options: {
   };
 }
 
-export type ReadCardPhotoResult =
+type ReadCardPhotoResult =
   | { ok: true; buffer: Buffer; contentType: string; mtimeMs: number }
   | { ok: false };
 

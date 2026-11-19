@@ -75,7 +75,7 @@ const globalForDb = globalThis as typeof globalThis & {
   hobbyhoopsReferencesEnsured?: boolean;
 };
 
-export function getDatabaseDisplayPath(): string {
+function getDatabaseDisplayPath(): string {
   const configured = process.env.HOBBYHOOPS_DB_PATH?.trim();
   return configured || "data/hobbyhoops.db";
 }
@@ -103,7 +103,7 @@ export function readDatabaseFileMeta(): DatabaseFileMeta {
   };
 }
 
-export interface AuthSiteCounts {
+interface AuthSiteCounts {
   users: number;
   activeSessions: number;
 }

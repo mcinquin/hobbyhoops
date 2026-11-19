@@ -16,7 +16,7 @@ import {
 import { getRequestTranslator } from "@/i18n/request";
 import { parseJsonBody } from "@/lib/parse-json-body";
 import { rejectCrossSiteMutation } from "@/lib/request-guard";
-import { rejectWriteRateLimit } from "@/lib/api-write-rate-limit";
+import { rejectRateLimit } from "@/lib/api-rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
   if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
 
-  const rateLimited = rejectWriteRateLimit(
+  const rateLimited = rejectRateLimit(
     request,
     `shipments:write:${gate.userId}`,
     {
@@ -80,7 +80,7 @@ export async function PATCH(request: NextRequest) {
   if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
 
-  const rateLimited = rejectWriteRateLimit(
+  const rateLimited = rejectRateLimit(
     request,
     `shipments:write:${gate.userId}`,
     {
@@ -128,7 +128,7 @@ export async function DELETE(request: NextRequest) {
   if (crossSite) return crossSite;
   const t = getRequestTranslator(request);
 
-  const rateLimited = rejectWriteRateLimit(
+  const rateLimited = rejectRateLimit(
     request,
     `shipments:write:${gate.userId}`,
     {

@@ -79,7 +79,7 @@ export function compareFrNbaPlayersByMissingHoldings(
   return a.player.localeCompare(b.player, undefined, { sensitivity: "base" });
 }
 
-export interface FrNbaCollectionStats {
+interface FrNbaCollectionStats {
   total: number;
   rpaAcquired: number;
   rpaMissing: number;

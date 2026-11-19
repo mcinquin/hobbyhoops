@@ -14,7 +14,7 @@ interface FrNbaHoldingChipsProps {
   className?: string;
 }
 
-export function useFrNbaHoldingLabels(): FrNbaHoldingLabels {
+function useFrNbaHoldingLabels(): FrNbaHoldingLabels {
   const t = useTranslations();
 
   return useMemo(

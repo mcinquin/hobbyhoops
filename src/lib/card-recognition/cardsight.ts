@@ -206,7 +206,7 @@ export function parseCardSightResponse(payload: unknown): RecognizedCard | null 
 
 /* ---------- Abonnement / usage ---------- */
 
-export interface CardSightUsage {
+interface CardSightUsage {
   /** Appels cumulés (toutes clés) sur la période de facturation en cours. */
   totalCalls: number;
   /** Clé API courante, toujours masquée localement (jamais la valeur brute). */

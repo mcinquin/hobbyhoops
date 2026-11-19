@@ -9,8 +9,8 @@ import {
   type DateLocale,
 } from "./locale-date";
 
-export const EBAY_PROTECTION_DAYS = 30;
-export const VINTED_PROTECTION_DAYS = 2;
+const EBAY_PROTECTION_DAYS = 30;
+const VINTED_PROTECTION_DAYS = 2;
 
 export const SHIPMENT_STATUSES: ShipmentStatus[] = [
   "pending",
@@ -70,9 +70,9 @@ export function parseShipmentDateInput(
 
 export { formatTodayIsoDate };
 
-export type ProtectionUrgency = "safe" | "warning" | "critical" | "expired";
+type ProtectionUrgency = "safe" | "warning" | "critical" | "expired";
 
-export type ShipmentProtectionPhase = "awaiting_delivery" | "claim_window";
+type ShipmentProtectionPhase = "awaiting_delivery" | "claim_window";
 
 export interface ShipmentProtectionInfo {
   platform: "ebay" | "vinted";
@@ -237,7 +237,7 @@ export function computeVintedProtection(
   );
 }
 
-export type DetectedCarrier =
+type DetectedCarrier =
   | "laposte"
   | "colissimo"
   | "chronopost"
@@ -430,17 +430,17 @@ export function buildEbayOrderUrl(
   return "https://www.ebay.fr/mye/myebay/purchase";
 }
 
-export function buildEbayDisputeUrl(platform: ShipmentPlatform): string | null {
+function buildEbayDisputeUrl(platform: ShipmentPlatform): string | null {
   if (platform !== "ebay") return null;
   return "https://www.ebay.fr/res/ItemNotReceived";
 }
 
-export function buildVintedOrderUrl(platform: ShipmentPlatform): string | null {
+function buildVintedOrderUrl(platform: ShipmentPlatform): string | null {
   if (platform !== "vinted") return null;
   return "https://www.vinted.fr/inbox";
 }
 
-export function buildVintedDisputeUrl(platform: ShipmentPlatform): string | null {
+function buildVintedDisputeUrl(platform: ShipmentPlatform): string | null {
   if (platform !== "vinted") return null;
   return "https://www.vinted.fr/help/912";
 }
@@ -462,7 +462,7 @@ export function isActiveShipment(status: ShipmentStatus): boolean {
   return status !== "received";
 }
 
-export function statusSortWeight(status: ShipmentStatus): number {
+function statusSortWeight(status: ShipmentStatus): number {
   switch (status) {
     case "dispute":
       return 0;
@@ -534,12 +534,12 @@ export function timelineStepIndex(status: ShipmentStatus): number {
   }
 }
 
-export interface ShipmentAlertItem {
+interface ShipmentAlertItem {
   shipment: Shipment;
   protection: ShipmentProtectionInfo | null;
 }
 
-export interface ShipmentAlertSummary {
+interface ShipmentAlertSummary {
   activeCount: number;
   urgentCount: number;
   alerts: ShipmentAlertItem[];

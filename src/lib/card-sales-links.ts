@@ -2,7 +2,7 @@ import type { CardListItem } from "@/lib/types";
 
 export type MarketPlatformId = "ebay" | "point130" | "cardladder" | "comc";
 
-export interface CardMarketLink {
+interface CardMarketLink {
   id: MarketPlatformId;
   href: string;
 }

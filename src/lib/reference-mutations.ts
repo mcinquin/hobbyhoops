@@ -5,10 +5,10 @@ export const LABEL_MAX = 160;
 export const REFERENCE_YEAR_REGEX = /^(\d{4}|\d{4}-\d{2})$/;
 
 /** Séparateur interne pour les clés marque+set (jamais affiché). */
-export const BRAND_SET_KEY_SEP = "\u0000";
+const BRAND_SET_KEY_SEP = "\u0000";
 
 /** Valeurs initiales (grading, protection, rangement) injectées une fois en base. */
-export const SEED_ATTRIBUTE_REFERENCES = {
+const SEED_ATTRIBUTE_REFERENCES = {
   grading: ["Ungraded", "PSA", "SGC", "BGS", "CGC"],
   protection: ["Magnetic One-Touch", "Sleeve", "Toploader"],
   storage: [
@@ -135,20 +135,7 @@ export function uniqueBrandSetVariationEntries(
   return out;
 }
 
-/** @deprecated Prefer uniqueBrandSetVariationEntries — kept for batch rows without brand. */
-export function uniqueSetVariationEntries(
-  entries: { set: string; variation: string; brand?: string }[]
-): { brand: string; set: string; variation: string }[] {
-  return uniqueBrandSetVariationEntries(
-    entries.map((entry) => ({
-      brand: entry.brand ?? "",
-      set: entry.set,
-      variation: entry.variation,
-    }))
-  );
-}
-
-export function addUniqueSorted(list: string[], values: string[]): string[] {
+function addUniqueSorted(list: string[], values: string[]): string[] {
   const set = new Set(list);
   for (const value of values) {
     const label = normLabel(value);
@@ -275,21 +262,21 @@ export function addYear(refs: References, year: string): References {
   return refs;
 }
 
-export function addGrading(refs: References, grading: string): References {
+function addGrading(refs: References, grading: string): References {
   const name = normLabel(grading);
   if (!name) return refs;
   refs.gradings = addUniqueSorted(refs.gradings, [name]);
   return refs;
 }
 
-export function addProtection(refs: References, protection: string): References {
+function addProtection(refs: References, protection: string): References {
   const name = normLabel(protection);
   if (!name) return refs;
   refs.protections = addUniqueSorted(refs.protections, [name]);
   return refs;
 }
 
-export function addStorage(refs: References, storage: string): References {
+function addStorage(refs: References, storage: string): References {
   const name = normLabel(storage);
   if (!name) return refs;
   refs.storages = addUniqueSorted(refs.storages, [name]);

@@ -9,7 +9,7 @@ export function normalizeUsername(raw: string): string | null {
 
 export const MIN_PASSWORD_LENGTH = 24;
 
-export type AuthValidationError = {
+type AuthValidationError = {
   key: string;
   params?: Record<string, string | number>;
 };

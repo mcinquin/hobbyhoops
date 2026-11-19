@@ -1,6 +1,6 @@
 import type { CardListItem, DuplicateCardGroup } from "./types";
 
-export type DuplicateGroupRow = {
+type DuplicateGroupRow = {
   player: string;
   year: string | null;
   brand: string;

@@ -1,43 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { AdminCardSightStatus } from "@/lib/card-recognition/types";
+import { InfoRow, InfoSection } from "@/components/admin/admin-info-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useTranslations } from "@/i18n/client";
-
-function InfoSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="rounded-lg border border-border bg-card p-4 sm:p-5">
-      <h3 className="text-sm font-medium">{title}</h3>
-      <dl className="mt-3 grid gap-3 sm:grid-cols-2">{children}</dl>
-    </section>
-  );
-}
-
-function InfoRow({
-  label,
-  value,
-  wide,
-}: {
-  label: string;
-  value: ReactNode;
-  wide?: boolean;
-}) {
-  return (
-    <div className={wide ? "sm:col-span-2" : undefined}>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 text-sm font-medium break-words">{value}</dd>
-    </div>
-  );
-}
 
 export function AdminCardSightSection() {
   const t = useTranslations();

@@ -6,7 +6,7 @@ import { runInTransaction } from "./sqlite";
 export const MAX_SESSIONS_PER_USER = 5;
 
 /** Session côté serveur (révocable), alignée sur le champ `exp` du jeton signé. */
-export interface StoredSession {
+interface StoredSession {
   id: string;
   userId: string;
   /** Unix seconds (identique à `exp` dans le cookie JWT-like) */
@@ -16,7 +16,7 @@ export interface StoredSession {
   userAgent: string;
 }
 
-export interface StoredSessionSummary {
+interface StoredSessionSummary {
   id: string;
   createdAt: number;
   lastSeenAt: number;

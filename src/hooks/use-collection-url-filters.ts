@@ -12,7 +12,7 @@ import {
 
 export type { CollectionTagValue, CollectionSortKey };
 
-export type UseCollectionUrlFiltersOptions = {
+type UseCollectionUrlFiltersOptions = {
   /** Taille de page fixe (ex. admin) — écrit `pageSize` dans l’URL. */
   fixedPageSize?: number;
 };

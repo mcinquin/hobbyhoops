@@ -8,7 +8,7 @@ import {
 const SCRYPT_KEYLEN = 64;
 
 /** Paramètres scrypt explicites (alignés sur les défauts Node pour compatibilité des hash existants). */
-export const SCRYPT_OPTIONS: ScryptOptions = {
+const SCRYPT_OPTIONS: ScryptOptions = {
   N: 16384,
   r: 8,
   p: 1,
