@@ -1,3 +1,37 @@
+## [2.3.7](https://github.com/mcinquin/hobbyhoops/compare/v2.3.6...v2.3.7) (2026-11-19)
+
+### Dependencies
+
+* **deps-dev:** bump semantic-release ([760d3c0](https://github.com/mcinquin/hobbyhoops/commit/760d3c0a00c4fb2690ecda8af8ea2ea9db086a58))
+
+## [2.3.6](https://github.com/mcinquin/hobbyhoops/compare/v2.3.5...v2.3.6) (2026-11-18)
+
+
+### Dependencies
+
+* **deps-dev:** bump lint-staged ([eade469](https://github.com/mcinquin/hobbyhoops/commit/eade469ba0aabcc55202817df69e51b8e504fc86))
+
+## [2.3.5](https://github.com/mcinquin/hobbyhoops/compare/v2.3.4...v2.3.5) (2026-11-17)
+
+
+### Dependencies
+
+* **deps-dev:** bump eslint ([b4dc8f0](https://github.com/mcinquin/hobbyhoops/commit/b4dc8f0720652ab1ad8bf0deb5d022ee3ecca60f))
+
+## [2.3.4](https://github.com/mcinquin/hobbyhoops/compare/v2.3.3...v2.3.4) (2026-11-16)
+
+
+### Dependencies
+
+* **deps-dev:** bump the dev-tools group with 2 updates ([1b81b4a](https://github.com/mcinquin/hobbyhoops/commit/1b81b4a37d7fca64509bb4454f95332c64abfc9e))
+
+## [2.3.3](https://github.com/mcinquin/hobbyhoops/compare/v2.3.2...v2.3.3) (2026-11-13)
+
+
+### Dependencies
+
+* **deps:** bump the next group with 2 updates ([2a63f45](https://github.com/mcinquin/hobbyhoops/commit/2a63f45ea19716aeee8455a5b127077f25592816))
+
 ## [2.3.2](https://github.com/mcinquin/hobbyhoops/compare/v2.3.1...v2.3.2) (2026-11-10)
 
 
