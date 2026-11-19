@@ -14,6 +14,7 @@ interface StatsCardsProps {
   };
 }
 
+/** Dashboard stat tiles (total, rookies, autos, memos, serials…). */
 export function StatsCards({ stats, labels }: StatsCardsProps) {
   const items = [
     {

@@ -14,12 +14,14 @@ const SCRYPT_OPTIONS: ScryptOptions = {
   p: 1,
 };
 
+/** Hashes a password with scrypt and a random salt (`salt:hash`). */
 export function hashPassword(plain: string): string {
   const salt = randomBytes(16).toString("hex");
   const hash = scryptSync(plain, salt, SCRYPT_KEYLEN, SCRYPT_OPTIONS);
   return `${salt}:${hash.toString("hex")}`;
 }
 
+/** Checks a password against a `salt:hash` value (constant-time comparison). */
 export function verifyPassword(plain: string, stored: string): boolean {
   const parts = stored.split(":");
   if (parts.length !== 2) return false;

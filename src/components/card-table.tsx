@@ -61,6 +61,7 @@ interface CardTableProps {
   referenceFilters: ReferencesFilterIndex;
 }
 
+/** Collection table with URL-synced filters, sorting and server pagination. */
 export function CardTable({
   cards,
   totalCount,

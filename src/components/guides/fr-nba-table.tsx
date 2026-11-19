@@ -69,6 +69,7 @@ function RpaObjectiveCell({
   return <span className="text-muted-foreground">—</span>;
 }
 
+/** FR-NBA checklist table with filters, stats and editing. */
 export function FrNbaTable({ initialPlayers }: FrNbaTableProps) {
   const t = useTranslations();
   const [players, setPlayers] = useState(initialPlayers);

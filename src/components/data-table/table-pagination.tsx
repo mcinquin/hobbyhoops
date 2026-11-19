@@ -8,6 +8,7 @@ interface TablePaginationProps<TData extends RowData> {
   table: ReactTable<InteractiveTableFeatures, TData>;
 }
 
+/** Pagination controls bound to a TanStack table instance. */
 export function TablePagination<TData extends RowData>({
   table,
 }: TablePaginationProps<TData>) {

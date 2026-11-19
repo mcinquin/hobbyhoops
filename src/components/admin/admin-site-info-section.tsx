@@ -49,6 +49,7 @@ function BoolBadge({
   );
 }
 
+/** Admin site tab: application, runtime, database and auth information. */
 export function AdminSiteInfoSection() {
   const t = useTranslations();
   const { locale } = useI18n();

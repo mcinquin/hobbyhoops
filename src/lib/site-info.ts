@@ -12,6 +12,7 @@ import type { SiteInfo } from "@/lib/site-info-types";
 
 export type { SiteInfo } from "@/lib/site-info-types";
 
+/** Snapshot of app, runtime, database and auth information for the admin site-info tab. */
 export function getSiteInfo(): SiteInfo {
   const dbMeta = readDatabaseFileMeta();
   const schemaVersion = readDatabaseSchemaVersion();

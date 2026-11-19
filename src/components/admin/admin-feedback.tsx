@@ -9,6 +9,7 @@ interface AdminFeedbackProps {
   onSuccessDismiss?: () => void;
 }
 
+/** Inline success / error message; success messages dismiss themselves after a few seconds. */
 export function AdminFeedback({
   success,
   error,

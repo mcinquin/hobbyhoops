@@ -13,6 +13,7 @@ interface AppErrorFallbackProps {
   titleKey?: string;
 }
 
+/** Error boundary fallback: logs the error and offers a retry. */
 export function AppErrorFallback({
   error,
   reset,

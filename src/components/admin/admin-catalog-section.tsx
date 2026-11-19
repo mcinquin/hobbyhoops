@@ -33,6 +33,7 @@ interface AdminCatalogSectionProps {
   onReferencesChange: (references: References) => void;
 }
 
+/** Admin catalogue tab: brands, sets and variations. */
 export function AdminCatalogSection({
   references,
   onReferencesChange,

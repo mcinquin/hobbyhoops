@@ -15,6 +15,7 @@ function getLocaleFromRequest(request: NextRequest): Locale {
   return isLocale(value) ? value : DEFAULT_LOCALE;
 }
 
+/** Translator for the request's locale (API routes). */
 export function getRequestTranslator(request: NextRequest): Translator {
   return createTranslator(getLocaleFromRequest(request));
 }

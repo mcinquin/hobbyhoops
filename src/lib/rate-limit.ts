@@ -28,6 +28,7 @@ function pruneExpiredRateLimits(now: number): void {
   getDb().prepare("DELETE FROM rate_limits WHERE reset_at <= ?").run(now);
 }
 
+/** Client IP; proxy headers are only trusted when `TRUST_PROXY` is enabled. */
 export function getClientIp(request: Request): string {
   if (trustProxyHeaders()) {
     const forwarded = request.headers.get("x-forwarded-for");
@@ -59,6 +60,7 @@ export function getClientIp(request: Request): string {
   return "direct";
 }
 
+/** Counts a hit for `key` in a fixed window stored in SQLite; `allowed` is false past `limit`. */
 export function checkRateLimit(
   key: string,
   {
@@ -102,6 +104,7 @@ export function checkRateLimit(
   return result;
 }
 
+/** Reads the state of a rate limit without counting a hit. */
 export function peekRateLimit(
   key: string,
   {
@@ -130,6 +133,7 @@ export function peekRateLimit(
   return { allowed: true, retryAfterSec: 0 };
 }
 
+/** Clears the counter for `key` (e.g. after a successful login). */
 export function resetRateLimit(key: string): void {
   getDb().prepare("DELETE FROM rate_limits WHERE key = ?").run(storageKey(key));
 }

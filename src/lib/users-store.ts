@@ -15,6 +15,7 @@ function rowToUser(row: Record<string, unknown>): UserRecord {
   };
 }
 
+/** All users, sorted by username. */
 export function getUsers(): UserRecord[] {
   const rows = getDb()
     .prepare("SELECT id, username, password_hash FROM users ORDER BY username")
@@ -22,6 +23,7 @@ export function getUsers(): UserRecord[] {
   return rows.map(rowToUser);
 }
 
+/** Replaces the whole users table with `users`. */
 export async function saveUsers(users: UserRecord[]): Promise<void> {
   const db = getDb();
   runInTransaction(db, () => {
@@ -35,6 +37,7 @@ export async function saveUsers(users: UserRecord[]): Promise<void> {
   });
 }
 
+/** Number of users. */
 export function countUsers(): number {
   const row = getDb()
     .prepare("SELECT COUNT(*) as count FROM users")
@@ -42,6 +45,7 @@ export function countUsers(): number {
   return row.count;
 }
 
+/** Creates the first account only when no user exists yet (atomic); returns `exists` otherwise. */
 export async function bootstrapFirstUser(
   user: UserRecord
 ): Promise<"created" | "exists"> {
@@ -60,6 +64,7 @@ export async function bootstrapFirstUser(
   return created ? "created" : "exists";
 }
 
+/** User by username (case-insensitive), if any. */
 export function findUserByUsername(username: string): UserRecord | undefined {
   const row = getDb()
     .prepare(
@@ -69,6 +74,7 @@ export function findUserByUsername(username: string): UserRecord | undefined {
   return row ? rowToUser(row) : undefined;
 }
 
+/** User by id, if any. */
 export function findUserById(id: string): UserRecord | undefined {
   const row = getDb()
     .prepare("SELECT id, username, password_hash FROM users WHERE id = ?")
@@ -76,6 +82,10 @@ export function findUserById(id: string): UserRecord | undefined {
   return row ? rowToUser(row) : undefined;
 }
 
+/**
+ * Whether another user (other than `exceptUserId`) already uses this username, case-
+ * insensitively.
+ */
 export function isUsernameTaken(username: string, exceptUserId?: string): boolean {
   const row = getDb()
     .prepare(

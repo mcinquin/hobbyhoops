@@ -19,6 +19,7 @@ interface PaginationControlsProps {
   summary?: ReactNode;
 }
 
+/** Previous / next page controls with a page summary. */
 export function PaginationControls({
   page,
   pageCount,

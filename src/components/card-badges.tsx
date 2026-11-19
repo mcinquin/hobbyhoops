@@ -15,6 +15,7 @@ interface CardBadgesProps {
   labels: CardBadgeLabels;
 }
 
+/** Badges for a card's flags (RC, AUTO, MEM, numbered, tradable, WNBA). */
 export function CardBadges({ card, labels }: CardBadgesProps) {
   return (
     <div className="flex items-center gap-1 flex-wrap">

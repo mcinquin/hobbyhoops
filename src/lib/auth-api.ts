@@ -4,6 +4,7 @@ import { authMisconfiguredResponse } from "@/lib/auth-config";
 import { SESSION_COOKIE_NAME } from "@/lib/auth-secret";
 import { verifySessionToken, type SessionPayload } from "@/lib/auth-session";
 
+/** Session from the request cookie, or null when missing or invalid. */
 export function getSessionFromRequest(
   request: NextRequest
 ): SessionPayload | null {
@@ -11,11 +12,13 @@ export function getSessionFromRequest(
   return verifySessionToken(token);
 }
 
+/** Localised 401 JSON response. */
 export function unauthorized(request: NextRequest): NextResponse {
   const t = getRequestTranslator(request);
   return NextResponse.json({ error: t("errors.unauthorized") }, { status: 401 });
 }
 
+/** Session of an authenticated request, or the error response (misconfiguration or 401). */
 export function requireAuth(
   request: NextRequest
 ): SessionPayload | NextResponse {

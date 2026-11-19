@@ -36,10 +36,12 @@ function isoToOpeningDate(iso: string): string | null {
   return toFrenchDate(day, month, year);
 }
 
+/** Today's date in the stored opening date format (`DD/MM/YYYY`). */
 export function formatTodayOpeningDateFr(): string {
   return isoToOpeningDate(formatTodayIsoDate())!;
 }
 
+/** Normalises an opening date to the stored format, or null when empty or invalid. */
 export function normalizeOpeningDate(
   value: string | null | undefined
 ): string | null {
@@ -76,6 +78,7 @@ export function openingDateSortValue(
   return year * 10000 + month * 100 + day;
 }
 
+/** Localised display label for an opening date (`—` when missing). */
 export function formatOpeningDateLabel(
   value: string | null | undefined,
   locale: DateLocale = "fr"
@@ -87,6 +90,7 @@ export function formatOpeningDateLabel(
   return formatIsoDateLabel(iso, locale);
 }
 
+/** Opening date formatted for a localised date text input (empty when missing). */
 export function formatOpeningDateForInput(
   value: string | null | undefined,
   locale: DateLocale = "fr"
@@ -98,6 +102,7 @@ export function formatOpeningDateForInput(
   return formatIsoDateForInput(iso, locale);
 }
 
+/** Parses a localised date input to the stored opening date format, or null when invalid. */
 export function parseOpeningDateInput(
   value: string | null | undefined,
   locale: DateLocale = "fr"

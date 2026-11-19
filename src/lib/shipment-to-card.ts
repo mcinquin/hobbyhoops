@@ -3,6 +3,7 @@ import { formatTodayOpeningDateFr } from "./opening-date";
 
 const YEAR_RE = /\b((?:19|20)\d{2}(?:-\d{2})?)\b/;
 
+/** Extracts a likely player name and year from a free-text shipment description. */
 export function parseShipmentDescription(description: string): {
   player: string;
   year: string | null;
@@ -32,6 +33,10 @@ export function parseShipmentDescription(description: string): {
   return { player, year, remainder };
 }
 
+/**
+ * Card draft pre-filled from a received shipment (player, year, rest as variation,
+ * provenance note).
+ */
 export function buildCardDraftFromShipment(
   shipment: Shipment,
   provenanceNote: string

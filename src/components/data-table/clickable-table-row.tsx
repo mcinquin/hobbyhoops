@@ -10,6 +10,7 @@ interface ClickableTableRowProps {
   className?: string;
 }
 
+/** Table row activated by click or Enter / Space (keyboard accessible). */
 export function ClickableTableRow({
   onActivate,
   children,

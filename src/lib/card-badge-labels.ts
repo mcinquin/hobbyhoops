@@ -2,6 +2,7 @@ import type { CardBadgeLabels } from "@/components/card-badges";
 
 type TranslateFn = (key: string) => string;
 
+/** Translated labels for the card badges (RC, AUTO, MEM…). */
 export function buildCardBadgeLabels(t: TranslateFn): CardBadgeLabels {
   return {
     rookie: t("badges.rookie"),

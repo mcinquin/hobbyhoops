@@ -32,14 +32,17 @@ export const ACCEPTED_IMAGE_MIME_TYPES = [
   "image/vnd.microsoft.icon",
 ] as const;
 
+/** Type guard for `front` / `back`. */
 export function isCardPhotoSide(value: string): value is CardPhotoSide {
   return (CARD_PHOTO_SIDES as readonly string[]).includes(value);
 }
 
+/** Whether a URL points to a photo stored by the app (`/api/card-photos/...`). */
 export function isLocalCardPhotoUrl(value: string): boolean {
   return LOCAL_PHOTO_PATH_RE.test(value);
 }
 
+/** Public URL of a stored card photo. */
 export function publicCardPhotoUrl(
   cardId: string,
   side: CardPhotoSide,
@@ -49,6 +52,7 @@ export function publicCardPhotoUrl(
   return `/api/card-photos/${encodeURIComponent(cardId)}/${side}${normalized}`;
 }
 
+/** `accept` attribute value for card photo file inputs. */
 export function cardPhotoFileInputAccept(): string {
   return [
     ...ACCEPTED_IMAGE_MIME_TYPES,
@@ -68,6 +72,7 @@ export function cardPhotoFileInputAccept(): string {
   ].join(",");
 }
 
+/** Content type from a stored photo's extension, or null when unsupported. */
 export function contentTypeForCardPhotoFilename(filename: string): string | null {
   const ext = filename.includes(".")
     ? `.${filename.split(".").pop()!.toLowerCase()}`

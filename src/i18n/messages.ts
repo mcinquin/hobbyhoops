@@ -6,6 +6,7 @@ type Messages = typeof fr;
 
 const catalogs: Record<Locale, Messages> = { fr, en };
 
+/** Message catalogue for a locale. */
 export function getMessages(locale: Locale): Messages {
   return catalogs[locale];
 }

@@ -1,10 +1,12 @@
 const isDev = process.env.NODE_ENV === "development";
 const isProduction = process.env.NODE_ENV === "production";
 
+/** Random per-request nonce for inline scripts. */
 export function createNonce(): string {
   return Buffer.from(crypto.randomUUID()).toString("base64");
 }
 
+/** Content-Security-Policy header value allowing scripts with `nonce`. */
 export function buildContentSecurityPolicy(nonce: string): string {
   const scriptSrc = [
     "'self'",
@@ -38,6 +40,7 @@ export function buildContentSecurityPolicy(nonce: string): string {
   return directives.join("; ");
 }
 
+/** Passes the nonce and CSP to the app through request headers (read by the root layout). */
 export function applyCspRequestHeaders(
   requestHeaders: Headers,
   nonce: string,
@@ -47,6 +50,7 @@ export function applyCspRequestHeaders(
   requestHeaders.set("Content-Security-Policy", csp);
 }
 
+/** Sets the CSP header on the response. */
 export function applyCspResponseHeaders(
   response: Response,
   csp: string

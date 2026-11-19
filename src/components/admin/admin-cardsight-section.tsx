@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useTranslations } from "@/i18n/client";
 
+/** Admin CardSight tab: API key status and monthly usage. */
 export function AdminCardSightSection() {
   const t = useTranslations();
   const {

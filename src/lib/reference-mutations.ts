@@ -27,6 +27,7 @@ const SEED_ATTRIBUTE_REFERENCES = {
   ],
 } as const;
 
+/** A references catalogue with every list and map empty. */
 export function createEmptyReferences(): References {
   return {
     players: [],
@@ -43,12 +44,14 @@ export function createEmptyReferences(): References {
   };
 }
 
+/** Trimmed year label when it matches the accepted year format, else null. */
 export function normYear(s: string): string | null {
   const label = normLabel(s);
   if (!label || !REFERENCE_YEAR_REGEX.test(label)) return null;
   return label;
 }
 
+/** Valid, de-duplicated year labels from untrusted input (non-arrays give `[]`). */
 export function uniqueYears(values: unknown): string[] {
   if (!Array.isArray(values)) return [];
   const out: string[] = [];
@@ -63,10 +66,12 @@ export function uniqueYears(values: unknown): string[] {
   return out;
 }
 
+/** Trims a reference label and caps its length. */
 export function normLabel(s: string): string {
   return s.trim().slice(0, LABEL_MAX);
 }
 
+/** Trimmed, non-empty, de-duplicated labels from untrusted input (non-arrays give `[]`). */
 export function uniqueStrings(values: unknown): string[] {
   if (!Array.isArray(values)) return [];
   const out: string[] = [];
@@ -81,10 +86,12 @@ export function uniqueStrings(values: unknown): string[] {
   return out;
 }
 
+/** Map key identifying a set within a brand (`brand` + separator + `set`). */
 export function brandSetKey(brand: string, set: string): string {
   return `${normLabel(brand)}${BRAND_SET_KEY_SEP}${normLabel(set)}`;
 }
 
+/** Splits a key built by `brandSetKey`; null when it is malformed. */
 export function parseBrandSetKey(
   key: string
 ): { brand: string; set: string } | null {
@@ -93,6 +100,7 @@ export function parseBrandSetKey(
   return { brand: key.slice(0, sep), set: key.slice(sep + 1) };
 }
 
+/** Display label `Brand · Set`, or whichever part is present. */
 export function formatBrandSetLabel(brand: string, set: string): string {
   const brandName = brand.trim();
   const setName = set.trim();
@@ -100,6 +108,7 @@ export function formatBrandSetLabel(brand: string, set: string): string {
   return setName || brandName;
 }
 
+/** Normalised brand + set pairs without blanks or duplicates. */
 export function uniqueBrandSetEntries(
   entries: { brand: string; set: string }[]
 ): { brand: string; set: string }[] {
@@ -117,6 +126,7 @@ export function uniqueBrandSetEntries(
   return out;
 }
 
+/** Normalised brand + set + variation triples without blanks or duplicates. */
 export function uniqueBrandSetVariationEntries(
   entries: { brand: string; set: string; variation: string }[]
 ): { brand: string; set: string; variation: string }[] {
@@ -198,6 +208,7 @@ export function migrateSetVariationsToBrandScope(
   return changed;
 }
 
+/** Adds a brand (and its empty set list). Mutates and returns `refs`. */
 export function addBrand(refs: References, brand: string): References {
   const name = normLabel(brand);
   if (!name) return refs;
@@ -208,6 +219,7 @@ export function addBrand(refs: References, brand: string): References {
   return refs;
 }
 
+/** Adds a set under a brand, creating the brand if needed. Mutates and returns `refs`. */
 export function addSet(refs: References, brand: string, set: string): References {
   const brandName = normLabel(brand);
   const setName = normLabel(set);
@@ -223,6 +235,7 @@ export function addSet(refs: References, brand: string, set: string): References
   return refs;
 }
 
+/** Adds a variation to a brand + set, creating both if needed. Mutates and returns `refs`. */
 export function addVariation(
   refs: References,
   brand: string,
@@ -241,6 +254,7 @@ export function addVariation(
   return refs;
 }
 
+/** Adds a player name. Mutates and returns `refs`. */
 export function addPlayer(refs: References, player: string): References {
   const name = normLabel(player);
   if (!name) return refs;
@@ -248,6 +262,7 @@ export function addPlayer(refs: References, player: string): References {
   return refs;
 }
 
+/** Adds a team. Mutates and returns `refs`. */
 export function addTeam(refs: References, team: string): References {
   const name = normLabel(team);
   if (!name) return refs;
@@ -255,6 +270,7 @@ export function addTeam(refs: References, team: string): References {
   return refs;
 }
 
+/** Adds a year when it has a valid format. Mutates and returns `refs`. */
 export function addYear(refs: References, year: string): References {
   const name = normYear(year);
   if (!name) return refs;
@@ -283,6 +299,7 @@ function addStorage(refs: References, storage: string): References {
   return refs;
 }
 
+/** Adds the default grading / protection / storage values. Mutates and returns `refs`. */
 export function applySeedAttributeReferences(refs: References): References {
   for (const grading of SEED_ATTRIBUTE_REFERENCES.grading) {
     addGrading(refs, grading);
@@ -324,6 +341,7 @@ function pruneSetGlobal(refs: References, setName: string): void {
   }
 }
 
+/** Removes a player name. Mutates and returns `refs`. */
 export function removePlayer(refs: References, player: string): References {
   const name = normLabel(player);
   if (!name) return refs;
@@ -331,6 +349,7 @@ export function removePlayer(refs: References, player: string): References {
   return refs;
 }
 
+/** Removes a team. Mutates and returns `refs`. */
 export function removeTeam(refs: References, team: string): References {
   const name = normLabel(team);
   if (!name) return refs;
@@ -338,6 +357,7 @@ export function removeTeam(refs: References, team: string): References {
   return refs;
 }
 
+/** Removes a brand with all its sets and variations. Mutates and returns `refs`. */
 export function removeBrand(refs: References, brand: string): References {
   const name = normLabel(brand);
   if (!name) return refs;
@@ -358,6 +378,7 @@ export function removeBrand(refs: References, brand: string): References {
   return refs;
 }
 
+/** Removes a set from a brand, with its variations. Mutates and returns `refs`. */
 export function removeSet(
   refs: References,
   brand: string,
@@ -389,6 +410,7 @@ export function removeSet(
   return refs;
 }
 
+/** Removes a variation from a brand + set. Mutates and returns `refs`. */
 export function removeVariation(
   refs: References,
   brand: string,

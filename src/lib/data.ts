@@ -97,6 +97,7 @@ function toReferencesFilterIndex(refs: References): ReferencesFilterIndex {
   };
 }
 
+/** One page of the filtered collection; the requested page is clamped to the last page. */
 export function getCollectionPage(query: CollectionListQuery): CardsPageResult {
   const { whereSql, params } = buildCollectionWhereClause(query);
   const totalCount = countCards(whereSql, params);
@@ -114,18 +115,22 @@ export function getCollectionPage(query: CollectionListQuery): CardsPageResult {
   return { cards, totalCount, pageCount, page, pageSize: query.pageSize };
 }
 
+/** Collection-wide totals for the dashboard. */
 export function getCollectionStats(): CollectionStats {
   return readCollectionStats();
 }
 
+/** The most recently opened cards. */
 export function getRecentCards(limit = 8) {
   return readRecentCards(limit);
 }
 
+/** One aggregated row per player for the players index. */
 export function getPlayerSummaries(): PlayerSummaryRow[] {
   return readPlayerSummaries();
 }
 
+/** Summary counters and grouped cards for a player's page. */
 export function getPlayerPageData(player: string): {
   summary: PlayerPageSummary | null;
   groups: PlayerCardGroup[];
@@ -136,10 +141,12 @@ export function getPlayerPageData(player: string): {
   };
 }
 
+/** Lookup tables derived from the references, used by the collection filters. */
 export function getReferencesFilterIndex(): ReferencesFilterIndex {
   return toReferencesFilterIndex(getReferences());
 }
 
+/** All dashboard chart series, with labels resolved against the references and locale. */
 export function getDashboardChartData(
   references: References,
   locale: Locale
@@ -185,6 +192,7 @@ export function getDashboardChartData(
   };
 }
 
+/** Groups of cards that look like duplicates, with their list items. */
 export function getDuplicateCardGroups(): DuplicateCardGroup[] {
   const rows = readDuplicateGroupRows();
   const ids = [
@@ -202,11 +210,13 @@ export function getDuplicateCardGroups(): DuplicateCardGroup[] {
   return buildDuplicateGroups(rows, cardsById);
 }
 
+/** Creates a card with the next sequential id. */
 export function createCardRecord(card: Omit<Card, "id">): Card {
   const created = insertCard({ ...card, id: getNextCardId() });
   return created;
 }
 
+/** Updates a card and deletes stored photo files that were removed from it. */
 export function editCardRecord(card: Card): Card | null {
   const existing = readCardById(card.id);
   const saved = updateCard(card);
@@ -221,6 +231,7 @@ export function editCardRecord(card: Card): Card | null {
   return saved;
 }
 
+/** Deletes a card and its stored photos. */
 export function removeCardRecord(id: string): boolean {
   const removed = deleteCard(id);
   if (removed) {
@@ -258,6 +269,7 @@ function resolveExportQuery(
   return query;
 }
 
+/** Exports the filtered (or whole) collection as CSV. */
 export function exportCardsCsv(
   query: CollectionListQuery,
   scope: "filtered" | "all"
@@ -272,6 +284,7 @@ export function exportCardsCsv(
   return cardsToCsv(cards);
 }
 
+/** Imports cards from CSV (`create` or `upsert` by id); returns counts and per-row errors. */
 export function importCardsCsv(
   csv: string,
   mode: CardCsvImportMode,
@@ -372,14 +385,17 @@ export function importCardsCsv(
 
 export { parseCollectionSearchParams } from "./collection-query";
 
+/** The whole Wanted board. */
 export function getWantedBlocks(): WantedBlock[] {
   return readWantedBlocks();
 }
 
+/** All FR-NBA checklist players. */
 export function getFrNbaPlayers(): FrNbaPlayer[] {
   return readFrNbaPlayers();
 }
 
+/** Reads the references, applies `mutator` to them in place, saves and returns them. */
 export async function mutateReferences(
   mutator: (refs: References) => void
 ): Promise<References> {
@@ -389,10 +405,12 @@ export async function mutateReferences(
   return refs;
 }
 
+/** References catalogue (cached). */
 export function getReferences(): References {
   return getCachedReferences();
 }
 
+/** Adds a Wanted board entry. */
 export function createWantedEntry(input: {
   brand: string;
   set: string;
@@ -403,32 +421,39 @@ export function createWantedEntry(input: {
   return insertWantedEntry(input);
 }
 
+/** Removes a Wanted board entry. */
 export function removeWantedEntry(id: number): boolean {
   return deleteWantedEntry(id);
 }
 
+/** A Wanted board entry by id, or null. */
 export function readWantedEntry(id: number) {
   return readWantedEntryById(id);
 }
 
+/** A shipment by id, or null. */
 export function readShipment(id: string) {
   return readShipmentById(id);
 }
 
+/** A full card by id, or null. */
 export function readCard(id: string) {
   return readCardById(id);
 }
 
+/** Shipments, optionally including received ones. */
 export function getShipments(includeReceived = false) {
   return readShipments(includeReceived);
 }
 
+/** Creates a shipment. */
 export function createShipment(
   input: Parameters<typeof insertShipment>[0]
 ) {
   return insertShipment(input);
 }
 
+/** Applies a partial update to a shipment. */
 export function editShipment(
   id: string,
   patch: Parameters<typeof updateShipment>[1]
@@ -436,14 +461,17 @@ export function editShipment(
   return updateShipment(id, patch);
 }
 
+/** Deletes a shipment. */
 export function removeShipment(id: string): boolean {
   return deleteShipment(id);
 }
 
+/** Adds a FR-NBA checklist player. */
 export function createFrNbaPlayer(player: FrNbaPlayerWrite): FrNbaPlayer {
   return insertFrNbaPlayer(player);
 }
 
+/** Updates a FR-NBA checklist player and its holdings. */
 export function editFrNbaPlayer(
   id: number,
   player: FrNbaPlayerWrite
@@ -451,6 +479,7 @@ export function editFrNbaPlayer(
   return updateFrNbaPlayer(id, player);
 }
 
+/** Health probe for the data layer. */
 export function getDataHealth(): { ok: boolean } {
   return getDatabaseHealth();
 }

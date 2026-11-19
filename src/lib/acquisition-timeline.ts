@@ -19,6 +19,7 @@ export function formatAcquisitionMonthLabel(
   }).format(date);
 }
 
+/** Turns `month_key` / `count` rows into chart data with localised month labels. */
 export function mapAcquisitionTimelineRows(
   rows: { month_key: number; count: number }[],
   locale: "fr" | "en"

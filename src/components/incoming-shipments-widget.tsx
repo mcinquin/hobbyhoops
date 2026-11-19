@@ -27,6 +27,7 @@ interface IncomingShipmentsWidgetProps {
   };
 }
 
+/** Dashboard widget listing shipments that need attention. */
 export function IncomingShipmentsWidget({
   shipments,
   labels,

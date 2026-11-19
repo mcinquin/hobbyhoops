@@ -15,6 +15,7 @@ interface BrandMarkProps {
   homeAriaLabel?: string;
 }
 
+/** App logo with its name. */
 export function BrandMark({
   className,
   logoClassName,

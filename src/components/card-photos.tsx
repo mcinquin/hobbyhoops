@@ -15,6 +15,7 @@ type CardPhotosProps = {
   className?: string;
 };
 
+/** Front / back photo viewer with a full-screen lightbox. */
 export function CardPhotos({
   player,
   photoFront,
@@ -112,11 +113,18 @@ export function CardPhotos({
           }}
           aria-label={t("cards.enlargePhoto")}
         >
+          {/* Plain <img>: photos are served as uploaded by /api/card-photos and the
+              next/image optimiser needs sharp, which the target hardware cannot run.
+              width/height only reserve a trading-card ratio (5:7) until the photo loads. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={activePhoto}
             alt={sideAlt}
-            className="mx-auto max-h-[min(70vh,36rem)] w-full object-contain"
+            width={500}
+            height={700}
+            loading="lazy"
+            decoding="async"
+            className="mx-auto h-auto max-h-[min(70vh,36rem)] w-full object-contain"
           />
           <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-3 py-2 text-left text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
             {t("cards.enlargePhotoHint")}
@@ -192,10 +200,12 @@ export function CardPhotos({
                   }
                 }}
               >
+                {/* No width/height here: "actual size" mode shows the natural size. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={activePhoto}
                   alt={sideAlt}
+                  decoding="async"
                   className={cn(
                     "rounded-sm",
                     actualSize

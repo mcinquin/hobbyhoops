@@ -8,6 +8,7 @@ function parsePositiveInt(value: string): number | null {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
+/** Whether a serial number looks damaged (e.g. a spreadsheet turned `12/99` into a date). */
 export function isLikelyCorruptedSerialNumber(value: string): boolean {
   const trimmed = value.trim();
   if (!trimmed) return false;
@@ -19,6 +20,10 @@ export function isLikelyCorruptedSerialNumber(value: string): boolean {
   return Number.isFinite(numeric) && numeric >= 10_000;
 }
 
+/**
+ * Derives `serialCurrent` / `serialTotal` from `serialNumber` (`12/99`, `/99`); clears
+ * them when empty.
+ */
 export function normalizeCardSerialFields<
   T extends Pick<Card, "serialNumber" | "serialCurrent" | "serialTotal">,
 >(card: T): T {

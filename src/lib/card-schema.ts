@@ -114,6 +114,7 @@ function translateIssueMessage(message: string, t: Translator): string {
   return message.startsWith("errors.") ? t(message) : message;
 }
 
+/** Localised `path: message` for the first validation issue. */
 export function formatZodError(error: z.ZodError, t: Translator): string {
   const issue = error.issues[0];
   if (!issue) return t("errors.invalidData");
