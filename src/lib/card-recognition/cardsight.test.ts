@@ -1,5 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  fetchCardSightUsage,
+  identifyCard,
   maskApiKey,
   parseCardSightResponse,
   parseCardSightSubscription,
@@ -171,5 +173,70 @@ describe("parseCardSightSubscription", () => {
     expect(() => parseCardSightSubscription({ api_keys: [] })).toThrow(
       RecognitionError
     );
+  });
+});
+
+describe("CardSight HTTP errors", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  function stubFetch(impl: () => Promise<Response>) {
+    vi.stubEnv("CARDSIGHT_API_KEY", "cs_test_key_1234");
+    vi.stubGlobal("fetch", vi.fn(impl));
+  }
+
+  async function errorCode(promise: Promise<unknown>): Promise<string | null> {
+    try {
+      await promise;
+      return null;
+    } catch (error) {
+      return error instanceof RecognitionError ? error.code : "other";
+    }
+  }
+
+  it("requires an API key", async () => {
+    vi.stubEnv("CARDSIGHT_API_KEY", "");
+    expect(await errorCode(fetchCardSightUsage())).toBe("unconfigured");
+  });
+
+  it.each([
+    [401, "auth"],
+    [403, "auth"],
+    [402, "quota"],
+    [429, "quota"],
+    [408, "timeout"],
+    [500, "network"],
+  ])("maps HTTP %i to %s for both endpoints", async (status, code) => {
+    stubFetch(async () => new Response("{}", { status }));
+    expect(await errorCode(fetchCardSightUsage())).toBe(code);
+    expect(await errorCode(identifyCard(Buffer.from([1]), "image/jpeg"))).toBe(code);
+  });
+
+  it("maps timeouts, network failures and invalid JSON", async () => {
+    stubFetch(async () => {
+      throw Object.assign(new Error("slow"), { name: "TimeoutError" });
+    });
+    expect(await errorCode(fetchCardSightUsage())).toBe("timeout");
+
+    stubFetch(async () => {
+      throw new Error("ECONNRESET");
+    });
+    expect(await errorCode(fetchCardSightUsage())).toBe("network");
+
+    stubFetch(async () => new Response("not json", { status: 200 }));
+    expect(await errorCode(fetchCardSightUsage())).toBe("parse");
+  });
+
+  it("returns usage with the locally masked key", async () => {
+    stubFetch(async () =>
+      Response.json({ calls: 3, api_keys: [{ key: "remote", calls: 2 }] })
+    );
+    await expect(fetchCardSightUsage()).resolves.toEqual({
+      totalCalls: 3,
+      keyMasked: maskApiKey("cs_test_key_1234"),
+      keyCalls: 2,
+    });
   });
 });

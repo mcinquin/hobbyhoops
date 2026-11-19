@@ -306,70 +306,16 @@ export function importCardsCsv(
 
   const refs = readReferencesState();
 
-  for (const row of rows) {
-    const payload = csvRowToWritePayload(row.values, mode);
-    const hasId = typeof payload.id === "string" && payload.id.trim().length > 0;
+  const pushError = (row: number, message: string) => {
+    result.errors.push({ row, message });
+  };
 
-    if (mode === "create") {
-      delete payload.id;
-      const parsed = cardCreateSchema.safeParse(payload);
-      if (!parsed.success) {
-        result.errors.push({
-          row: row.rowNumber,
-          message: formatZodError(parsed.error, t),
-        });
-        continue;
-      }
-
-      const card = normalizeCardSerialFields({
-        ...parsed.data,
-        openingDate: parsed.data.openingDate ?? formatTodayOpeningDateFr(),
-      });
-      const created = insertCard({ ...card, id: getNextCardId() });
-      syncReferencesFromCard(refs, created);
-      result.created += 1;
-      continue;
-    }
-
-    if (hasId) {
-      const parsed = cardUpdateSchema.safeParse(payload);
-      if (!parsed.success) {
-        result.errors.push({
-          row: row.rowNumber,
-          message: formatZodError(parsed.error, t),
-        });
-        continue;
-      }
-
-      const card = normalizeCardSerialFields(parsed.data);
-      const existing = readCardById(card.id);
-      if (existing) {
-        const saved = updateCard(card);
-        if (!saved) {
-          result.errors.push({
-            row: row.rowNumber,
-            message: t("errors.cardNotFound"),
-          });
-          continue;
-        }
-        syncReferencesFromCard(refs, saved);
-        result.updated += 1;
-        continue;
-      }
-
-      const created = insertCard(card);
-      syncReferencesFromCard(refs, created);
-      result.created += 1;
-      continue;
-    }
-
+  /** Creates a new card (fresh id, default opening date) from a CSV row payload. */
+  const createFromPayload = (rowNumber: number, payload: unknown) => {
     const parsed = cardCreateSchema.safeParse(payload);
     if (!parsed.success) {
-      result.errors.push({
-        row: row.rowNumber,
-        message: formatZodError(parsed.error, t),
-      });
-      continue;
+      pushError(rowNumber, formatZodError(parsed.error, t));
+      return;
     }
 
     const card = normalizeCardSerialFields({
@@ -377,6 +323,45 @@ export function importCardsCsv(
       openingDate: parsed.data.openingDate ?? formatTodayOpeningDateFr(),
     });
     const created = insertCard({ ...card, id: getNextCardId() });
+    syncReferencesFromCard(refs, created);
+    result.created += 1;
+  };
+
+  for (const row of rows) {
+    const payload = csvRowToWritePayload(row.values, mode);
+    const hasId = typeof payload.id === "string" && payload.id.trim().length > 0;
+
+    if (mode === "create") {
+      delete payload.id;
+      createFromPayload(row.rowNumber, payload);
+      continue;
+    }
+
+    if (!hasId) {
+      createFromPayload(row.rowNumber, payload);
+      continue;
+    }
+
+    // Upsert with an explicit id: update when it exists, otherwise insert as-is.
+    const parsed = cardUpdateSchema.safeParse(payload);
+    if (!parsed.success) {
+      pushError(row.rowNumber, formatZodError(parsed.error, t));
+      continue;
+    }
+
+    const card = normalizeCardSerialFields(parsed.data);
+    if (readCardById(card.id)) {
+      const saved = updateCard(card);
+      if (!saved) {
+        pushError(row.rowNumber, t("errors.cardNotFound"));
+        continue;
+      }
+      syncReferencesFromCard(refs, saved);
+      result.updated += 1;
+      continue;
+    }
+
+    const created = insertCard(card);
     syncReferencesFromCard(refs, created);
     result.created += 1;
   }
