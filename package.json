@@ -20,6 +20,7 @@
     "ci:full": "node scripts/ci.mjs --with-audit",
     "check": "npm run ci",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "db:migrate": "node scripts/migrate-db.mjs",
     "clean": "node scripts/clean.mjs",
     "optimize:logo": "node scripts/optimize-logo.mjs",
@@ -53,6 +54,7 @@
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",
     "@commitlint/config-conventional": "^21.0.2",
+    "@playwright/test": "^1.65.1",
     "@semantic-release/changelog": "^7.0.0",
     "@semantic-release/git": "^11.0.1",
     "@semantic-release/github": "^12.0.11",

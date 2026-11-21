@@ -25,6 +25,7 @@ const eslintConfig = defineConfig([
     "postcss.config.mjs",
     "release.config.cjs",
     "scripts/**",
+    "e2e/.tmp/**",
   ]),
 ]);
 

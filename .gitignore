@@ -29,6 +29,8 @@ Thumbs.db
 
 # Test / coverage
 coverage/
+# Playwright: per-run data, traces, report
+/e2e/.tmp/
 
 # Misc
 *.pem
