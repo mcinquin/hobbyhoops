@@ -1,3 +1,13 @@
+# [2.4.0](https://github.com/mcinquin/hobbyhoops/compare/v2.3.11...v2.4.0) (2026-11-21)
+
+### Bug Fixes
+
+* **cards:** report prefilled fields after CardSight recognition ([9bfc054](https://github.com/mcinquin/hobbyhoops/commit/9bfc054d0262f5b0f893dfbd816f1aaec680d24d))
+
+### Features
+
+* **cards:** add brands and sets inline from the admin card form ([3d3969e](https://github.com/mcinquin/hobbyhoops/commit/3d3969e099770c7040fb96a5638ebdbb55e9a971))
+
 ## [2.3.11](https://github.com/mcinquin/hobbyhoops/compare/v2.3.10...v2.3.11) (2026-11-20)
 
 ### Dependencies
