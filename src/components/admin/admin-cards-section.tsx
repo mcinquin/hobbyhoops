@@ -574,7 +574,6 @@ export function AdminCardsSection({
         card={editingCard}
         references={references}
         open={formOpen}
-        manageReferences={false}
         onClose={() => {
           setFormOpen(false);
           setEditingCard(null);
