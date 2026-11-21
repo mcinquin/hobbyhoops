@@ -1,4 +1,7 @@
-import { normalizeCardSerialFields } from "@/lib/card-serial";
+import {
+  isLikelyCorruptedSerialNumber,
+  normalizeCardSerialFields,
+} from "@/lib/card-serial";
 import { normalizeOpeningDate } from "@/lib/opening-date";
 import { REFERENCE_YEAR_REGEX } from "@/lib/reference-mutations";
 import { normalizeVariationLabel } from "@/lib/variation-label";
@@ -127,6 +130,21 @@ export function buildCardWritePayload(
       notes: asTrimmedString(form.notes),
     })
   );
+}
+
+/**
+ * Checks the serial number as typed in the form, before `buildCardWritePayload`
+ * normalises it (which would silently drop a value mangled by a spreadsheet,
+ * e.g. `12/99` turned into a date serial such as `45658`).
+ *
+ * @returns an i18n error key, or null when valid.
+ */
+export function validateCardSerialInput(value: string | null | undefined): string | null {
+  const serial = asTrimmedString(value);
+  if (serial && isLikelyCorruptedSerialNumber(serial)) {
+    return "errors.invalidSerialFormat";
+  }
+  return null;
 }
 
 /** Client-side required-field check; returns an i18n error key, or null when valid. */

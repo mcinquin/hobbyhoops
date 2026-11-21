@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useMemo, useId, type ComponentProps } from "react";
+import { flushSync } from "react-dom";
 import { Card, References } from "@/lib/types";
 import {
   buildCardWritePayload,
   splitGrading,
+  validateCardSerialInput,
   validateCardWritePayload,
 } from "@/lib/card-write";
 import { Button } from "@/components/ui/button";
@@ -35,6 +37,10 @@ import {
   uploadCardPhoto,
 } from "@/lib/cards-client";
 import type { CardRecognitionSuggestion } from "@/lib/card-recognition/types";
+import {
+  applyRecognitionSuggestion,
+  type RecognitionPrefillField,
+} from "@/lib/recognition-prefill";
 import { isLocalCardPhotoUrl } from "@/lib/card-photo-constants";
 
 interface CardFormProps {
@@ -46,7 +52,7 @@ interface CardFormProps {
   onSave: (card: Partial<Card>) => Card | false | Promise<Card | false>;
   /** Appelé après sauvegarde + upload photos réussis, juste avant onClose. */
   onSaved?: (card: Card) => void;
-  /** Affiche l’ajout de marques/sets dans le formulaire (désactivé dans l’admin cartes). */
+  /** Affiche l’ajout de marques/sets dans le formulaire (requiert `onReferencesUpdated`). */
   manageReferences?: boolean;
   /** Après ajout marque/set via l’API, recharger les références (ex. refetch GET /api/references). */
   onReferencesUpdated?: () => Promise<void>;
@@ -214,7 +220,9 @@ function CardFormFields({
     e.preventDefault();
     if (saving) return;
     const payload = buildCardWritePayload(form, gradingNote);
-    const validationError = validateCardWritePayload(payload);
+    const validationError =
+      validateCardSerialInput(form.serialNumber) ??
+      validateCardWritePayload(payload);
     if (validationError) {
       setRefError(t(validationError));
       setRefSuccess(null);
@@ -316,49 +324,34 @@ function CardFormFields({
   );
   const canRecognize = Boolean(pendingFront) || storedFrontAvailable;
 
-  /** Préremplit uniquement les champs vides ; n'écrase jamais une saisie. */
+  const prefillLabels: Record<RecognitionPrefillField, string> = {
+    player: t("cards.player"),
+    year: t("cards.year"),
+    brand: t("cards.brand"),
+    set: t("cards.set"),
+    variation: t("cards.variation"),
+    cardNumber: t("cards.cardNum"),
+    serialNumber: t("cards.serialNum"),
+    rookie: t("badges.rookie"),
+    autograph: t("cards.autograph"),
+    memorabilia: t("cards.memorabiliaLabel"),
+  };
+
+  /**
+   * Préremplit uniquement les champs vides ; n'écrase jamais une saisie.
+   * `flushSync` exécute l'updater tout de suite (on est après un `await`) pour
+   * savoir quels champs ont été remplis — sinon la liste serait encore vide.
+   */
   function applySuggestion(suggestion: CardRecognitionSuggestion): string[] {
-    const applied: string[] = [];
-    setForm((prev) => {
-      const next = { ...prev };
-      const fillText = (
-        field: "player" | "year" | "brand" | "set" | "variation" | "cardNumber",
-        value: string,
-        label: string
-      ) => {
-        if (!value) return;
-        const current = (next[field] ?? "") as string;
-        if (current.trim()) return;
-        next[field] = value;
-        applied.push(label);
-      };
-
-      fillText("player", suggestion.player, t("cards.player"));
-      fillText("year", suggestion.year, t("cards.year"));
-      fillText("brand", suggestion.brand, t("cards.brand"));
-      fillText("set", suggestion.set, t("cards.set"));
-      fillText("variation", suggestion.variation, t("cards.variation"));
-      fillText("cardNumber", suggestion.cardNumber, t("cards.cardNum"));
-
-      if (suggestion.serialTotal && !(next.serialNumber ?? "").trim()) {
-        next.serialNumber = `/${suggestion.serialTotal}`;
-        applied.push(t("cards.serialNum"));
-      }
-      if (suggestion.rookie && !next.rookie) {
-        next.rookie = true;
-        applied.push(t("badges.rookie"));
-      }
-      if (suggestion.autograph && !next.autograph) {
-        next.autograph = true;
-        applied.push(t("cards.autograph"));
-      }
-      if (suggestion.memorabilia && !next.memorabilia) {
-        next.memorabilia = true;
-        applied.push(t("cards.memorabiliaLabel"));
-      }
-      return next;
+    let applied: RecognitionPrefillField[] = [];
+    flushSync(() => {
+      setForm((prev) => {
+        const result = applyRecognitionSuggestion(prev, suggestion);
+        applied = result.applied;
+        return result.form;
+      });
     });
-    return applied;
+    return applied.map((field) => prefillLabels[field]);
   }
 
   async function handleRecognize() {
@@ -501,8 +494,9 @@ function CardFormFields({
             </div>
 
             <div className="space-y-2 col-span-2">
-              <Label>{t("cards.brand")}</Label>
+              <Label htmlFor={`${formId}-brand`}>{t("cards.brand")}</Label>
               <FormCombobox
+                id={`${formId}-brand`}
                 value={form.brand || ""}
                 onChange={updateBrand}
                 suggestions={references.brands}
@@ -514,6 +508,7 @@ function CardFormFields({
                     <Input
                       value={newBrand}
                       onChange={(e) => setNewBrand(e.target.value)}
+                      aria-label={t("cards.newBrand")}
                       placeholder={t("cards.placeholderBrand")}
                       disabled={addingBrand}
                     />
@@ -533,7 +528,7 @@ function CardFormFields({
             </div>
 
             <div className="space-y-2 col-span-2">
-              <Label>{t("cards.set")}</Label>
+              <Label htmlFor={`${formId}-set`}>{t("cards.set")}</Label>
               {brandKey ? (
                 <p className="text-xs text-muted-foreground">
                   {setsForBrand.length > 0
@@ -549,6 +544,7 @@ function CardFormFields({
                 </p>
               )}
               <FormCombobox
+                id={`${formId}-set`}
                 value={form.set || ""}
                 onChange={updateSet}
                 suggestions={setsForBrand}
@@ -560,6 +556,7 @@ function CardFormFields({
                     <Input
                       value={newSet}
                       onChange={(e) => setNewSet(e.target.value)}
+                      aria-label={t("cards.newSet")}
                       placeholder={
                         brandKey
                           ? t("cards.placeholderSetUnderBrand", { brand: brandKey })
@@ -583,7 +580,7 @@ function CardFormFields({
             </div>
 
             <div className="space-y-2 col-span-2">
-              <Label>{t("cards.variation")}</Label>
+              <Label htmlFor={`${formId}-variation`}>{t("cards.variation")}</Label>
               {setKey ? (
                 <p className="text-xs text-muted-foreground">
                   {variationsForSet.length > 0
@@ -599,6 +596,7 @@ function CardFormFields({
                 </p>
               )}
               <FormCombobox
+                id={`${formId}-variation`}
                 value={form.variation || ""}
                 onChange={(value) => update("variation", value)}
                 suggestions={variationsForSet}
@@ -606,16 +604,18 @@ function CardFormFields({
             </div>
 
             <div className="space-y-2">
-              <Label>{t("cards.cardNum")}</Label>
+              <Label htmlFor={`${formId}-card-number`}>{t("cards.cardNum")}</Label>
               <Input
+                id={`${formId}-card-number`}
                 value={form.cardNumber || ""}
                 onChange={(e) => update("cardNumber", e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>{t("cards.serialNum")}</Label>
+              <Label htmlFor={`${formId}-serial`}>{t("cards.serialNum")}</Label>
               <Input
+                id={`${formId}-serial`}
                 value={form.serialNumber || ""}
                 onChange={(e) =>
                   update("serialNumber", e.target.value || null)

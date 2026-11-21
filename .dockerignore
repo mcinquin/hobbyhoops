@@ -16,6 +16,10 @@ coverage
 # Local runtime data
 data/
 
+# End-to-end tests (Playwright, dev only)
+e2e/
+playwright.config.ts
+
 # Dev / docs
 *.md
 !README.md
