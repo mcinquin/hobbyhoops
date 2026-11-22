@@ -2,46 +2,51 @@
 
 import type { Card } from "@/lib/types";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { OpeningDateInput } from "@/components/opening-date-input";
 import { useTranslations } from "@/i18n/client";
-import type { UpdateCardField } from "./use-card-form-state";
+import { FieldLabel } from "./field-label";
+import { FlagsSection } from "./flags-section";
+import type { CardFormState } from "./use-card-form-state";
 
 interface NumberingSectionProps {
   formId: string;
-  form: Partial<Card>;
-  update: UpdateCardField;
+  state: Pick<CardFormState, "form" | "update" | "updateSerialNumber" | "isPrefilled">;
 }
 
-/** Card form block: card number, serial number and opening date. */
-export function NumberingSection({ formId, form, update }: NumberingSectionProps) {
+/** Catalog step block: card number, serial number (`12/99`), Autograph and Memorabilia. */
+export function NumberingSection({ formId, state }: NumberingSectionProps) {
   const t = useTranslations();
+  const { form, update, updateSerialNumber, isPrefilled } = state;
+  const id = (field: keyof Card) => `${formId}-${field}`;
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor={`${formId}-card-number`}>{t("cards.cardNum")}</Label>
+        <FieldLabel htmlFor={id("cardNumber")} isPrefilled={isPrefilled("cardNumber")}>
+          {t("cards.cardNum")}
+        </FieldLabel>
         <Input
-          id={`${formId}-card-number`}
+          id={id("cardNumber")}
           value={form.cardNumber || ""}
           onChange={(e) => update("cardNumber", e.target.value)}
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={`${formId}-serial`}>{t("cards.serialNum")}</Label>
+        <FieldLabel htmlFor={id("serialNumber")} isPrefilled={isPrefilled("serialNumber")}>
+          {t("cards.serialNum")}
+        </FieldLabel>
         <Input
-          id={`${formId}-serial`}
+          id={id("serialNumber")}
           value={form.serialNumber || ""}
-          onChange={(e) => update("serialNumber", e.target.value || null)}
+          onChange={(e) => updateSerialNumber(e.target.value || null)}
           placeholder={t("cards.placeholderSerial")}
         />
       </div>
 
-      <OpeningDateInput
-        id={`${formId}-opening-date`}
-        label={t("cards.openingDate")}
-        value={form.openingDate ?? null}
-        onChange={(value) => update("openingDate", value)}
+      <FlagsSection
+        fields={["autograph", "memorabilia"]}
+        form={form}
+        update={update}
+        isPrefilled={isPrefilled}
       />
     </>
   );

@@ -1,6 +1,14 @@
 import { expect, test, type Locator } from "@playwright/test";
 import { t } from "./support/i18n";
-import { listCards, newAdminApi, seedBrands, uniqueToken } from "./support/seed";
+import { activePanel, expectStep, nextStep, stepper } from "./support/card-form";
+import {
+  fetchCard,
+  listCards,
+  newAdminApi,
+  seedBrands,
+  seedCards,
+  uniqueToken,
+} from "./support/seed";
 
 /** Text of the suggestions currently listed under a form combobox, sorted. */
 async function optionTexts(dialog: Locator): Promise<string[]> {
@@ -36,11 +44,23 @@ test("add a card: brand → set → variation cascade and serial parsing", async
   const dialog = page.getByRole("dialog", { name: t("cards.addTitle") });
   await expect(dialog).toBeVisible();
 
+  // A new card starts on the photo step, which can be skipped without a photo.
+  await expectStep(dialog, "photos");
+  await dialog.getByRole("button", { name: t("cards.steps.skipPhotos") }).click();
+  await expectStep(dialog, "identity");
+
+  // "Next" checks the current step only: the player is required.
+  await dialog.getByRole("button", { name: t("cards.steps.next") }).click();
+  await expect(dialog.getByRole("alert")).toHaveText(t("errors.playerRequired"));
+  await expectStep(dialog, "identity");
+  await expect(dialog.getByLabel(t("cards.player"), { exact: true })).toBeFocused();
+
   const brandInput = dialog.getByLabel(t("cards.brand"), { exact: true });
   const setInput = dialog.getByLabel(t("cards.set"), { exact: true });
   const variationInput = dialog.getByLabel(t("cards.variation"), { exact: true });
 
   await dialog.getByLabel(t("cards.player"), { exact: true }).fill(player);
+  await nextStep(dialog, "catalog");
 
   // Brand narrows the set suggestions to that brand's sets.
   await brandInput.fill(brand);
@@ -82,12 +102,25 @@ test("add a card: brand → set → variation cascade and serial parsing", async
   });
   const serialInput = dialog.getByLabel(t("cards.serialNum"));
   await serialInput.fill("45658");
-  await dialog.getByRole("button", { name: t("cards.addCard") }).click();
+  await dialog.getByRole("button", { name: t("cards.steps.next") }).click();
   await expect(dialog.getByRole("alert")).toHaveText(t("errors.invalidSerialFormat"));
+  await expectStep(dialog, "catalog");
   expect(cardWrites).toHaveLength(0);
 
   // `12/99` is split into the copy number and the print run.
   await serialInput.fill("12/99");
+  await nextStep(dialog, "condition");
+
+  // Every step stays filled in: going back shows what was typed.
+  await stepper(dialog).getByRole("button", { name: t("cards.steps.identity") }).click();
+  await expectStep(dialog, "identity");
+  await expect(dialog.getByLabel(t("cards.player"), { exact: true })).toHaveValue(player);
+  await stepper(dialog).getByRole("button", { name: t("cards.steps.condition") }).click();
+  await expectStep(dialog, "condition");
+
+  await expect(activePanel(dialog).getByTestId("card-summary")).toHaveText(
+    `${player} · ${brand} ${setA} Silver ${token} · #23 · 12/99`
+  );
   await dialog.getByRole("button", { name: t("cards.addCard") }).click();
   await expect(dialog).toBeHidden();
   await expect(page.getByText(t("admin.cards.created"))).toBeVisible();
@@ -122,7 +155,9 @@ test("add a brand and a set inline from the card form", async ({ page, playwrigh
   await page.goto("/admin");
   await page.getByRole("button", { name: t("admin.cards.addCard") }).click();
   const dialog = page.getByRole("dialog", { name: t("cards.addTitle") });
+  await dialog.getByRole("button", { name: t("cards.steps.skipPhotos") }).click();
   await dialog.getByLabel(t("cards.player"), { exact: true }).fill(player);
+  await nextStep(dialog, "catalog");
 
   // A set needs a brand first.
   const newSet = dialog.getByLabel(t("cards.newSet"));
@@ -149,6 +184,7 @@ test("add a brand and a set inline from the card form", async ({ page, playwrigh
     dialog.getByText(t("cards.setsForBrandListed", { brand, count: 1 }))
   ).toBeVisible();
 
+  await nextStep(dialog, "condition");
   await dialog.getByRole("button", { name: t("cards.addCard") }).click();
   await expect(dialog).toBeHidden();
 
@@ -161,5 +197,48 @@ test("add a brand and a set inline from the card form", async ({ page, playwrigh
   expect(references.brandSets[brand]).toEqual([set]);
   const cards = await listCards(api, { brand, set });
   expect(cards.map((card) => card.player)).toEqual([player]);
+  await api.dispose();
+});
+
+test("edit a card: opens on the identity step and errors point to their step", async ({
+  page,
+  playwright,
+}) => {
+  const token = uniqueToken();
+  const player = `Edit Player ${token}`;
+  const api = await newAdminApi(playwright);
+  const [card] = await seedCards(api, [
+    { player, brand: `Edit Brand ${token}`, serialNumber: "5/10", notes: "before" },
+  ]);
+
+  await page.goto(`/admin?${new URLSearchParams({ player })}`);
+  await page.getByRole("button", { name: t("admin.cards.editCard", { player }) }).click();
+  const dialog = page.getByRole("dialog", { name: t("cards.editTitle") });
+  await expectStep(dialog, "identity");
+  await expect(dialog.getByLabel(t("cards.player"), { exact: true })).toHaveValue(player);
+
+  // An invalid serial left on the catalog step brings the save back to that step.
+  await nextStep(dialog, "catalog");
+  await dialog.getByLabel(t("cards.serialNum")).fill("45658");
+  await dialog.getByRole("button", { name: t("cards.steps.back") }).click();
+  await expectStep(dialog, "identity");
+  await dialog.getByRole("button", { name: t("common.save") }).click();
+  await expectStep(dialog, "catalog");
+  await expect(dialog.getByRole("alert")).toHaveText(t("errors.invalidSerialFormat"));
+  await expect(dialog.getByLabel(t("cards.serialNum"))).toBeFocused();
+
+  // An existing card can be saved from any step.
+  await dialog.getByLabel(t("cards.serialNum")).fill("7/10");
+  await stepper(dialog).getByRole("button", { name: t("cards.steps.condition") }).click();
+  await dialog.getByLabel(t("cards.notesOptional")).fill("after");
+  await dialog.getByRole("button", { name: t("common.save") }).click();
+  await expect(dialog).toBeHidden();
+
+  expect(await fetchCard(api, card.id)).toMatchObject({
+    player,
+    serialNumber: "7/10",
+    serialCurrent: 7,
+    notes: "after",
+  });
   await api.dispose();
 });

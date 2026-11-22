@@ -1,32 +1,31 @@
 "use client";
 
 import type { Card, References } from "@/lib/types";
-import { Label } from "@/components/ui/label";
 import { useTranslations } from "@/i18n/client";
+import { FieldLabel } from "./field-label";
+import { FlagsSection } from "./flags-section";
 import { FormCombobox } from "./form-combobox";
-import type { UpdateCardField } from "./use-card-form-state";
+import type { CardFormState } from "./use-card-form-state";
 
 interface IdentitySectionProps {
   formId: string;
-  form: Partial<Card>;
   references: References;
-  update: UpdateCardField;
+  state: Pick<CardFormState, "form" | "update" | "isPrefilled">;
 }
 
-/** Card form block: player, team and year (cells of the parent grid). */
-export function IdentitySection({
-  formId,
-  form,
-  references,
-  update,
-}: IdentitySectionProps) {
+/** Identity step: player (required), team, year, Rookie and WNBA. */
+export function IdentitySection({ formId, references, state }: IdentitySectionProps) {
   const t = useTranslations();
+  const { form, update, isPrefilled } = state;
+  const id = (field: keyof Card) => `${formId}-${field}`;
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor={`${formId}-player`}>{t("cards.player")}</Label>
+        <FieldLabel htmlFor={id("player")} isPrefilled={isPrefilled("player")}>
+          {t("cards.player")}
+        </FieldLabel>
         <FormCombobox
-          id={`${formId}-player`}
+          id={id("player")}
           value={form.player || ""}
           onChange={(value) => update("player", value)}
           suggestions={references.players}
@@ -35,9 +34,9 @@ export function IdentitySection({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={`${formId}-team`}>{t("cards.club")}</Label>
+        <FieldLabel htmlFor={id("team")}>{t("cards.club")}</FieldLabel>
         <FormCombobox
-          id={`${formId}-team`}
+          id={id("team")}
           value={form.team || ""}
           onChange={(value) => update("team", value)}
           suggestions={references.teams}
@@ -45,14 +44,23 @@ export function IdentitySection({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={`${formId}-year`}>{t("cards.year")}</Label>
+        <FieldLabel htmlFor={id("year")} isPrefilled={isPrefilled("year")}>
+          {t("cards.year")}
+        </FieldLabel>
         <FormCombobox
-          id={`${formId}-year`}
+          id={id("year")}
           value={form.year || ""}
           onChange={(value) => update("year", value)}
           suggestions={references.years}
         />
       </div>
+
+      <FlagsSection
+        fields={["rookie", "wnba"]}
+        form={form}
+        update={update}
+        isPrefilled={isPrefilled}
+      />
     </>
   );
 }

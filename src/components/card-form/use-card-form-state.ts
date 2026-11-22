@@ -17,40 +17,17 @@ import {
 import { isLocalCardPhotoUrl } from "@/lib/card-photo-constants";
 import { useTranslations } from "@/i18n/client";
 import { usePendingPhoto } from "./use-pending-photo";
+import { EMPTY_CARD } from "./empty-card";
 
 export type { PendingPhoto } from "./use-pending-photo";
-
-const emptyCard: Partial<Card> = {
-  player: "",
-  team: "",
-  year: null,
-  brand: "",
-  set: "",
-  variation: "",
-  autograph: false,
-  memorabilia: false,
-  serialNumber: null,
-  serialCurrent: null,
-  serialTotal: null,
-  cardNumber: "",
-  grading: "Ungraded",
-  openingDate: null,
-  protection: "",
-  storage: "",
-  photoFront: null,
-  photoBack: null,
-  tradable: false,
-  rookie: false,
-  wnba: false,
-  notes: "",
-};
 
 /** Updates a single field of the card being edited. */
 export type UpdateCardField = (field: keyof Card, value: unknown) => void;
 
 /**
  * State of the card form: field values with brand → set → variation cascade,
- * grade note, pending photos, inline feedback and CardSight recognition.
+ * grade note, pending photos, inline feedback and CardSight recognition
+ * (with a marker on the fields it filled, until they are edited).
  */
 export function useCardFormState(
   card: Partial<Card> | null | undefined,
@@ -59,7 +36,7 @@ export function useCardFormState(
   const t = useTranslations();
   const [form, setForm] = useState<Partial<Card>>(() => {
     if (!card) {
-      return { ...emptyCard };
+      return { ...EMPTY_CARD };
     }
     const { company } = splitGrading(card.grading);
     return { ...card, grading: company };
@@ -73,6 +50,19 @@ export function useCardFormState(
   const [recognizeNote, setRecognizeNote] = useState<string | null>(null);
   const front = usePendingPhoto();
   const back = usePendingPhoto();
+  const [prefilled, setPrefilled] = useState<ReadonlySet<RecognitionPrefillField>>(
+    () => new Set()
+  );
+
+  /** Drops the recognition marker of a field the user has just edited. */
+  const forgetPrefill = (field: keyof Card) => {
+    setPrefilled((prev) => {
+      if (!prev.has(field as RecognitionPrefillField)) return prev;
+      const next = new Set(prev);
+      next.delete(field as RecognitionPrefillField);
+      return next;
+    });
+  };
 
   const brandKey = (form.brand ?? "").trim();
   const setKey = (form.set ?? "").trim();
@@ -86,10 +76,23 @@ export function useCardFormState(
   );
 
   const update: UpdateCardField = (field, value) => {
+    forgetPrefill(field);
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  /** Serial text edited: drop the copy number / print run so they are parsed again from it. */
+  const updateSerialNumber = (value: string | null) => {
+    forgetPrefill("serialNumber");
+    setForm((prev) => ({
+      ...prev,
+      serialNumber: value,
+      serialCurrent: null,
+      serialTotal: null,
+    }));
+  };
+
   const updateBrand = (value: string) => {
+    forgetPrefill("brand");
     setForm((prev) => {
       const b = value.trim();
       const available = setsLinkedToBrand(references, b);
@@ -103,6 +106,7 @@ export function useCardFormState(
   };
 
   const updateSet = (value: string) => {
+    forgetPrefill("set");
     setForm((prev) => {
       const s = value.trim();
       const available = variationsLinkedToBrandSet(
@@ -159,6 +163,9 @@ export function useCardFormState(
         return result.form;
       });
     });
+    if (applied.length > 0) {
+      setPrefilled((prev) => new Set([...prev, ...applied]));
+    }
     return applied.map((field) => prefillLabels[field]);
   }
 
@@ -202,9 +209,15 @@ export function useCardFormState(
     }
   }
 
+  /** Whether a field still holds the value CardSight filled in. */
+  const isPrefilled = (field: keyof Card) =>
+    prefilled.has(field as RecognitionPrefillField) && Boolean(form[field]);
+
   return {
     form,
+    isPrefilled,
     update,
+    updateSerialNumber,
     updateBrand,
     updateSet,
     brandKey,

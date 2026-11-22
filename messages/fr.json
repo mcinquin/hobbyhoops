@@ -467,7 +467,23 @@
     "activeSet": "Set = {value}",
     "activeVariation": "Variation = {value}",
     "removeFilter": "Retirer le filtre {filter}",
-    "resetFilters": "Réinitialiser"
+    "resetFilters": "Réinitialiser",
+    "steps": {
+      "label": "Étapes du formulaire de carte",
+      "progress": "Étape {current} sur {total}",
+      "photos": "Photos",
+      "identity": "Identité",
+      "catalog": "Catalogue",
+      "condition": "État et rangement",
+      "next": "Suivant",
+      "back": "Précédent",
+      "skipPhotos": "Pas de photo ? Passer cette étape",
+      "prefilled": "Prérempli par la reconnaissance",
+      "summary": "Récapitulatif",
+      "summaryNoPhoto": "Pas de photo",
+      "fieldInvalid": "{field} : valeur invalide.",
+      "errorOnStep": "{step} : {message}"
+    }
   },
   "admin": {
     "title": "Admin",

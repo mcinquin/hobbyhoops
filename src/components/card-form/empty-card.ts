@@ -1,0 +1,27 @@
+import type { Card } from "@/lib/types";
+
+/** Initial values of the form for a new card. */
+export const EMPTY_CARD: Readonly<Partial<Card>> = {
+  player: "",
+  team: "",
+  year: null,
+  brand: "",
+  set: "",
+  variation: "",
+  autograph: false,
+  memorabilia: false,
+  serialNumber: null,
+  serialCurrent: null,
+  serialTotal: null,
+  cardNumber: "",
+  grading: "Ungraded",
+  openingDate: null,
+  protection: "",
+  storage: "",
+  photoFront: null,
+  photoBack: null,
+  tradable: false,
+  rookie: false,
+  wnba: false,
+  notes: "",
+};

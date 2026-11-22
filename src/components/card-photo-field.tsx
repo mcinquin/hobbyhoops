@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useId, useMemo } from "react";
+import { useId } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cardPhotoFileInputAccept } from "@/lib/card-photo-constants";
 import { useTranslations } from "@/i18n/client";
+import { useObjectUrl } from "@/hooks/use-object-url";
 
 type CardPhotoFieldProps = {
   side: "front" | "back";
@@ -32,15 +33,7 @@ export function CardPhotoField({
 }: CardPhotoFieldProps) {
   const t = useTranslations();
   const inputId = useId();
-  const previewUrl = useMemo(
-    () => (file ? URL.createObjectURL(file) : null),
-    [file]
-  );
-
-  useEffect(() => {
-    if (!previewUrl) return;
-    return () => URL.revokeObjectURL(previewUrl);
-  }, [previewUrl]);
+  const previewUrl = useObjectUrl(file);
 
   const shownUrl = file ? previewUrl : cleared ? null : existingUrl;
   const hasExisting = Boolean(existingUrl) && !cleared && !file;

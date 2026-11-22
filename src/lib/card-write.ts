@@ -3,7 +3,6 @@ import {
   normalizeCardSerialFields,
 } from "@/lib/card-serial";
 import { normalizeOpeningDate } from "@/lib/opening-date";
-import { REFERENCE_YEAR_REGEX } from "@/lib/reference-mutations";
 import { normalizeVariationLabel } from "@/lib/variation-label";
 import type { Card } from "@/lib/types";
 
@@ -143,22 +142,6 @@ export function validateCardSerialInput(value: string | null | undefined): strin
   const serial = asTrimmedString(value);
   if (serial && isLikelyCorruptedSerialNumber(serial)) {
     return "errors.invalidSerialFormat";
-  }
-  return null;
-}
-
-/** Client-side required-field check; returns an i18n error key, or null when valid. */
-export function validateCardWritePayload(payload: Record<string, unknown>): string | null {
-  if (!asTrimmedString(payload.player)) {
-    return "errors.playerRequired";
-  }
-  const year = asNullableString(payload.year);
-  if (year && !REFERENCE_YEAR_REGEX.test(year)) {
-    return "errors.yearInvalid";
-  }
-  const openingDate = asNullableString(payload.openingDate);
-  if (openingDate && !normalizeOpeningDate(openingDate)) {
-    return "errors.openingDateInvalid";
   }
   return null;
 }
