@@ -40,9 +40,16 @@ export function CardFormStepper({
           const isDone = index < currentIndex && visited.has(step);
           const isReachable = !isCurrent && (isFreeNavigation || visited.has(step));
           return (
-            <li key={step} className="flex min-w-0 flex-1 items-center gap-1 sm:gap-2">
+            // Steps keep their natural width; the separators take the space left.
+            <li
+              key={step}
+              className={cn(
+                "flex items-center gap-1 sm:gap-2",
+                index === 0 ? "shrink-0" : "min-w-0 flex-auto"
+              )}
+            >
               {index > 0 ? (
-                <span aria-hidden className="h-px w-2 shrink-0 bg-border sm:w-4" />
+                <span aria-hidden className="h-px min-w-2 flex-1 bg-border" />
               ) : null}
               <button
                 type="button"
@@ -50,7 +57,7 @@ export function CardFormStepper({
                 aria-current={isCurrent ? "step" : undefined}
                 onClick={() => isReachable && onSelect(step)}
                 className={cn(
-                  "flex min-w-0 items-center gap-1.5 rounded-md px-1 py-1 text-left transition-colors",
+                  "flex min-w-0 shrink items-center gap-1.5 rounded-md px-1 py-1 text-left transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   isCurrent ? "font-semibold text-foreground" : "text-muted-foreground",
                   isReachable && "hover:text-foreground",

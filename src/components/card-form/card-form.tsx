@@ -61,7 +61,7 @@ export function CardForm({ open, onClose, ...rest }: CardFormProps) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
         {open ? (
           <CardFormFields key={formSeed} {...rest} onClose={onClose} formId={formId} />
         ) : null}
