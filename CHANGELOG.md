@@ -1,3 +1,9 @@
+# [2.5.0](https://github.com/mcinquin/hobbyhoops/compare/v2.4.0...v2.5.0) (2026-11-22)
+
+### Features
+
+* **collection:** multi-step add/edit card form ([791f1c5](https://github.com/mcinquin/hobbyhoops/commit/791f1c56bace445a8f9454156dae5b9e6d704459)), closes [#303](https://github.com/mcinquin/hobbyhoops/issues/303)
+
 # [2.4.0](https://github.com/mcinquin/hobbyhoops/compare/v2.3.11...v2.4.0) (2026-11-21)
 
 ### Bug Fixes
