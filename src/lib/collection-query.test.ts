@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildCollectionWhereClause,
+  columnFilterPatch,
   parseCollectionSearchParams,
 } from "@/lib/collection-query";
 
@@ -90,5 +91,28 @@ describe("withBrandScopedFilters", () => {
       new URLSearchParams("brand=Panini&set=Prizm&variation=Silver")
     );
     expect(query).toMatchObject({ brand: "Panini", set: "Prizm", variation: "Silver" });
+  });
+});
+
+describe("columnFilterPatch", () => {
+  it("resets set and variation when the brand changes", () => {
+    expect(columnFilterPatch("brand", "Panini")).toEqual({
+      brand: "Panini",
+      set: "",
+      variation: "",
+    });
+  });
+
+  it("keeps the variation when a set is chosen", () => {
+    expect(columnFilterPatch("set", "Prizm")).toEqual({ set: "Prizm" });
+  });
+
+  it("resets the variation when the set is cleared", () => {
+    expect(columnFilterPatch("set", "  ")).toEqual({ set: "", variation: "" });
+  });
+
+  it("patches other columns alone", () => {
+    expect(columnFilterPatch("player", "LeBron")).toEqual({ player: "LeBron" });
+    expect(columnFilterPatch("variation", "")).toEqual({ variation: "" });
   });
 });

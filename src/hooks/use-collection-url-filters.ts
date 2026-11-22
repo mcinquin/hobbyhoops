@@ -110,3 +110,6 @@ export function useCollectionUrlFilters(
 
   return { filters, updateFilters, toggleSort, toggleTag, isPending };
 }
+
+/** Value returned by {@link useCollectionUrlFilters}. */
+export type CollectionUrlFilters = ReturnType<typeof useCollectionUrlFilters>;

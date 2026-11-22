@@ -122,6 +122,28 @@ export function withBrandScopedFilters<T extends Pick<CollectionListQuery, "bran
   return { ...query, set: "", variation: "" };
 }
 
+/** Text filters a column combobox can set from the collection / admin tables. */
+export type CollectionColumnFilterKey =
+  | "player"
+  | "team"
+  | "year"
+  | "brand"
+  | "set"
+  | "variation";
+
+/**
+ * Filter patch for one column, cascading down the catalog hierarchy:
+ * changing the brand resets set and variation, clearing the set resets the variation.
+ */
+export function columnFilterPatch(
+  key: CollectionColumnFilterKey,
+  value: string
+): Partial<CollectionListQuery> {
+  if (key === "brand") return { brand: value, set: "", variation: "" };
+  if (key === "set") return value.trim() ? { set: value } : { set: "", variation: "" };
+  return { [key]: value };
+}
+
 /** Parses and validates collection filters from URL params, with safe defaults. */
 export function parseCollectionSearchParams(
   params: URLSearchParams
