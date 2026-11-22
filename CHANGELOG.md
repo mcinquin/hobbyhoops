@@ -1,3 +1,9 @@
+## [2.5.1](https://github.com/mcinquin/hobbyhoops/compare/v2.5.0...v2.5.1) (2026-11-22)
+
+### Bug Fixes
+
+* **collection:** stop horizontal scrolling in the card form dialog ([32f2a3c](https://github.com/mcinquin/hobbyhoops/commit/32f2a3c8d81a8fda6aeadedfdbed35f7fd93a5b8))
+
 # [2.5.0](https://github.com/mcinquin/hobbyhoops/compare/v2.4.0...v2.5.0) (2026-11-22)
 
 ### Features
