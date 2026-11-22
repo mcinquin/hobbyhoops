@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { t } from "./support/i18n";
+import { activePanel, expectStep, nextStep, stepper } from "./support/card-form";
 import { uniqueToken } from "./support/seed";
 
 /** 1×1 PNG: enough for the client-side downscale before upload. */
@@ -40,8 +41,10 @@ test("CardSight recognition only fills the empty fields", async ({ page }) => {
   const dialog = page.getByRole("dialog", { name: t("cards.addTitle") });
 
   const field = (label: string) => dialog.getByLabel(label, { exact: true });
-  await field(t("cards.player")).fill(typedPlayer);
+  const prefilledMarkers = () => activePanel(dialog).getByTitle(t("cards.steps.prefilled"));
 
+  // Photo step first; the player typed on the next step must survive recognition.
+  await expectStep(dialog, "photos");
   const analyze = dialog.getByRole("button", { name: t("cards.recognize") });
   await expect(analyze).toBeHidden();
   await field(t("cards.photoFront")).setInputFiles({
@@ -49,6 +52,11 @@ test("CardSight recognition only fills the empty fields", async ({ page }) => {
     mimeType: "image/png",
     buffer: PNG_1X1,
   });
+  await expect(dialog.getByRole("button", { name: t("cards.steps.skipPhotos") })).toBeHidden();
+  await nextStep(dialog, "identity");
+  await field(t("cards.player")).fill(typedPlayer);
+  await stepper(dialog).getByRole("button", { name: t("cards.steps.photos") }).click();
+  await expectStep(dialog, "photos");
   await analyze.click();
 
   const filled = [
@@ -64,16 +72,25 @@ test("CardSight recognition only fills the empty fields", async ({ page }) => {
     dialog.getByText(t("cards.recognizeApplied", { fields: filled.join(", ") }))
   ).toBeVisible();
 
-  // What the user typed is kept; only blank fields take the suggestion.
+  // What the user typed is kept; only blank fields take the suggestion, marked with ✨.
+  await nextStep(dialog, "identity");
   await expect(field(t("cards.player"))).toHaveValue(typedPlayer);
   await expect(field(t("cards.year"))).toHaveValue(suggestion.year);
+  await expect(prefilledMarkers()).toHaveCount(2); // year, Rookie
+  await nextStep(dialog, "catalog");
   await expect(field(t("cards.brand"))).toHaveValue(suggestion.brand);
   await expect(field(t("cards.set"))).toHaveValue(suggestion.set);
   await expect(field(t("cards.variation"))).toHaveValue(suggestion.variation);
   await expect(field(t("cards.cardNum"))).toHaveValue(suggestion.cardNumber);
   await expect(field(t("cards.serialNum"))).toHaveValue("/99");
+  await expect(prefilledMarkers()).toHaveCount(5);
+
+  // Pre-filled fields stay editable; editing one drops its marker.
+  await field(t("cards.cardNum")).fill("222");
+  await expect(prefilledMarkers()).toHaveCount(4);
 
   // A second pass finds nothing left to fill.
+  await stepper(dialog).getByRole("button", { name: t("cards.steps.photos") }).click();
   await analyze.click();
   await expect(dialog.getByText(t("cards.recognizeNoEmptyFields"))).toBeVisible();
   await expect(field(t("cards.player"))).toHaveValue(typedPlayer);

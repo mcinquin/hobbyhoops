@@ -10,8 +10,14 @@ export interface CardBadgeLabels {
   wnba: string;
 }
 
+/** Card fields the badges are derived from. */
+export type CardBadgeFlags = Pick<
+  CardListItem,
+  "rookie" | "autograph" | "memorabilia" | "serialNumber" | "tradable" | "wnba"
+>;
+
 interface CardBadgesProps {
-  card: CardListItem;
+  card: CardBadgeFlags;
   labels: CardBadgeLabels;
 }
 

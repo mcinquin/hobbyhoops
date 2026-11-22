@@ -10,5 +10,8 @@
     }
   },
   "globs": ["**/*.md"],
+  // Skip everything git ignores: generated output such as Playwright failure
+  // reports (e2e/.tmp/**/error-context.md), coverage, local data.
+  "gitignore": true,
   "ignores": ["node_modules", ".next", "CHANGELOG.md", "CLAUDE.md"]
 }

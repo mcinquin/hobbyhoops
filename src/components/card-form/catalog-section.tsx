@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import type { References } from "@/lib/types";
-import { Label } from "@/components/ui/label";
 import { patchReferences } from "@/lib/references-client";
 import { useTranslations } from "@/i18n/client";
+import { FieldLabel } from "./field-label";
 import { FormCombobox } from "./form-combobox";
 import { InlineReferenceAdd } from "./inline-reference-add";
 import type { CardFormState } from "./use-card-form-state";
@@ -21,7 +21,7 @@ function ScopeHint({ children }: { children: React.ReactNode }) {
   return <p className="text-xs text-muted-foreground">{children}</p>;
 }
 
-/** Card form block: brand, set and variation, with inline brand / set creation. */
+/** Catalog step block: brand, set and variation, with inline brand / set creation. */
 export function CatalogSection({
   formId,
   references,
@@ -30,7 +30,7 @@ export function CatalogSection({
 }: CatalogSectionProps) {
   const t = useTranslations();
   const { form, update, updateBrand, updateSet, brandKey, setKey, feedback } = state;
-  const { setsForBrand, variationsForSet } = state;
+  const { setsForBrand, variationsForSet, isPrefilled } = state;
   const [newBrand, setNewBrand] = useState("");
   const [newSet, setNewSet] = useState("");
   const [addingBrand, setAddingBrand] = useState(false);
@@ -98,7 +98,9 @@ export function CatalogSection({
   return (
     <>
       <div className="space-y-2 col-span-2">
-        <Label htmlFor={`${formId}-brand`}>{t("cards.brand")}</Label>
+        <FieldLabel htmlFor={`${formId}-brand`} isPrefilled={isPrefilled("brand")}>
+          {t("cards.brand")}
+        </FieldLabel>
         <FormCombobox
           id={`${formId}-brand`}
           value={form.brand || ""}
@@ -119,7 +121,9 @@ export function CatalogSection({
       </div>
 
       <div className="space-y-2 col-span-2">
-        <Label htmlFor={`${formId}-set`}>{t("cards.set")}</Label>
+        <FieldLabel htmlFor={`${formId}-set`} isPrefilled={isPrefilled("set")}>
+          {t("cards.set")}
+        </FieldLabel>
         <ScopeHint>
           {!brandKey
             ? t("cards.chooseBrandForSets")
@@ -155,7 +159,9 @@ export function CatalogSection({
       </div>
 
       <div className="space-y-2 col-span-2">
-        <Label htmlFor={`${formId}-variation`}>{t("cards.variation")}</Label>
+        <FieldLabel htmlFor={`${formId}-variation`} isPrefilled={isPrefilled("variation")}>
+          {t("cards.variation")}
+        </FieldLabel>
         <ScopeHint>
           {!setKey
             ? t("cards.chooseSetForVariations")

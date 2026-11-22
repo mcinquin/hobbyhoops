@@ -467,7 +467,23 @@
     "activeSet": "Set = {value}",
     "activeVariation": "Variation = {value}",
     "removeFilter": "Remove filter {filter}",
-    "resetFilters": "Reset"
+    "resetFilters": "Reset",
+    "steps": {
+      "label": "Card form steps",
+      "progress": "Step {current} of {total}",
+      "photos": "Photos",
+      "identity": "Identity",
+      "catalog": "Catalog",
+      "condition": "Condition & storage",
+      "next": "Next",
+      "back": "Back",
+      "skipPhotos": "No photo? Skip this step",
+      "prefilled": "Pre-filled by recognition",
+      "summary": "Summary",
+      "summaryNoPhoto": "No photo",
+      "fieldInvalid": "{field}: invalid value.",
+      "errorOnStep": "{step}: {message}"
+    }
   },
   "admin": {
     "title": "Admin",
