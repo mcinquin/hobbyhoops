@@ -35,6 +35,8 @@ export type ApiCard = {
   rookie: boolean;
   wnba: boolean;
   notes: string;
+  purchasePriceCents: number | null;
+  purchaseCurrency: string | null;
 };
 
 export type CardSeed = Partial<Omit<ApiCard, "id">> & { player: string };
@@ -66,6 +68,8 @@ const CARD_DEFAULTS: Omit<ApiCard, "id" | "player"> = {
   rookie: false,
   wnba: false,
   notes: "",
+  purchasePriceCents: null,
+  purchaseCurrency: null,
 };
 
 /**

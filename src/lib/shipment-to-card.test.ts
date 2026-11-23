@@ -46,6 +46,23 @@ describe("buildCardDraftFromShipment", () => {
   });
 });
 
+describe("buildCardDraftFromShipment purchase price", () => {
+  it("copies the shipment price and currency", () => {
+    const draft = buildCardDraftFromShipment(
+      sampleShipment({ priceCents: 4250, currency: "USD" }),
+      ""
+    );
+    expect(draft.purchasePriceCents).toBe(4250);
+    expect(draft.purchaseCurrency).toBe("USD");
+  });
+
+  it("leaves the price empty when the shipment has none", () => {
+    const draft = buildCardDraftFromShipment(sampleShipment({ priceCents: null }), "");
+    expect(draft.purchasePriceCents).toBeNull();
+    expect(draft.purchaseCurrency).toBeNull();
+  });
+});
+
 describe("buildShipmentAlertSummary", () => {
   it("counts urgent ebay shipments", () => {
     const summary = buildShipmentAlertSummary([

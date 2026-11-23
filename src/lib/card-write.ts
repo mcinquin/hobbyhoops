@@ -2,6 +2,7 @@ import {
   isLikelyCorruptedSerialNumber,
   normalizeCardSerialFields,
 } from "@/lib/card-serial";
+import { DEFAULT_CURRENCY, normalizeCurrency, parseAmountToCents } from "@/lib/money";
 import { normalizeOpeningDate } from "@/lib/opening-date";
 import { normalizeVariationLabel } from "@/lib/variation-label";
 import type { Card } from "@/lib/types";
@@ -50,6 +51,16 @@ export function splitGrading(grading: string | undefined): {
   return { company: company || "Ungraded", note };
 }
 
+/**
+ * Purchase price in cents from untrusted input: numbers are kept as-is (Zod rejects
+ * non-integers / NaN), strings are parsed as amounts (`12,50`), anything else is null.
+ */
+function asPurchasePriceCents(value: unknown): number | null {
+  if (typeof value === "number") return value;
+  if (typeof value === "string") return parseAmountToCents(value);
+  return null;
+}
+
 /** Normalises untrusted card input (trimmed strings, booleans, numbers) before Zod validation. */
 export function prepareCardWriteInput(input: unknown): Record<string, unknown> {
   if (typeof input !== "object" || input === null || Array.isArray(input)) {
@@ -86,6 +97,7 @@ export function prepareCardWriteInput(input: unknown): Record<string, unknown> {
     rookie: Boolean(raw.rookie),
     wnba: Boolean(raw.wnba),
     notes: asTrimmedString(raw.notes),
+    ...preparePurchasePrice(raw.purchasePriceCents, raw.purchaseCurrency),
   };
 
   const id = asTrimmedString(raw.id);
@@ -94,6 +106,20 @@ export function prepareCardWriteInput(input: unknown): Record<string, unknown> {
   }
 
   return prepared;
+}
+
+/** Price and currency pair: no currency without a price, EUR by default with one. */
+function preparePurchasePrice(
+  rawPrice: unknown,
+  rawCurrency: unknown
+): { purchasePriceCents: number | null; purchaseCurrency: string | null } {
+  const purchasePriceCents = asPurchasePriceCents(rawPrice);
+  if (purchasePriceCents == null) {
+    return { purchasePriceCents: null, purchaseCurrency: null };
+  }
+  const currency =
+    typeof rawCurrency === "string" ? normalizeCurrency(rawCurrency) : null;
+  return { purchasePriceCents, purchaseCurrency: currency ?? DEFAULT_CURRENCY };
 }
 
 /** Builds the API payload from the card form state. */
@@ -127,6 +153,8 @@ export function buildCardWritePayload(
       rookie: Boolean(form.rookie),
       wnba: Boolean(form.wnba),
       notes: asTrimmedString(form.notes),
+      purchasePriceCents: form.purchasePriceCents ?? null,
+      purchaseCurrency: asNullableString(form.purchaseCurrency),
     })
   );
 }

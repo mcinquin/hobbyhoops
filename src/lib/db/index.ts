@@ -32,6 +32,8 @@ export {
   readCardCountsByYear,
   readCardCountsBySet,
   readAcquisitionTimeline,
+  readSpendingByMonth,
+  readSpendingGroups,
   readDuplicateGroupRows,
   readCardsByIds,
   readTopPlayerCounts,

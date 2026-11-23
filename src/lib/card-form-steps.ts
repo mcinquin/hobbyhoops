@@ -31,6 +31,8 @@ export const CARD_FORM_STEP_FIELDS = {
     "grading",
     "protection",
     "storage",
+    "purchasePriceCents",
+    "purchaseCurrency",
     "tradable",
     "notes",
   ],
