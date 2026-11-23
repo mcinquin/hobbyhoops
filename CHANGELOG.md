@@ -1,3 +1,9 @@
+## [2.7.1](https://github.com/mcinquin/hobbyhoops/compare/v2.7.0...v2.7.1) (2026-11-23)
+
+### Bug Fixes
+
+* **collection:** single field to pick or add a brand, set or variation ([42ffdf8](https://github.com/mcinquin/hobbyhoops/commit/42ffdf8f7c95952c6429b637312bad483b1be5d3))
+
 # [2.7.0](https://github.com/mcinquin/hobbyhoops/compare/v2.6.0...v2.7.0) (2026-11-23)
 
 ### Features
