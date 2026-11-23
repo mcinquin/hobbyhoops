@@ -71,7 +71,7 @@
     "semantic-release": "^26.0.1",
     "tailwindcss": "^4",
     "typescript": "~6.0.3",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   },
   "overrides": {
     "nanoid": "^3.3.18",
