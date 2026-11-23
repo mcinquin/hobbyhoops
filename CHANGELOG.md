@@ -1,3 +1,9 @@
+# [2.7.0](https://github.com/mcinquin/hobbyhoops/compare/v2.6.0...v2.7.0) (2026-11-23)
+
+### Features
+
+* **collection:** track card purchase prices ([b4ac873](https://github.com/mcinquin/hobbyhoops/commit/b4ac873238a8aa058aa3b592b60ce3aab276f20a)), closes [#296](https://github.com/mcinquin/hobbyhoops/issues/296)
+
 # [2.6.0](https://github.com/mcinquin/hobbyhoops/compare/v2.5.3...v2.6.0) (2026-11-23)
 
 ### Features
