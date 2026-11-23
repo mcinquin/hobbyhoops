@@ -1,3 +1,9 @@
+## [2.5.3](https://github.com/mcinquin/hobbyhoops/compare/v2.5.2...v2.5.3) (2026-11-23)
+
+### Dependencies
+
+* **deps:** bump actions/create-github-app-token from 3.3.0 to 3.4.0 ([734cedf](https://github.com/mcinquin/hobbyhoops/commit/734cedfcad8801c822c5521d5f827ef4f0565100))
+
 ## [2.5.2](https://github.com/mcinquin/hobbyhoops/compare/v2.5.1...v2.5.2) (2026-11-23)
 
 ### Dependencies
