@@ -146,11 +146,20 @@ test("add a card: brand → set → variation cascade and serial parsing", async
   await api.dispose();
 });
 
-test("add a brand and a set inline from the card form", async ({ page, playwright }) => {
+test("add a new brand and set from the catalog fields, created only on save", async ({
+  page,
+  playwright,
+}) => {
   const token = uniqueToken();
   const brand = `Inline Brand ${token}`;
   const set = `Inline Set ${token}`;
   const player = `Inline Player ${token}`;
+  const api = await newAdminApi(playwright);
+  const readReferences = async () =>
+    (await (await api.get("/api/references")).json()) as {
+      brands: string[];
+      brandSets: Record<string, string[]>;
+    };
 
   await page.goto("/admin");
   await page.getByRole("button", { name: t("admin.cards.addCard") }).click();
@@ -159,40 +168,28 @@ test("add a brand and a set inline from the card form", async ({ page, playwrigh
   await dialog.getByLabel(t("cards.player"), { exact: true }).fill(player);
   await nextStep(dialog, "catalog");
 
-  // A set needs a brand first.
-  const newSet = dialog.getByLabel(t("cards.newSet"));
-  const addSet = dialog.getByRole("button", { name: t("cards.addSet") });
-  await expect(newSet).toBeDisabled();
-  await expect(addSet).toBeDisabled();
+  // One field per reference: the typed value is offered as a new entry.
+  const brandInput = dialog.getByLabel(t("cards.brand"), { exact: true });
+  await brandInput.fill(brand);
+  await dialog
+    .getByRole("option", { name: t("cards.createOption", { value: brand }) })
+    .click();
+  await expect(brandInput).toHaveValue(brand);
+  await expect(dialog.getByText(t("cards.setsForBrandNone", { brand }))).toBeVisible();
 
-  await dialog.getByLabel(t("cards.newBrand")).fill(brand);
-  await dialog.getByRole("button", { name: t("cards.addBrand") }).click();
-  await expect(dialog.getByText(t("cards.brandAdded"))).toBeVisible();
-  await expect(dialog.getByLabel(t("cards.brand"), { exact: true })).toHaveValue(brand);
-  await expect(dialog.getByLabel(t("cards.newBrand"))).toHaveValue("");
-  await expect(
-    dialog.getByText(t("cards.setsForBrandNone", { brand }))
-  ).toBeVisible();
-
-  await newSet.fill(set);
-  await addSet.click();
-  await expect(dialog.getByText(t("cards.setAdded"))).toBeVisible();
   const setInput = dialog.getByLabel(t("cards.set"), { exact: true });
+  await setInput.fill(set);
+  await dialog.getByRole("option", { name: t("cards.createOption", { value: set }) }).click();
   await expect(setInput).toHaveValue(set);
-  // The refreshed references now list the new set under the new brand.
-  await expect(
-    dialog.getByText(t("cards.setsForBrandListed", { brand, count: 1 }))
-  ).toBeVisible();
+
+  // Nothing is written to the references until the card is saved.
+  expect((await readReferences()).brands).not.toContain(brand);
 
   await nextStep(dialog, "condition");
   await dialog.getByRole("button", { name: t("cards.addCard") }).click();
   await expect(dialog).toBeHidden();
 
-  const api = await newAdminApi(playwright);
-  const references = (await (await api.get("/api/references")).json()) as {
-    brands: string[];
-    brandSets: Record<string, string[]>;
-  };
+  const references = await readReferences();
   expect(references.brands).toContain(brand);
   expect(references.brandSets[brand]).toEqual([set]);
   const cards = await listCards(api, { brand, set });
