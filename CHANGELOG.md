@@ -1,3 +1,9 @@
+## [2.5.2](https://github.com/mcinquin/hobbyhoops/compare/v2.5.1...v2.5.2) (2026-11-23)
+
+### Dependencies
+
+* **deps:** bump actions/dependency-review-action from 5.0.0 to 5.0.1 ([34c7e5a](https://github.com/mcinquin/hobbyhoops/commit/34c7e5a895218edd4846c420cab8f55f97f5b535))
+
 ## [2.5.1](https://github.com/mcinquin/hobbyhoops/compare/v2.5.0...v2.5.1) (2026-11-22)
 
 ### Bug Fixes
