@@ -1,3 +1,9 @@
+# [2.6.0](https://github.com/mcinquin/hobbyhoops/compare/v2.5.3...v2.6.0) (2026-11-23)
+
+### Features
+
+* **shipments:** highlight overdue shipments ([b10f99b](https://github.com/mcinquin/hobbyhoops/commit/b10f99bca3b77f31dc05d1aa85dd407a648881fc)), closes [#302](https://github.com/mcinquin/hobbyhoops/issues/302)
+
 ## [2.5.3](https://github.com/mcinquin/hobbyhoops/compare/v2.5.2...v2.5.3) (2026-11-23)
 
 ### Dependencies
