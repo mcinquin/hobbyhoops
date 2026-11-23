@@ -111,7 +111,6 @@ export function ShipmentReceiveDialog({
       onClose={onClose}
       onSave={handleSave}
       onSaved={() => onComplete("addedToCollection")}
-      manageReferences={false}
       saveError={saveError}
       dialogTitle={t("shipments.receive.title")}
       submitLabel={t("shipments.receive.submit")}
