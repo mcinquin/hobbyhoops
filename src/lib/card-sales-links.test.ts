@@ -31,6 +31,8 @@ const sampleCard: CardListItem = {
   rookie: false,
   wnba: false,
   notes: "",
+  purchasePriceCents: null,
+  purchaseCurrency: null,
 };
 
 describe("cardComparableSalesQuery", () => {

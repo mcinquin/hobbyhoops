@@ -14,6 +14,8 @@ import {
   readCollectionStats,
   readDuplicateGroupRows,
   readRecentCards,
+  readSpendingByMonth,
+  readSpendingGroups,
   readReferencesState,
   updateCard,
   updateFrNbaPlayer,
@@ -55,6 +57,8 @@ const sampleCard = (overrides: Partial<Card> = {}): Card => ({
   rookie: true,
   wnba: false,
   notes: "",
+  purchasePriceCents: null,
+  purchaseCurrency: null,
   ...overrides,
 });
 
@@ -231,6 +235,37 @@ describe("card CRUD", () => {
 
     updateCard(sampleCard({ notes: "Updated note" }));
     expect(readCardById("card-0001")?.notes).toBe("Updated note");
+  });
+
+  it("persists the purchase price and leaves cards without one untouched", () => {
+    insertCard(sampleCard({ purchasePriceCents: 1250, purchaseCurrency: "usd" }));
+    insertCard(sampleCard({ id: "card-0002" }));
+
+    const priced = readCardById("card-0001");
+    expect(priced?.purchasePriceCents).toBe(1250);
+    expect(priced?.purchaseCurrency).toBe("USD");
+
+    const unpriced = readCardById("card-0002");
+    expect(unpriced?.purchasePriceCents).toBeNull();
+    expect(unpriced?.purchaseCurrency).toBeNull();
+
+    updateCard(sampleCard({ purchasePriceCents: null, purchaseCurrency: "USD" }));
+    expect(readCardById("card-0001")?.purchaseCurrency).toBeNull();
+  });
+
+  it("aggregates purchase prices for the dashboard", () => {
+    insertCard(sampleCard({ purchasePriceCents: 1000, purchaseCurrency: "EUR" }));
+    insertCard(
+      sampleCard({ id: "card-0002", purchasePriceCents: 3000, purchaseCurrency: "EUR" })
+    );
+    insertCard(sampleCard({ id: "card-0003" }));
+
+    const groups = readSpendingGroups();
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toMatchObject({ currency: "EUR", totalCents: 4000, count: 2 });
+
+    const months = readSpendingByMonth();
+    expect(months.reduce((sum, row) => sum + row.totalCents, 0)).toBe(4000);
   });
 
   it("imports and exports cards via csv", () => {

@@ -16,6 +16,10 @@ import {
   type ReferencesFilterIndex,
 } from "./types";
 import { getCachedReferences } from "./references-cache";
+import {
+  buildCollectionSpending,
+  type CollectionSpending,
+} from "./collection-spending";
 import { deleteAllCardPhotos, deleteLocalPhotoIfStored } from "./card-photo-storage";
 import {
   buildCollectionWhereClause,
@@ -32,6 +36,8 @@ import {
   queryCardsPage,
   readCardById,
   readAcquisitionTimeline,
+  readSpendingByMonth,
+  readSpendingGroups,
   readCardCountsByBrand,
   readCardCountsBySet,
   readCardCountsByYear,
@@ -191,6 +197,21 @@ export function getDashboardChartData(
     acquisitionData,
     leagueData,
   };
+}
+
+/** Purchase spending summary for the dashboard (totals per currency, monthly, averages). */
+export function getCollectionSpending(
+  totalCards: number,
+  locale: Locale
+): CollectionSpending {
+  return buildCollectionSpending(
+    {
+      totalCards,
+      groups: readSpendingGroups(),
+      months: readSpendingByMonth(),
+    },
+    locale
+  );
 }
 
 /** Groups of cards that look like duplicates, with their list items. */

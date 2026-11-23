@@ -24,6 +24,8 @@ const baseCard = (id: string, overrides: Partial<CardListItem> = {}): CardListIt
   rookie: false,
   wnba: false,
   notes: "",
+  purchasePriceCents: null,
+  purchaseCurrency: null,
   ...overrides,
 });
 

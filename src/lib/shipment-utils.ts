@@ -8,6 +8,7 @@ import {
   parseIsoDate,
   type DateLocale,
 } from "./locale-date";
+import { formatMoney } from "./money";
 
 const EBAY_PROTECTION_DAYS = 30;
 const VINTED_PROTECTION_DAYS = 2;
@@ -578,12 +579,7 @@ export function formatPriceLabel(
   currency: string,
   locale: "fr" | "en" = "fr"
 ): string | null {
-  if (priceCents == null) return null;
-  const amount = priceCents / 100;
-  return new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-US", {
-    style: "currency",
-    currency: currency || "EUR",
-  }).format(amount);
+  return formatMoney(priceCents, currency, locale);
 }
 
 /** Index of the status in the shipment timeline (pending → shipped → … → received). */

@@ -136,6 +136,17 @@
       "overdueOne": "1 shipment past its expected delivery",
       "overdueMany": "{count} shipments past their expected delivery",
       "overdueDays": "{count} d late"
+    },
+    "spending": {
+      "title": "Spending",
+      "pricedCount": "{priced} card(s) with a price · {unpriced} without",
+      "total": "Total cost",
+      "average": "Average cost per card",
+      "byMonth": "Spending per month ({currency})",
+      "averageByBrand": "Average cost per brand ({currency})",
+      "averageBySet": "Average cost per set ({currency})",
+      "cardCount": "{count} card(s)",
+      "empty": "No card has a purchase price yet. Add one from a card's form or through the CSV import."
     }
   },
   "collection": {
@@ -489,7 +500,11 @@
       "summaryNoPhoto": "No photo",
       "fieldInvalid": "{field}: invalid value.",
       "errorOnStep": "{step}: {message}"
-    }
+    },
+    "purchasePrice": "Purchase price",
+    "purchasePriceOptional": "Purchase price (optional)",
+    "purchasePricePlaceholder": "e.g. 12.50",
+    "purchaseCurrency": "Currency"
   },
   "admin": {
     "title": "Admin",
@@ -833,6 +848,8 @@
     "pageErrorHint": "Try again or reload the page. If the problem persists, contact your administrator.",
     "notFoundTitle": "Page not found",
     "notFoundDescription": "This page does not exist or has been moved.",
-    "notFoundBack": "Back to home"
+    "notFoundBack": "Back to home",
+    "purchasePriceInvalid": "Invalid purchase price (positive amount, up to 2 decimals, e.g. 12.50).",
+    "purchaseCurrencyInvalid": "Invalid currency (3-letter ISO code, e.g. EUR)."
   }
 }

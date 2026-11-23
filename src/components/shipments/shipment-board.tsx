@@ -27,18 +27,11 @@ import { Switch } from "@/components/ui/switch";
 import { Plus } from "lucide-react";
 import { useTranslations } from "@/i18n/client";
 import { cn } from "@/lib/utils";
+import { parseAmountToCents } from "@/lib/money";
 
 interface ShipmentBoardProps {
   initialShipments: Shipment[];
   references: References;
-}
-
-function parsePriceToCents(value: string): number | null {
-  const trimmed = value.trim().replace(",", ".");
-  if (!trimmed) return null;
-  const amount = Number.parseFloat(trimmed);
-  if (!Number.isFinite(amount) || amount < 0) return null;
-  return Math.round(amount * 100);
 }
 
 /** Shipments page: list, filters, create / edit form and receive flow. */
@@ -107,8 +100,8 @@ export function ShipmentBoard({ initialShipments, references }: ShipmentBoardPro
       return;
     }
 
-    const priceCents = parsePriceToCents(price);
-    if (price.trim() && priceCents == null) {
+    const priceCents = parseAmountToCents(price);
+    if (priceCents != null && Number.isNaN(priceCents)) {
       setFormError(t("shipments.priceInvalid"));
       return;
     }

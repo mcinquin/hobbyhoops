@@ -24,4 +24,6 @@ export const FIELD_LABEL_KEYS: Record<CardFormField, string> = {
   storage: "cards.storage",
   tradable: "cards.tradable",
   notes: "cards.notes",
+  purchasePriceCents: "cards.purchasePrice",
+  purchaseCurrency: "cards.purchaseCurrency",
 };
