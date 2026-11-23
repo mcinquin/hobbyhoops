@@ -5,11 +5,12 @@ import type { Shipment } from "@/lib/types";
 import {
   buildShipmentAlertSummary,
   formatShipmentDateLabel,
+  getShipmentOverdueDays,
   isUrgentProtection,
 } from "@/lib/shipment-utils";
 import { useI18n } from "@/i18n/client";
 import { cn } from "@/lib/utils";
-import { AlertTriangle, ArrowRight, Package } from "lucide-react";
+import { AlertTriangle, ArrowRight, Clock, Package } from "lucide-react";
 
 interface IncomingShipmentsWidgetProps {
   shipments: Shipment[];
@@ -24,6 +25,9 @@ interface IncomingShipmentsWidgetProps {
     protectionDay: string;
     protectionExpired: string;
     protectionAwaiting: string;
+    overdueOne: string;
+    overdueMany: string;
+    overdueDays: string;
   };
 }
 
@@ -62,6 +66,17 @@ export function IncomingShipmentsWidget({
         </Link>
       </div>
 
+      {summary.overdueCount > 0 ? (
+        <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-500/40 bg-red-500/5 px-3 py-2.5 text-sm text-red-600 dark:text-red-400">
+          <Clock className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>
+            {summary.overdueCount === 1
+              ? labels.overdueOne
+              : labels.overdueMany.replace("{count}", String(summary.overdueCount))}
+          </p>
+        </div>
+      ) : null}
+
       {summary.urgentCount > 0 && topAlert?.protection ? (
         <div
           className={cn(
@@ -89,6 +104,7 @@ export function IncomingShipmentsWidget({
         {summary.preview.map(({ shipment, protection }) => {
           const isUrgent =
             protection?.isActive && isUrgentProtection(protection);
+          const overdueDays = getShipmentOverdueDays(shipment);
 
           return (
             <Link
@@ -96,7 +112,11 @@ export function IncomingShipmentsWidget({
               href="/shipments"
               className={cn(
                 "flex min-w-0 items-center justify-between gap-3 rounded-lg border px-3 py-2.5 transition-colors hover:bg-accent/40",
-                isUrgent ? "border-amber-500/30 bg-amber-500/5" : "border-border/70"
+                overdueDays > 0
+                  ? "border-red-500/30 bg-red-500/5"
+                  : isUrgent
+                    ? "border-amber-500/30 bg-amber-500/5"
+                    : "border-border/70"
               )}
             >
               <div className="min-w-0 flex-1">
@@ -109,6 +129,11 @@ export function IncomingShipmentsWidget({
                 </p>
               </div>
               <div className="shrink-0 text-right">
+                {overdueDays > 0 ? (
+                  <p className="text-xs font-medium tabular-nums text-red-600 dark:text-red-400">
+                    {labels.overdueDays.replace("{count}", String(overdueDays))}
+                  </p>
+                ) : null}
                 {protection?.isActive ? (
                   <p
                     className={cn(

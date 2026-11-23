@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Shipment, ShipmentPlatform, ShipmentStatus, References } from "@/lib/types";
 import {
   compareShipmentsByUrgency,
+  countOverdueShipments,
   detectCarrier,
   formatTodayIsoDate,
   isActiveShipment,
@@ -24,6 +26,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Plus } from "lucide-react";
 import { useTranslations } from "@/i18n/client";
+import { cn } from "@/lib/utils";
 
 interface ShipmentBoardProps {
   initialShipments: Shipment[];
@@ -41,6 +44,7 @@ function parsePriceToCents(value: string): number | null {
 /** Shipments page: list, filters, create / edit form and receive flow. */
 export function ShipmentBoard({ initialShipments, references }: ShipmentBoardProps) {
   const t = useTranslations();
+  const router = useRouter();
   const [shipments, setShipments] = useState(initialShipments);
   const [showReceived, setShowReceived] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -62,6 +66,8 @@ export function ShipmentBoard({ initialShipments, references }: ShipmentBoardPro
     [shipments]
   );
 
+  const overdueCount = useMemo(() => countOverdueShipments(shipments), [shipments]);
+
   const visibleShipments = useMemo(() => {
     const filtered = showReceived
       ? shipments
@@ -72,7 +78,9 @@ export function ShipmentBoard({ initialShipments, references }: ShipmentBoardPro
   const refreshShipments = useCallback(async () => {
     const data = await fetchShipments(true);
     setShipments(data);
-  }, []);
+    // Re-render the layout so the sidebar overdue badge stays in sync.
+    router.refresh();
+  }, [router]);
 
   async function handleAdd() {
     const trimmedDescription = description.trim();
@@ -209,7 +217,23 @@ export function ShipmentBoard({ initialShipments, references }: ShipmentBoardPro
           <p className="text-xs text-muted-foreground">{t("shipments.stats.active")}</p>
           <p className="mt-1 text-2xl font-bold text-amber-500">{activeCount}</p>
         </div>
-        <div className="rounded-lg border border-border bg-card p-4 sm:col-span-2">
+        <div
+          className={cn(
+            "rounded-lg border bg-card p-4",
+            overdueCount > 0 ? "border-red-500/40" : "border-border"
+          )}
+        >
+          <p className="text-xs text-muted-foreground">{t("shipments.stats.overdue")}</p>
+          <p
+            className={cn(
+              "mt-1 text-2xl font-bold",
+              overdueCount > 0 ? "text-red-500" : "text-muted-foreground"
+            )}
+          >
+            {overdueCount}
+          </p>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">{t("shipments.intro")}</p>
         </div>
       </div>

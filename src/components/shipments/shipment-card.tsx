@@ -9,6 +9,7 @@ import {
   detectCarrier,
   formatPriceLabel,
   formatShipmentDateLabel,
+  getShipmentOverdueDays,
 } from "@/lib/shipment-utils";
 import { ProtectionBar } from "@/components/shipments/protection-bar";
 import { ShipmentTimeline } from "@/components/shipments/shipment-timeline";
@@ -16,6 +17,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   ExternalLink,
+  Clock,
   Package,
   Trash2,
   Truck,
@@ -50,6 +52,7 @@ export function ShipmentCard({
   const t = useTranslations();
   const { locale } = useI18n();
   const protection = getShipmentProtection(shipment);
+  const overdueDays = getShipmentOverdueDays(shipment);
   // Toujours re-détecter depuis le n° de suivi (le carrier stocké peut être obsolète
   // après amélioration des heuristiques, ex. ESUS… jadis classé SpeedPAK).
   const carrier = shipment.trackingNumber
@@ -108,6 +111,7 @@ export function ShipmentCard({
       className={cn(
         "rounded-xl border border-border bg-card p-4 shadow-sm sm:p-5",
         shipment.status === "dispute" && "border-red-500/30",
+        overdueDays > 0 && "border-red-500/40",
         protection?.urgency === "critical" && shipment.status !== "received"
           ? "ring-1 ring-red-500/30"
           : protection?.urgency === "warning" && shipment.status !== "received"
@@ -126,6 +130,12 @@ export function ShipmentCard({
             >
               {t(`shipments.status.${shipment.status}`)}
             </span>
+            {overdueDays > 0 ? (
+              <span className="inline-flex h-5 items-center gap-1 rounded-4xl border border-red-500/40 bg-red-500/10 px-2 text-[10px] font-medium uppercase tracking-wide text-red-500">
+                <Clock className="h-3 w-3" aria-hidden="true" />
+                {t("shipments.overdueBadge", { count: overdueDays })}
+              </span>
+            ) : null}
             <span className="text-xs text-muted-foreground">
               {t(`shipments.platform.${shipment.platform}`)}
               {shipment.orderId ? ` · #${shipment.orderId}` : ""}
