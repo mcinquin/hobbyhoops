@@ -73,6 +73,9 @@ export default async function DashboardPage() {
           protectionDay: t("dashboard.incoming.protectionDay"),
           protectionExpired: t("dashboard.incoming.protectionExpired"),
           protectionAwaiting: t("dashboard.incoming.protectionAwaiting"),
+          overdueOne: t("dashboard.incoming.overdueOne"),
+          overdueMany: t("dashboard.incoming.overdueMany"),
+          overdueDays: t("dashboard.incoming.overdueDays"),
         }}
       />
       <DashboardCharts

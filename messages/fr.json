@@ -26,7 +26,8 @@
     "logoutPending": "Déconnexion…",
     "openMenu": "Ouvrir le menu",
     "sheetTitle": "Navigation",
-    "skipToContent": "Aller au contenu principal"
+    "skipToContent": "Aller au contenu principal",
+    "shipmentsOverdue": "{count} colis en retard"
   },
   "common": {
     "loading": "Chargement…",
@@ -131,7 +132,10 @@
       "protectionDays": "{count} j restants",
       "protectionDay": "1 j restant",
       "protectionExpired": "Protection expirée",
-      "protectionAwaiting": "Après livraison est."
+      "protectionAwaiting": "Après livraison est.",
+      "overdueOne": "1 colis en retard de livraison",
+      "overdueMany": "{count} colis en retard de livraison",
+      "overdueDays": "En retard de {count} j"
     }
   },
   "collection": {
@@ -143,7 +147,8 @@
     "subtitle": "Suivez vos achats eBay et autres plateformes avant qu'ils arrivent dans votre collection.",
     "intro": "Ajoutez un achat dès la commande pour suivre l'expédition et les fenêtres de protection (eBay : 30 j après livraison estimée · Vinted : 2 j après notification de livraison, approximée ici par la date estimée).",
     "stats": {
-      "active": "Colis en cours"
+      "active": "Colis en cours",
+      "overdue": "En retard"
     },
     "addEntry": "Nouvel achat",
     "description": "Description",
@@ -260,7 +265,8 @@
       "seller": "vendeur {name}",
       "order": "commande {id}",
       "price": "{price}"
-    }
+    },
+    "overdueBadge": "En retard · {count} j"
   },
   "guides": {
     "wanted": {

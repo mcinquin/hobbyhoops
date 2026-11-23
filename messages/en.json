@@ -26,7 +26,8 @@
     "logoutPending": "Logging out…",
     "openMenu": "Open menu",
     "sheetTitle": "Navigation",
-    "skipToContent": "Skip to main content"
+    "skipToContent": "Skip to main content",
+    "shipmentsOverdue": "{count} overdue shipment(s)"
   },
   "common": {
     "loading": "Loading…",
@@ -131,7 +132,10 @@
       "protectionDays": "{count} d left",
       "protectionDay": "1 d left",
       "protectionExpired": "Protection expired",
-      "protectionAwaiting": "After est. delivery"
+      "protectionAwaiting": "After est. delivery",
+      "overdueOne": "1 shipment past its expected delivery",
+      "overdueMany": "{count} shipments past their expected delivery",
+      "overdueDays": "{count} d late"
     }
   },
   "collection": {
@@ -143,7 +147,8 @@
     "subtitle": "Track eBay and other purchases before they join your collection.",
     "intro": "Add a purchase as soon as you order to track shipping and protection windows (eBay: 30 d after estimated delivery · Vinted: 2 d after delivery notification, approximated here by the estimated date).",
     "stats": {
-      "active": "Active shipments"
+      "active": "Active shipments",
+      "overdue": "Overdue"
     },
     "addEntry": "New purchase",
     "description": "Description",
@@ -260,7 +265,8 @@
       "seller": "seller {name}",
       "order": "order {id}",
       "price": "{price}"
-    }
+    },
+    "overdueBadge": "Overdue · {count} d"
   },
   "guides": {
     "wanted": {
