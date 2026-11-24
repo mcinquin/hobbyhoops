@@ -32,7 +32,7 @@ import {
   importReferences,
 } from "./reference-rows";
 
-const SCHEMA_VERSION = 21;
+const SCHEMA_VERSION = 22;
 
 /** Version de schéma attendue par le code déployé (migrations SQLite). */
 export const EXPECTED_SCHEMA_VERSION = SCHEMA_VERSION;
@@ -79,7 +79,12 @@ export function initSchema(db: AppDatabase): void {
       search_text TEXT,
       notes TEXT NOT NULL DEFAULT '',
       purchase_price_cents INTEGER,
-      purchase_currency TEXT
+      purchase_currency TEXT,
+      investment INTEGER NOT NULL DEFAULT 0,
+      purchase_fees_cents INTEGER,
+      sold_at TEXT,
+      sale_price_cents INTEGER,
+      sale_fees_cents INTEGER
     );
 
     CREATE TABLE IF NOT EXISTS users (
@@ -155,7 +160,33 @@ export function initSchema(db: AppDatabase): void {
       notes TEXT NOT NULL DEFAULT ''
     );
   `);
+  db.exec(CARD_VALUATIONS_TABLE_SQL);
 }
+
+/** Valuation readings of investment cards (latest reading = current value). */
+const CARD_VALUATIONS_TABLE_SQL = `
+  CREATE TABLE IF NOT EXISTS card_valuations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    card_id TEXT NOT NULL,
+    value_cents INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    valued_at TEXT NOT NULL,
+    source TEXT NOT NULL DEFAULT 'manual',
+    note TEXT NOT NULL DEFAULT '',
+    FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_card_valuations_card
+    ON card_valuations(card_id, valued_at);
+`;
+
+const INVESTMENT_CARD_COLUMNS: readonly [string, string][] = [
+  ["investment", "INTEGER NOT NULL DEFAULT 0"],
+  ["purchase_fees_cents", "INTEGER"],
+  ["sold_at", "TEXT"],
+  ["sale_price_cents", "INTEGER"],
+  ["sale_fees_cents", "INTEGER"],
+];
 
 /** Schema version stored in `schema_meta` (0 for a fresh database). */
 export function getSchemaVersion(db: AppDatabase): number {
@@ -390,6 +421,16 @@ export function runSchemaMigrations(db: AppDatabase): void {
       if (!cardsTableHasColumn(db, "purchase_currency")) {
         db.exec("ALTER TABLE cards ADD COLUMN purchase_currency TEXT");
       }
+    }
+
+    if (version < 22) {
+      dbLogger.info({ msg: "Applying v22: investment cards and valuations" });
+      for (const [column, definition] of INVESTMENT_CARD_COLUMNS) {
+        if (!cardsTableHasColumn(db, column)) {
+          db.exec(`ALTER TABLE cards ADD COLUMN ${column} ${definition}`);
+        }
+      }
+      db.exec(CARD_VALUATIONS_TABLE_SQL);
     }
 
     setSchemaVersion(db, SCHEMA_VERSION);

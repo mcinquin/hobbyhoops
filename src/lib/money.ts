@@ -60,3 +60,29 @@ export function formatMoney(
     return `${new Intl.NumberFormat(tag, { minimumFractionDigits: 2 }).format(cents / 100)} ${code}`;
   }
 }
+
+/** Money label with an explicit sign for gains (`+12,50 €`, `−3,00 €`), or null when unknown. */
+export function formatSignedMoney(
+  cents: number | null | undefined,
+  currency: string | null | undefined,
+  locale: "fr" | "en" = "fr"
+): string | null {
+  const label = formatMoney(cents == null ? cents : Math.abs(cents), currency, locale);
+  if (label === null || cents == null) return null;
+  if (cents > 0) return `+${label}`;
+  if (cents < 0) return `−${label}`;
+  return label;
+}
+
+/** Signed percentage of a ratio (`0.256` → `+25,6 %`), or null when unknown. */
+export function formatSignedPercent(
+  ratio: number | null | undefined,
+  locale: "fr" | "en" = "fr"
+): string | null {
+  if (ratio == null || !Number.isFinite(ratio)) return null;
+  return new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-US", {
+    style: "percent",
+    maximumFractionDigits: 1,
+    signDisplay: "exceptZero",
+  }).format(ratio);
+}

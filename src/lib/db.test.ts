@@ -1,17 +1,23 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import Database from "better-sqlite3";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { Card } from "@/lib/types";
 import {
   deleteCard,
+  deleteCardValuation,
   getDb,
   getNextCardId,
   insertCard,
+  insertCardValuation,
   insertFrNbaPlayer,
   queryCardsPage,
   readCardById,
+  readCardValuations,
   readCollectionStats,
+  readInvestmentCards,
+  readInvestmentValuations,
   readDuplicateGroupRows,
   readRecentCards,
   readSpendingByMonth,
@@ -59,6 +65,11 @@ const sampleCard = (overrides: Partial<Card> = {}): Card => ({
   notes: "",
   purchasePriceCents: null,
   purchaseCurrency: null,
+  investment: false,
+  purchaseFeesCents: null,
+  soldAt: null,
+  salePriceCents: null,
+  saleFeesCents: null,
   ...overrides,
 });
 
@@ -317,5 +328,118 @@ describe("card CRUD", () => {
     expect(payload.gradings).toEqual(["BGS", "PSA"]);
     expect(payload.protections).toEqual(["Sleeve"]);
     expect(payload.storages).toEqual(["Trade - Sleeve Binder"]);
+  });
+});
+
+describe("investment cards", () => {
+  let dbPath: string;
+
+  beforeEach(() => {
+    resetDatabaseCacheForTests();
+    dbPath = path.join("data", `test-${randomUUID()}.db`);
+    process.env.HOBBYHOOPS_DB_PATH = dbPath;
+  });
+
+  afterEach(() => {
+    resetDatabaseCacheForTests();
+    for (const file of [dbPath, `${dbPath}-wal`, `${dbPath}-shm`]) {
+      if (fs.existsSync(file)) fs.unlinkSync(file);
+    }
+    delete process.env.HOBBYHOOPS_DB_PATH;
+  });
+
+  it("persists the investment flag, fees and sale", () => {
+    insertCard(
+      sampleCard({
+        purchasePriceCents: 10000,
+        purchaseCurrency: "USD",
+        investment: true,
+        purchaseFeesCents: 500,
+        soldAt: "2026-10-02",
+        salePriceCents: 15000,
+        saleFeesCents: 900,
+      })
+    );
+    expect(readCardById("card-0001")).toMatchObject({
+      investment: true,
+      purchaseCurrency: "USD",
+      purchaseFeesCents: 500,
+      soldAt: "2026-10-02",
+      salePriceCents: 15000,
+      saleFeesCents: 900,
+    });
+    expect(readInvestmentCards().map((card) => card.id)).toEqual(["card-0001"]);
+  });
+
+  it("keeps the currency of a card sold without a purchase price", () => {
+    insertCard(
+      sampleCard({
+        purchaseCurrency: "GBP",
+        investment: true,
+        soldAt: "2026-10-02",
+        salePriceCents: 15000,
+      })
+    );
+    expect(readCardById("card-0001")?.purchaseCurrency).toBe("GBP");
+  });
+
+  it("stores readings and deletes them with their card", () => {
+    insertCard(sampleCard({ investment: true }));
+    insertCard(sampleCard({ id: "card-0002" }));
+    const first = insertCardValuation({
+      cardId: "card-0001",
+      valueCents: 1000,
+      currency: "EUR",
+      valuedAt: "2026-01-10",
+      source: "manual",
+      note: "",
+    });
+    insertCardValuation({ ...first, valueCents: 2000, valuedAt: "2026-03-10" });
+    insertCardValuation({ ...first, cardId: "card-0002", valuedAt: "2026-02-10" });
+
+    expect(readCardValuations("card-0001").map((v) => v.valueCents)).toEqual([2000, 1000]);
+    // Only readings of investment cards feed the portfolio.
+    expect(readInvestmentValuations()).toHaveLength(2);
+
+    expect(deleteCardValuation("card-0002", first.id)).toBe(false);
+    expect(deleteCardValuation("card-0001", first.id)).toBe(true);
+    expect(readCardValuations("card-0001")).toHaveLength(1);
+
+    deleteCard("card-0001");
+    expect(readCardValuations("card-0001")).toHaveLength(0);
+  });
+
+  it("migrates a v21 database without losing cards", () => {
+    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+    const legacy = new Database(dbPath);
+    legacy.exec(`
+      CREATE TABLE schema_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+      INSERT INTO schema_meta (key, value) VALUES ('schema_version', '21');
+      CREATE TABLE cards (
+        id TEXT PRIMARY KEY, player TEXT NOT NULL, team TEXT NOT NULL DEFAULT '', year TEXT,
+        brand TEXT NOT NULL DEFAULT '', set_name TEXT NOT NULL DEFAULT '',
+        variation TEXT NOT NULL DEFAULT '', autograph INTEGER NOT NULL DEFAULT 0,
+        memorabilia INTEGER NOT NULL DEFAULT 0, serial_number TEXT, serial_current INTEGER,
+        serial_total INTEGER, card_number TEXT NOT NULL DEFAULT '',
+        grading TEXT NOT NULL DEFAULT '', opening_date TEXT,
+        protection TEXT NOT NULL DEFAULT '', storage TEXT NOT NULL DEFAULT '',
+        photo_front TEXT, photo_back TEXT, tradable INTEGER NOT NULL DEFAULT 0,
+        rookie INTEGER NOT NULL DEFAULT 0, wnba INTEGER NOT NULL DEFAULT 0,
+        opening_date_sort INTEGER, search_text TEXT, notes TEXT NOT NULL DEFAULT '',
+        purchase_price_cents INTEGER, purchase_currency TEXT
+      );
+      INSERT INTO cards (id, player, purchase_price_cents, purchase_currency)
+        VALUES ('card-0001', 'Legacy Player', 1250, 'EUR');
+    `);
+    legacy.close();
+
+    expect(readCardById("card-0001")).toMatchObject({
+      player: "Legacy Player",
+      purchasePriceCents: 1250,
+      investment: false,
+      purchaseFeesCents: null,
+      soldAt: null,
+    });
+    expect(readCardValuations("card-0001")).toEqual([]);
   });
 });

@@ -33,6 +33,11 @@ const sampleCard: CardListItem = {
   notes: "",
   purchasePriceCents: null,
   purchaseCurrency: null,
+  investment: false,
+  purchaseFeesCents: null,
+  soldAt: null,
+  salePriceCents: null,
+  saleFeesCents: null,
 };
 
 describe("cardComparableSalesQuery", () => {

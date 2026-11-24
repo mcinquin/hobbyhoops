@@ -26,4 +26,9 @@ export const EMPTY_CARD: Readonly<Partial<Card>> = {
   notes: "",
   purchasePriceCents: null,
   purchaseCurrency: null,
+  investment: false,
+  purchaseFeesCents: null,
+  soldAt: null,
+  salePriceCents: null,
+  saleFeesCents: null,
 };

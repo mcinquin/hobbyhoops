@@ -13,6 +13,7 @@ import {
   ListChecks,
   Flag,
   Package,
+  TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 import { APP_VERSION } from "@/lib/app-version";
@@ -63,6 +64,7 @@ export function Sidebar({
         badgeCount: overdueShipmentCount,
         badgeLabel: t("nav.shipmentsOverdue", { count: overdueShipmentCount }),
       },
+      { href: "/investments", label: t("nav.investments"), icon: TrendingUp },
       { href: "/fr-nba", label: t("nav.frNba"), icon: Flag },
       { href: "/player", label: t("nav.players"), icon: Users },
       { href: "/admin", label: t("nav.admin"), icon: Settings },

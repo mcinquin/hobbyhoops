@@ -5,6 +5,7 @@ import { isLikelyCorruptedSerialNumber } from "./card-serial";
 import { normalizeOpeningDate, OPENING_DATE_REGEX } from "./opening-date";
 import { REFERENCE_YEAR_REGEX } from "./reference-mutations";
 import { CURRENCY_CODE_REGEX, MAX_PRICE_CENTS } from "./money";
+import { ISO_DATE_REGEX, parseIsoDate } from "./locale-date";
 
 const optionalLabel = z
   .string()
@@ -81,6 +82,28 @@ const nullablePurchasePriceCents = z
   .nullish()
   .transform((value) => value ?? null);
 
+/** Optional amount in cents (fees, sale price), with its own error message. */
+function nullableAmountCents(message: string) {
+  return z
+    .number({ error: message })
+    .int(message)
+    .min(0, message)
+    .max(MAX_PRICE_CENTS, message)
+    .nullish()
+    .transform((value) => value ?? null);
+}
+
+const nullableSaleDate = z
+  .string()
+  .trim()
+  .max(10)
+  .nullish()
+  .transform((value) => (value == null || value === "" ? null : value))
+  .refine(
+    (value) => value === null || (ISO_DATE_REGEX.test(value) && parseIsoDate(value) !== null),
+    "errors.saleDateInvalid"
+  );
+
 const nullablePurchaseCurrency = z
   .string()
   .trim()
@@ -118,18 +141,53 @@ const cardFields = {
   notes: z.string().trim().max(2000).optional().default(""),
   purchasePriceCents: nullablePurchasePriceCents,
   purchaseCurrency: nullablePurchaseCurrency,
+  investment: z.boolean().optional().default(false),
+  purchaseFeesCents: nullableAmountCents("errors.purchaseFeesInvalid"),
+  soldAt: nullableSaleDate,
+  salePriceCents: nullableAmountCents("errors.salePriceInvalid"),
+  saleFeesCents: nullableAmountCents("errors.saleFeesInvalid"),
+};
+
+/** A sale needs both its date and its price. */
+export function hasConsistentSale(card: {
+  soldAt: string | null;
+  salePriceCents: number | null;
+}): boolean {
+  return (card.soldAt === null) === (card.salePriceCents === null);
+}
+
+const SALE_INCOMPLETE_ISSUE = {
+  message: "errors.saleIncomplete",
+  path: ["salePriceCents"],
 };
 
 export const cardIdSchema = z.string().trim().min(1).max(64);
 
-export const cardCreateSchema = z
-  .object(cardFields)
-  .strict();
+/** Card fields without the cross-field rules (used to validate a subset, e.g. one form step). */
+export const cardCreateFieldsSchema = z.object(cardFields).strict();
+
+export const cardCreateSchema = cardCreateFieldsSchema.refine(
+  hasConsistentSale,
+  SALE_INCOMPLETE_ISSUE
+);
 
 export const cardUpdateSchema = z
   .object({
     id: z.string().trim().min(1).max(64),
     ...cardFields,
+  })
+  .strict()
+  .refine(hasConsistentSale, SALE_INCOMPLETE_ISSUE);
+
+/** Sale recorded from the investments page (`PUT /api/cards/[id]/sale`). */
+export const cardSaleSchema = z
+  .object({
+    soldAt: nullableSaleDate.refine((value) => value !== null, "errors.saleDateInvalid"),
+    salePriceCents: nullableAmountCents("errors.salePriceInvalid").refine(
+      (value) => value !== null,
+      "errors.salePriceInvalid"
+    ),
+    saleFeesCents: nullableAmountCents("errors.saleFeesInvalid"),
   })
   .strict();
 
@@ -145,3 +203,26 @@ export function formatZodError(error: z.ZodError, t: Translator): string {
     issue.path.length > 0 ? issue.path.join(".") : t("errors.requestBody");
   return `${path}: ${translateIssueMessage(issue.message, t)}`;
 }
+
+/** Manual valuation reading (`POST /api/cards/[id]/valuations`). */
+export const cardValuationCreateSchema = z
+  .object({
+    valueCents: z
+      .number({ error: "errors.valuationInvalid" })
+      .int("errors.valuationInvalid")
+      .min(0, "errors.valuationInvalid")
+      .max(MAX_PRICE_CENTS, "errors.valuationInvalid"),
+    valuedAt: z
+      .string()
+      .trim()
+      .refine(
+        (value) => ISO_DATE_REGEX.test(value) && parseIsoDate(value) !== null,
+        "errors.valuationDateInvalid"
+      ),
+    note: z.string().trim().max(200).optional().default(""),
+  })
+  .strict();
+
+/** Positive integer id of a valuation reading. */
+export const cardValuationIdSchema = z.coerce.number().int().positive();
+

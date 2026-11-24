@@ -26,6 +26,11 @@ const baseCard = (id: string, overrides: Partial<CardListItem> = {}): CardListIt
   notes: "",
   purchasePriceCents: null,
   purchaseCurrency: null,
+  investment: false,
+  purchaseFeesCents: null,
+  soldAt: null,
+  salePriceCents: null,
+  saleFeesCents: null,
   ...overrides,
 });
 

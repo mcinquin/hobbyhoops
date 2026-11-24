@@ -27,7 +27,8 @@
     "openMenu": "Ouvrir le menu",
     "sheetTitle": "Navigation",
     "skipToContent": "Aller au contenu principal",
-    "shipmentsOverdue": "{count} colis en retard"
+    "shipmentsOverdue": "{count} colis en retard",
+    "investments": "Investissements"
   },
   "common": {
     "loading": "Chargement…",
@@ -63,7 +64,9 @@
     "numbered": "NUM",
     "tradable": "ÉCHANGE",
     "nba": "NBA",
-    "wnba": "WNBA"
+    "wnba": "WNBA",
+    "investment": "INVEST",
+    "sold": "VENDUE"
   },
   "auth": {
     "bootstrapSubtitle": "Créez le premier compte administrateur.",
@@ -147,6 +150,16 @@
       "averageBySet": "Coût moyen par set ({currency})",
       "cardCount": "{count} carte(s)",
       "empty": "Aucune carte n'a encore de prix d'achat. Renseignez-le dans la fiche d'une carte ou via l'import CSV."
+    },
+    "investments": {
+      "title": "Investissements",
+      "subtitle": "{held} en portefeuille · {sold} vendue(s)",
+      "invested": "Investi",
+      "value": "Valeur actuelle",
+      "unrealized": "Plus-value latente",
+      "realized": "Plus-value réalisée",
+      "viewAll": "Voir le portefeuille",
+      "empty": "Cochez « Investissement » sur une carte achetée pour la revendre : son coût, sa cote et sa plus-value apparaîtront ici."
     }
   },
   "collection": {
@@ -278,6 +291,76 @@
       "price": "{price}"
     },
     "overdueBadge": "En retard · {count} j"
+  },
+  "investments": {
+    "title": "Investissements",
+    "subtitle": "Cartes achetées pour la plus-value : coût de revient, cote et gains.",
+    "empty": "Aucune carte d'investissement. Cochez « Investissement » dans la fiche d'une carte (étape État) pour la suivre ici.",
+    "kpi": {
+      "invested": "Investi",
+      "investedHint": "{count} carte(s) en portefeuille",
+      "currentValue": "Valeur actuelle",
+      "currentValueHint": "{count} carte(s) sans cote comptée(s) à leur coût",
+      "unrealized": "Plus-value latente",
+      "realized": "Plus-value réalisée",
+      "realizedHint": "{count} vente(s)",
+      "otherCurrencies": "Autres devises",
+      "unpriced": "{count} carte(s) sans prix d'achat, exclue(s) des totaux."
+    },
+    "chart": {
+      "title": "Valeur du portefeuille ({currency})",
+      "value": "Valeur",
+      "cost": "Coût"
+    },
+    "held": {
+      "title": "En portefeuille",
+      "empty": "Aucune carte en portefeuille."
+    },
+    "sold": {
+      "title": "Vendues",
+      "empty": "Aucune carte vendue pour le moment."
+    },
+    "columns": {
+      "card": "Carte",
+      "cost": "Coût de revient",
+      "value": "Cote",
+      "gain": "Plus-value",
+      "soldAt": "Vendue le",
+      "netSale": "Vente nette",
+      "daysHeld": "Détention",
+      "actions": "Actions"
+    },
+    "noValuation": "Pas de cote",
+    "valuedOn": "le {date}",
+    "stale": "Cote ancienne",
+    "staleHint": "Dernière cote il y a plus de {days} jours",
+    "days": "{count} j",
+    "updateValue": "Coter",
+    "recordSale": "Vendre",
+    "cancelSale": "Annuler la vente",
+    "cancelSaleConfirm": "Annuler la vente de cette carte ? Elle reviendra dans le portefeuille.",
+    "valuationDialog": {
+      "title": "Mettre à jour la cote",
+      "description": "Relevez une vente comparable puis saisissez la valeur estimée de la carte.",
+      "value": "Valeur estimée ({currency})",
+      "date": "Date de la cote",
+      "note": "Note (optionnel)",
+      "notePlaceholder": "ex. 3 ventes PSA 10 sur 130point",
+      "history": "Historique des cotes",
+      "historyEmpty": "Aucune cote enregistrée.",
+      "deleteReading": "Supprimer cette cote"
+    },
+    "saleDialog": {
+      "title": "Enregistrer la vente",
+      "description": "La carte passera dans « Vendues » avec sa plus-value réalisée.",
+      "date": "Date de vente",
+      "price": "Prix de vente ({currency})",
+      "fees": "Frais de vente (optionnel)",
+      "feesPlaceholder": "Commission, port…"
+    },
+    "spending": {
+      "title": "Dépenses de toute la collection"
+    }
   },
   "guides": {
     "wanted": {
@@ -493,7 +576,20 @@
     "purchasePriceOptional": "Prix d'achat (optionnel)",
     "purchasePricePlaceholder": "ex. 12,50",
     "purchaseCurrency": "Devise",
-    "createOption": "Ajouter « {value} »"
+    "createOption": "Ajouter « {value} »",
+    "investment": "Investissement",
+    "investmentHint": "Carte achetée pour être revendue (suivie dans Investissements)",
+    "purchaseFees": "Frais d'achat",
+    "purchaseFeesOptional": "Frais d'achat (optionnel)",
+    "purchaseFeesPlaceholder": "Port, gradation, taxes…",
+    "saleSection": "Vente",
+    "soldAt": "Date de vente",
+    "salePrice": "Prix de vente",
+    "saleFees": "Frais de vente",
+    "investmentSummary": "Investissement",
+    "costBasis": "Coût de revient",
+    "latestValue": "Dernière cote",
+    "gain": "Plus-value"
   },
   "admin": {
     "title": "Admin",
@@ -839,6 +935,14 @@
     "notFoundDescription": "Cette page n'existe pas ou a été déplacée.",
     "notFoundBack": "Retour à l'accueil",
     "purchasePriceInvalid": "Prix d'achat invalide (montant positif, 2 décimales max, ex. 12,50).",
-    "purchaseCurrencyInvalid": "Devise invalide (code ISO à 3 lettres, ex. EUR)."
+    "purchaseCurrencyInvalid": "Devise invalide (code ISO à 3 lettres, ex. EUR).",
+    "purchaseFeesInvalid": "Frais d'achat invalides (montant positif, 2 décimales max).",
+    "saleDateInvalid": "Date de vente invalide.",
+    "salePriceInvalid": "Prix de vente invalide (montant positif, 2 décimales max).",
+    "saleFeesInvalid": "Frais de vente invalides (montant positif, 2 décimales max).",
+    "saleIncomplete": "Une vente demande une date et un prix.",
+    "valuationInvalid": "Cote invalide (montant positif, 2 décimales max).",
+    "valuationDateInvalid": "Date de cote invalide.",
+    "valuationNotFound": "Cote introuvable."
   }
 }

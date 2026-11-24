@@ -8,6 +8,7 @@ import { useTranslations } from "@/i18n/client";
 import { FormCombobox } from "./form-combobox";
 import { FlagsSection } from "./flags-section";
 import { PurchasePriceField } from "./purchase-price-field";
+import { InvestmentSection } from "./investment-section";
 import type { CardFormState } from "./use-card-form-state";
 
 interface ConditionSectionProps {
@@ -21,7 +22,7 @@ interface ConditionSectionProps {
 
 /**
  * Condition & storage step: opening date, grading company and grade note,
- * protection, storage, purchase price, Tradable and notes.
+ * protection, storage, purchase price and fees, Tradable, investment (and sale), notes.
  */
 export function ConditionSection({ formId, references, state }: ConditionSectionProps) {
   const t = useTranslations();
@@ -102,6 +103,8 @@ export function ConditionSection({ formId, references, state }: ConditionSection
         update={update}
         isPrefilled={isPrefilled}
       />
+
+      <InvestmentSection formId={formId} state={state} />
 
       <div className="space-y-2 col-span-2">
         <Label htmlFor={id("notes")}>{t("cards.notesOptional")}</Label>

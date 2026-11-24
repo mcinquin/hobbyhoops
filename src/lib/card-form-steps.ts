@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import { cardCreateSchema } from "@/lib/card-schema";
+import { cardCreateFieldsSchema, hasConsistentSale } from "@/lib/card-schema";
 import { buildCardWritePayload, validateCardSerialInput } from "@/lib/card-write";
 import type { Card } from "@/lib/types";
 
@@ -9,7 +9,7 @@ export const CARD_FORM_STEPS = ["photos", "identity", "catalog", "condition"] as
 export type CardFormStep = (typeof CARD_FORM_STEPS)[number];
 
 /** Card fields written by the form (same keys as the create API payload). */
-export type CardFormField = keyof z.input<typeof cardCreateSchema>;
+export type CardFormField = keyof z.input<typeof cardCreateFieldsSchema>;
 
 /** Fields entered on each step; every card field belongs to exactly one step. */
 export const CARD_FORM_STEP_FIELDS = {
@@ -33,7 +33,12 @@ export const CARD_FORM_STEP_FIELDS = {
     "storage",
     "purchasePriceCents",
     "purchaseCurrency",
+    "purchaseFeesCents",
     "tradable",
+    "investment",
+    "soldAt",
+    "salePriceCents",
+    "saleFeesCents",
     "notes",
   ],
 } as const satisfies Record<CardFormStep, readonly CardFormField[]>;
@@ -61,7 +66,7 @@ export function stepOfField(field: CardFormField): CardFormStep {
 
 /**
  * Validates only the fields of one step with the API's Zod rules
- * (`cardCreateSchema`), on the payload the form would send.
+ * (`cardCreateFieldsSchema`), on the payload the form would send.
  */
 export function validateCardFormStep(
   step: CardFormStep,
@@ -83,8 +88,16 @@ export function validateCardFormStep(
     [K in CardFormField]?: true;
   };
   const stepPayload = Object.fromEntries(fields.map((field) => [field, payload[field]]));
-  const result = cardCreateSchema.pick(mask).safeParse(stepPayload);
-  if (result.success) return null;
+  const result = cardCreateFieldsSchema.pick(mask).safeParse(stepPayload);
+  if (result.success) {
+    if (fields.includes("salePriceCents") && !hasConsistentSale(result.data as {
+      soldAt: string | null;
+      salePriceCents: number | null;
+    })) {
+      return { step, field: "salePriceCents", messageKey: "errors.saleIncomplete" };
+    }
+    return null;
+  }
 
   const issue = result.error.issues[0];
   const field = (issue?.path[0] as CardFormField | undefined) ?? fields[0];
