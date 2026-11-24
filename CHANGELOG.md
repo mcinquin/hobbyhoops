@@ -1,3 +1,9 @@
+# [2.8.0](https://github.com/mcinquin/hobbyhoops/compare/v2.7.4...v2.8.0) (2026-11-24)
+
+### Features
+
+* **investments:** dedicated page to track investment cards and their gains ([5114023](https://github.com/mcinquin/hobbyhoops/commit/51140231739c8a04e049199eac92a890a065916c)), closes [#328](https://github.com/mcinquin/hobbyhoops/issues/328)
+
 ## [2.7.4](https://github.com/mcinquin/hobbyhoops/compare/v2.7.3...v2.7.4) (2026-11-24)
 
 ### Dependencies
