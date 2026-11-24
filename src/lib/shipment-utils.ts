@@ -8,6 +8,7 @@ import {
   parseIsoDate,
   type DateLocale,
 } from "./locale-date";
+import { formatMoney } from "./money";
 
 const EBAY_PROTECTION_DAYS = 30;
 const VINTED_PROTECTION_DAYS = 2;
@@ -482,6 +483,48 @@ export function isActiveShipment(status: ShipmentStatus): boolean {
   return status !== "received";
 }
 
+/** Statuses for which a parcel is still expected to arrive (not delivered, received or disputed). */
+const AWAITING_DELIVERY_STATUSES: ReadonlySet<ShipmentStatus> = new Set([
+  "pending",
+  "shipped",
+  "in_transit",
+]);
+
+/**
+ * Number of days a shipment is late (past `expectedDelivery` and not yet delivered), or 0
+ * when it is on time, delivered, received, disputed or has no valid expected date.
+ */
+export function getShipmentOverdueDays(
+  shipment: Pick<Shipment, "expectedDelivery" | "status">,
+  now: Date = new Date()
+): number {
+  if (!AWAITING_DELIVERY_STATUSES.has(shipment.status)) return 0;
+  const expected = normalizeShipmentDate(shipment.expectedDelivery);
+  if (!expected) return 0;
+  const parsed = parseIsoDate(expected);
+  if (!parsed) return 0;
+
+  const msPerDay = 86_400_000;
+  const diff = startOfDay(now).getTime() - startOfDay(parsed).getTime();
+  return Math.max(0, Math.round(diff / msPerDay));
+}
+
+/** Whether the shipment is past its expected delivery date and not delivered yet. */
+export function isOverdueShipment(
+  shipment: Pick<Shipment, "expectedDelivery" | "status">,
+  now: Date = new Date()
+): boolean {
+  return getShipmentOverdueDays(shipment, now) > 0;
+}
+
+/** Number of overdue shipments in the list. */
+export function countOverdueShipments(
+  shipments: Pick<Shipment, "expectedDelivery" | "status">[],
+  now: Date = new Date()
+): number {
+  return shipments.filter((shipment) => isOverdueShipment(shipment, now)).length;
+}
+
 function statusSortWeight(status: ShipmentStatus): number {
   switch (status) {
     case "dispute":
@@ -503,7 +546,7 @@ function statusSortWeight(status: ShipmentStatus): number {
 
 /**
  * Sort comparator: active protections ending soonest first, then claim window before
- * awaiting delivery, then status weight, then newest order.
+ * awaiting delivery, then most overdue, then status weight, then newest order.
  */
 export function compareShipmentsByUrgency(a: Shipment, b: Shipment): number {
   const protectionA = getShipmentProtection(a);
@@ -521,6 +564,9 @@ export function compareShipmentsByUrgency(a: Shipment, b: Shipment): number {
   const phaseDiff = phaseWeight(protectionA) - phaseWeight(protectionB);
   if (phaseDiff !== 0) return phaseDiff;
 
+  const overdueDiff = getShipmentOverdueDays(b) - getShipmentOverdueDays(a);
+  if (overdueDiff !== 0) return overdueDiff;
+
   const statusDiff = statusSortWeight(a.status) - statusSortWeight(b.status);
   if (statusDiff !== 0) return statusDiff;
 
@@ -533,12 +579,7 @@ export function formatPriceLabel(
   currency: string,
   locale: "fr" | "en" = "fr"
 ): string | null {
-  if (priceCents == null) return null;
-  const amount = priceCents / 100;
-  return new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-US", {
-    style: "currency",
-    currency: currency || "EUR",
-  }).format(amount);
+  return formatMoney(priceCents, currency, locale);
 }
 
 /** Index of the status in the shipment timeline (pending → shipped → … → received). */
@@ -568,6 +609,7 @@ interface ShipmentAlertItem {
 interface ShipmentAlertSummary {
   activeCount: number;
   urgentCount: number;
+  overdueCount: number;
   alerts: ShipmentAlertItem[];
   preview: ShipmentAlertItem[];
 }
@@ -630,6 +672,7 @@ export function buildShipmentAlertSummary(
   return {
     activeCount: active.length,
     urgentCount: alerts.length,
+    overdueCount: countOverdueShipments(active),
     alerts,
     preview: previewItems,
   };

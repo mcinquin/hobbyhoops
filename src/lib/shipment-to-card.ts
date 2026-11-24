@@ -66,5 +66,7 @@ export function buildCardDraftFromShipment(
     rookie: false,
     wnba: false,
     notes: provenanceNote,
+    purchasePriceCents: shipment.priceCents,
+    purchaseCurrency: shipment.priceCents == null ? null : shipment.currency,
   };
 }

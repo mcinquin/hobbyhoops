@@ -32,7 +32,7 @@ import {
   importReferences,
 } from "./reference-rows";
 
-const SCHEMA_VERSION = 20;
+const SCHEMA_VERSION = 21;
 
 /** Version de schéma attendue par le code déployé (migrations SQLite). */
 export const EXPECTED_SCHEMA_VERSION = SCHEMA_VERSION;
@@ -77,7 +77,9 @@ export function initSchema(db: AppDatabase): void {
       wnba INTEGER NOT NULL DEFAULT 0,
       opening_date_sort INTEGER,
       search_text TEXT,
-      notes TEXT NOT NULL DEFAULT ''
+      notes TEXT NOT NULL DEFAULT '',
+      purchase_price_cents INTEGER,
+      purchase_currency TEXT
     );
 
     CREATE TABLE IF NOT EXISTS users (
@@ -378,6 +380,16 @@ export function runSchemaMigrations(db: AppDatabase): void {
         msg: "Applying v20: brand-scoped set variations and wanted brands",
       });
       migrateBrandScopedCatalog(db);
+    }
+
+    if (version < 21) {
+      dbLogger.info({ msg: "Applying v21: card purchase price" });
+      if (!cardsTableHasColumn(db, "purchase_price_cents")) {
+        db.exec("ALTER TABLE cards ADD COLUMN purchase_price_cents INTEGER");
+      }
+      if (!cardsTableHasColumn(db, "purchase_currency")) {
+        db.exec("ALTER TABLE cards ADD COLUMN purchase_currency TEXT");
+      }
     }
 
     setSchemaVersion(db, SCHEMA_VERSION);

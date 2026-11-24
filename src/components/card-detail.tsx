@@ -6,6 +6,7 @@ import { fetchCardById } from "@/lib/cards-client";
 import { CardBadges } from "@/components/card-badges";
 import { CardPhotos } from "@/components/card-photos";
 import { formatOpeningDateLabel } from "@/lib/opening-date";
+import { formatMoney } from "@/lib/money";
 import {
   Dialog,
   DialogContent,
@@ -76,6 +77,11 @@ function CardDetailBody({ card }: { card: CardListItem }) {
     { label: t("cards.gradingLabel"), value: card.grading },
     { label: t("cards.protection"), value: card.protection || "—" },
     { label: t("cards.storage"), value: card.storage || "—" },
+    {
+      label: t("cards.purchasePrice"),
+      value:
+        formatMoney(card.purchasePriceCents, card.purchaseCurrency, locale) ?? "—",
+    },
   ];
 
   return (

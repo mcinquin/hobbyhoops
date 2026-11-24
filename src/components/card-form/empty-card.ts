@@ -24,4 +24,6 @@ export const EMPTY_CARD: Readonly<Partial<Card>> = {
   rookie: false,
   wnba: false,
   notes: "",
+  purchasePriceCents: null,
+  purchaseCurrency: null,
 };

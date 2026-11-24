@@ -40,10 +40,6 @@ interface CardFormProps {
   onSave: (card: Partial<Card>) => Card | false | Promise<Card | false>;
   /** Appelé après sauvegarde + upload photos réussis, juste avant onClose. */
   onSaved?: (card: Card) => void;
-  /** Affiche l’ajout de marques/sets dans le formulaire (requiert `onReferencesUpdated`). */
-  manageReferences?: boolean;
-  /** Après ajout marque/set via l’API, recharger les références (ex. refetch GET /api/references). */
-  onReferencesUpdated?: () => Promise<void>;
   saveError?: string | null;
   dialogTitle?: string;
   submitLabel?: string;
@@ -78,8 +74,6 @@ function CardFormFields({
   onClose,
   onSave,
   onSaved,
-  manageReferences = true,
-  onReferencesUpdated,
   saveError = null,
   dialogTitle,
   submitLabel,
@@ -193,7 +187,6 @@ function CardFormFields({
             formId={formId}
             references={references}
             state={state}
-            onReferencesUpdated={manageReferences ? onReferencesUpdated : undefined}
           />
           <NumberingSection formId={formId} state={state} />
         </CardFormStepPanel>

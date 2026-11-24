@@ -4,6 +4,7 @@ import { isLocalCardPhotoUrl } from "@/lib/card-photo-constants";
 import { isLikelyCorruptedSerialNumber } from "./card-serial";
 import { normalizeOpeningDate, OPENING_DATE_REGEX } from "./opening-date";
 import { REFERENCE_YEAR_REGEX } from "./reference-mutations";
+import { CURRENCY_CODE_REGEX, MAX_PRICE_CENTS } from "./money";
 
 const optionalLabel = z
   .string()
@@ -72,6 +73,26 @@ const nullableOpeningDate = z
     "errors.openingDateInvalid"
   );
 
+const nullablePurchasePriceCents = z
+  .number({ error: "errors.purchasePriceInvalid" })
+  .int("errors.purchasePriceInvalid")
+  .min(0, "errors.purchasePriceInvalid")
+  .max(MAX_PRICE_CENTS, "errors.purchasePriceInvalid")
+  .nullish()
+  .transform((value) => value ?? null);
+
+const nullablePurchaseCurrency = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .max(3, "errors.purchaseCurrencyInvalid")
+  .nullish()
+  .transform((value) => (value == null || value === "" ? null : value))
+  .refine(
+    (value) => value === null || CURRENCY_CODE_REGEX.test(value),
+    "errors.purchaseCurrencyInvalid"
+  );
+
 const cardFields = {
   player: z.string().trim().min(1).max(160),
   team: z.string().trim().max(160),
@@ -95,6 +116,8 @@ const cardFields = {
   rookie: z.boolean(),
   wnba: z.boolean(),
   notes: z.string().trim().max(2000).optional().default(""),
+  purchasePriceCents: nullablePurchasePriceCents,
+  purchaseCurrency: nullablePurchaseCurrency,
 };
 
 export const cardIdSchema = z.string().trim().min(1).max(64);

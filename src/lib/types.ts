@@ -22,6 +22,10 @@ export interface Card {
   rookie: boolean;
   wnba: boolean;
   notes: string;
+  /** Purchase price in cents; null when unknown. */
+  purchasePriceCents: number | null;
+  /** ISO 4217 code of the purchase price; null when there is no price. */
+  purchaseCurrency: string | null;
 }
 
 /** Carte sans photos — listes, pagination et fiches joueur. */

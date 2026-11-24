@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildEbayOrderUrl,
+  buildShipmentAlertSummary,
+  compareShipmentsByUrgency,
+  countOverdueShipments,
+  getShipmentOverdueDays,
+  isOverdueShipment,
   buildTrackingUrl,
   computeEbayProtection,
   computeVintedProtection,
@@ -270,5 +275,122 @@ describe("getShipmentProtection", () => {
 
   it("ignores unsupported platforms", () => {
     expect(getShipmentProtection({ ...base, platform: "comc" })).toBeNull();
+  });
+});
+
+describe("getShipmentOverdueDays", () => {
+  it("counts days past the expected delivery for parcels still on the way", () => {
+    expect(
+      getShipmentOverdueDays(
+        { expectedDelivery: "2026-06-14", status: "in_transit" },
+        FIXED_NOW
+      )
+    ).toBe(3);
+  });
+
+  it("is 0 on the expected delivery day and before", () => {
+    expect(
+      getShipmentOverdueDays(
+        { expectedDelivery: "2026-06-17", status: "shipped" },
+        FIXED_NOW
+      )
+    ).toBe(0);
+    expect(
+      getShipmentOverdueDays(
+        { expectedDelivery: "2026-06-20", status: "pending" },
+        FIXED_NOW
+      )
+    ).toBe(0);
+  });
+
+  it("ignores delivered, received and disputed shipments", () => {
+    for (const status of ["delivered", "received", "dispute"] as const) {
+      expect(
+        getShipmentOverdueDays({ expectedDelivery: "2026-06-01", status }, FIXED_NOW)
+      ).toBe(0);
+    }
+  });
+
+  it("ignores missing or invalid expected dates", () => {
+    expect(
+      getShipmentOverdueDays({ expectedDelivery: null, status: "shipped" }, FIXED_NOW)
+    ).toBe(0);
+    expect(
+      getShipmentOverdueDays(
+        { expectedDelivery: "not-a-date", status: "shipped" },
+        FIXED_NOW
+      )
+    ).toBe(0);
+  });
+
+  it("accepts legacy French dates", () => {
+    expect(
+      isOverdueShipment(
+        { expectedDelivery: "10/06/2026", status: "shipped" },
+        FIXED_NOW
+      )
+    ).toBe(true);
+  });
+});
+
+describe("countOverdueShipments", () => {
+  it("counts only overdue shipments", () => {
+    expect(
+      countOverdueShipments(
+        [
+          { expectedDelivery: "2026-06-10", status: "shipped" },
+          { expectedDelivery: "2026-06-10", status: "delivered" },
+          { expectedDelivery: "2026-06-30", status: "in_transit" },
+          { expectedDelivery: "2026-06-16", status: "pending" },
+        ],
+        FIXED_NOW
+      )
+    ).toBe(2);
+  });
+});
+
+describe("overdue shipments in summaries and sorting", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(FIXED_NOW);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const base: Shipment = {
+    id: "s",
+    platform: "private",
+    orderId: null,
+    seller: null,
+    description: "Card",
+    priceCents: null,
+    currency: "EUR",
+    orderedAt: "2026-06-01",
+    shippedAt: null,
+    trackingNumber: null,
+    carrier: null,
+    expectedDelivery: null,
+    status: "in_transit",
+    cardId: null,
+    notes: "",
+  };
+
+  it("reports the overdue count in the alert summary", () => {
+    const summary = buildShipmentAlertSummary([
+      { ...base, id: "late", expectedDelivery: "2026-06-10" },
+      { ...base, id: "ok", expectedDelivery: "2026-06-25" },
+      { ...base, id: "done", expectedDelivery: "2026-06-10", status: "received" },
+    ]);
+    expect(summary.overdueCount).toBe(1);
+  });
+
+  it("sorts the most overdue shipments first when protections tie", () => {
+    const onTime = { ...base, id: "on-time", expectedDelivery: "2026-06-25" };
+    const late = { ...base, id: "late", expectedDelivery: "2026-06-15" };
+    const veryLate = { ...base, id: "very-late", expectedDelivery: "2026-06-05" };
+    const sorted = [onTime, late, veryLate].sort(compareShipmentsByUrgency);
+    expect(sorted.map((s) => s.id)).toEqual(["very-late", "late", "on-time"]);
   });
 });

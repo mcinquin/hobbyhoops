@@ -7,6 +7,7 @@ import { OpeningDateInput } from "@/components/opening-date-input";
 import { useTranslations } from "@/i18n/client";
 import { FormCombobox } from "./form-combobox";
 import { FlagsSection } from "./flags-section";
+import { PurchasePriceField } from "./purchase-price-field";
 import type { CardFormState } from "./use-card-form-state";
 
 interface ConditionSectionProps {
@@ -20,7 +21,7 @@ interface ConditionSectionProps {
 
 /**
  * Condition & storage step: opening date, grading company and grade note,
- * protection, storage, Tradable and notes.
+ * protection, storage, purchase price, Tradable and notes.
  */
 export function ConditionSection({ formId, references, state }: ConditionSectionProps) {
   const t = useTranslations();
@@ -92,6 +93,8 @@ export function ConditionSection({ formId, references, state }: ConditionSection
           placeholder={t("cards.selectNone")}
         />
       </div>
+
+      <PurchasePriceField formId={formId} state={state} />
 
       <FlagsSection
         fields={["tradable"]}

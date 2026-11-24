@@ -13,18 +13,27 @@ import { useTranslations } from "@/i18n/client";
 
 interface AppShellProps {
   username: string | null;
+  /** Shipments past their expected delivery, shown as a badge on the "Incoming" entry. */
+  overdueShipmentCount?: number;
   children: React.ReactNode;
 }
 
 /** Authenticated layout: sidebar, mobile header and main content. */
-export function AppShell({ username, children }: AppShellProps) {
+export function AppShell({
+  username,
+  overdueShipmentCount = 0,
+  children,
+}: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const t = useTranslations();
 
   return (
     <div className="flex min-h-screen">
       <aside className="hidden md:flex shrink-0 sticky top-0 h-screen">
-        <Sidebar username={username} />
+        <Sidebar
+          username={username}
+          overdueShipmentCount={overdueShipmentCount}
+        />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
@@ -66,6 +75,7 @@ export function AppShell({ username, children }: AppShellProps) {
           <SheetTitle className="sr-only">{t("nav.sheetTitle")}</SheetTitle>
           <Sidebar
             username={username}
+            overdueShipmentCount={overdueShipmentCount}
             onNavigate={() => setMobileOpen(false)}
             className="h-full border-r-0"
           />

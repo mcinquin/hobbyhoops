@@ -5,6 +5,8 @@ import { AppShell } from "@/components/app-shell";
 import { getTranslations } from "@/i18n/server";
 import { SESSION_COOKIE_NAME } from "@/lib/auth-secret";
 import { verifySessionToken } from "@/lib/auth-session";
+import { getShipments } from "@/lib/data";
+import { countOverdueShipments } from "@/lib/shipment-utils";
 
 export default async function AppLayout({
   children,
@@ -19,9 +21,14 @@ export default async function AppLayout({
     redirect("/");
   }
 
+  const overdueShipmentCount = countOverdueShipments(getShipments(false));
+
   return (
     <LocaleProvider locale={locale}>
-      <AppShell username={session.username}>{children}</AppShell>
+      <AppShell
+        username={session.username}
+        overdueShipmentCount={overdueShipmentCount}
+      >{children}</AppShell>
     </LocaleProvider>
   );
 }

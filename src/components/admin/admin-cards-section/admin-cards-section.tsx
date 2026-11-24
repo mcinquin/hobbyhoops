@@ -36,7 +36,7 @@ export function AdminCardsSection({
   const urlFilters = useCollectionUrlFilters({ fixedPageSize: ADMIN_CARDS_PAGE_SIZE });
   const { filters, updateFilters, toggleTag, isPending } = urlFilters;
   const { columns, applyFilter } = useAdminColumnFilters(references, urlFilters);
-  const { pageData, feedback, form, deletion, refreshReferences } = useAdminCards({
+  const { pageData, feedback, form, deletion } = useAdminCards({
     filters,
     onReferencesChange,
     onTotalCountChange,
@@ -122,7 +122,6 @@ export function AdminCardsSection({
         onClose={form.close}
         onSave={form.save}
         saveError={form.saveError}
-        onReferencesUpdated={refreshReferences}
       />
 
       <DeleteCardDialog
