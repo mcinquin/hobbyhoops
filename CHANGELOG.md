@@ -1,3 +1,9 @@
+## [2.7.4](https://github.com/mcinquin/hobbyhoops/compare/v2.7.3...v2.7.4) (2026-11-24)
+
+### Dependencies
+
+* **deps:** bump recharts from 3.10.1 to 3.11.0 ([c559454](https://github.com/mcinquin/hobbyhoops/commit/c5594541fbabc8538a5df7e4d9202b0541e35f60))
+
 ## [2.7.3](https://github.com/mcinquin/hobbyhoops/compare/v2.7.2...v2.7.3) (2026-11-24)
 
 ### Dependencies
