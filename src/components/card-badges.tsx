@@ -8,20 +8,23 @@ export interface CardBadgeLabels {
   tradable: string;
   nba: string;
   wnba: string;
+  investment: string;
+  sold: string;
 }
 
 /** Card fields the badges are derived from. */
 export type CardBadgeFlags = Pick<
   CardListItem,
   "rookie" | "autograph" | "memorabilia" | "serialNumber" | "tradable" | "wnba"
->;
+> &
+  Partial<Pick<CardListItem, "investment" | "soldAt">>;
 
 interface CardBadgesProps {
   card: CardBadgeFlags;
   labels: CardBadgeLabels;
 }
 
-/** Badges for a card's flags (RC, AUTO, MEM, numbered, tradable, WNBA). */
+/** Badges for a card's flags (RC, AUTO, MEM, numbered, tradable, WNBA, investment / sold). */
 export function CardBadges({ card, labels }: CardBadgesProps) {
   return (
     <div className="flex items-center gap-1 flex-wrap">
@@ -53,6 +56,11 @@ export function CardBadges({ card, labels }: CardBadgesProps) {
       {card.wnba && (
         <span className="inline-flex h-5 items-center justify-center leading-none rounded-4xl border border-orange-500/50 bg-orange-500/10 px-1.5 py-0 text-[10px] font-medium text-orange-500">
           {labels.wnba}
+        </span>
+      )}
+      {card.investment && (
+        <span className="inline-flex h-5 items-center justify-center leading-none rounded-4xl border border-teal-500/50 bg-teal-500/10 px-1.5 py-0 text-[10px] font-medium text-teal-500">
+          {card.soldAt ? labels.sold : labels.investment}
         </span>
       )}
     </div>

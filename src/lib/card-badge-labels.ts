@@ -12,5 +12,7 @@ export function buildCardBadgeLabels(t: TranslateFn): CardBadgeLabels {
     tradable: t("badges.tradable"),
     nba: t("badges.nba"),
     wnba: t("badges.wnba"),
+    investment: t("badges.investment"),
+    sold: t("badges.sold"),
   };
 }

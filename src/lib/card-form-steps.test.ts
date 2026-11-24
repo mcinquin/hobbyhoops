@@ -6,13 +6,13 @@ import {
   validateCardForm,
   validateCardFormStep,
 } from "@/lib/card-form-steps";
-import { cardCreateSchema } from "@/lib/card-schema";
+import { cardCreateFieldsSchema } from "@/lib/card-schema";
 
 describe("CARD_FORM_STEP_FIELDS", () => {
   it("puts every card field on exactly one step", () => {
     const assigned = CARD_FORM_STEPS.flatMap((step) => CARD_FORM_STEP_FIELDS[step]);
     expect(new Set(assigned).size).toBe(assigned.length);
-    expect([...assigned].sort()).toEqual(Object.keys(cardCreateSchema.shape).sort());
+    expect([...assigned].sort()).toEqual(Object.keys(cardCreateFieldsSchema.shape).sort());
   });
 
   it("locates a field on its step", () => {

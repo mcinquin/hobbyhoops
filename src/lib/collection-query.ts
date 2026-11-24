@@ -17,7 +17,8 @@ export type CollectionTagValue =
   | "numbered"
   | "tradable"
   | "nba"
-  | "wnba";
+  | "wnba"
+  | "investment";
 
 export const COLLECTION_TAG_VALUES: CollectionTagValue[] = [
   "rookie",
@@ -27,6 +28,7 @@ export const COLLECTION_TAG_VALUES: CollectionTagValue[] = [
   "tradable",
   "nba",
   "wnba",
+  "investment",
 ];
 
 export type CollectionSortKey =
@@ -58,6 +60,7 @@ const tagValueSchema = z.enum([
   "tradable",
   "nba",
   "wnba",
+  "investment",
 ]);
 
 const filterValueSchema = z.string().trim().max(128).catch("");
@@ -237,6 +240,9 @@ export function buildCollectionWhereClause(
         break;
       case "nba":
         clauses.push("wnba = 0");
+        break;
+      case "investment":
+        clauses.push("investment = 1");
         break;
       default:
         break;

@@ -27,7 +27,8 @@
     "openMenu": "Open menu",
     "sheetTitle": "Navigation",
     "skipToContent": "Skip to main content",
-    "shipmentsOverdue": "{count} overdue shipment(s)"
+    "shipmentsOverdue": "{count} overdue shipment(s)",
+    "investments": "Investments"
   },
   "common": {
     "loading": "Loading…",
@@ -63,7 +64,9 @@
     "numbered": "NUM",
     "tradable": "TRADE",
     "nba": "NBA",
-    "wnba": "WNBA"
+    "wnba": "WNBA",
+    "investment": "INVEST",
+    "sold": "SOLD"
   },
   "auth": {
     "bootstrapSubtitle": "Create the first administrator account.",
@@ -147,6 +150,16 @@
       "averageBySet": "Average cost per set ({currency})",
       "cardCount": "{count} card(s)",
       "empty": "No card has a purchase price yet. Add one from a card's form or through the CSV import."
+    },
+    "investments": {
+      "title": "Investments",
+      "subtitle": "{held} held · {sold} sold",
+      "invested": "Invested",
+      "value": "Current value",
+      "unrealized": "Unrealized gain",
+      "realized": "Realized gain",
+      "viewAll": "View portfolio",
+      "empty": "Tick \"Investment\" on a card you bought to resell: its cost, value and gain will show up here."
     }
   },
   "collection": {
@@ -278,6 +291,76 @@
       "price": "{price}"
     },
     "overdueBadge": "Overdue · {count} d"
+  },
+  "investments": {
+    "title": "Investments",
+    "subtitle": "Cards bought to resell at a profit: cost basis, value and gains.",
+    "empty": "No investment card yet. Tick \"Investment\" on a card (Condition step) to track it here.",
+    "kpi": {
+      "invested": "Invested",
+      "investedHint": "{count} card(s) held",
+      "currentValue": "Current value",
+      "currentValueHint": "{count} unvalued card(s) counted at cost",
+      "unrealized": "Unrealized gain",
+      "realized": "Realized gain",
+      "realizedHint": "{count} sale(s)",
+      "otherCurrencies": "Other currencies",
+      "unpriced": "{count} card(s) without a purchase price, left out of the totals."
+    },
+    "chart": {
+      "title": "Portfolio value ({currency})",
+      "value": "Value",
+      "cost": "Cost"
+    },
+    "held": {
+      "title": "Held",
+      "empty": "No card held."
+    },
+    "sold": {
+      "title": "Sold",
+      "empty": "No card sold yet."
+    },
+    "columns": {
+      "card": "Card",
+      "cost": "Cost basis",
+      "value": "Value",
+      "gain": "Gain",
+      "soldAt": "Sold on",
+      "netSale": "Net sale",
+      "daysHeld": "Held",
+      "actions": "Actions"
+    },
+    "noValuation": "Not valued",
+    "valuedOn": "on {date}",
+    "stale": "Stale value",
+    "staleHint": "Last valued more than {days} days ago",
+    "days": "{count} d",
+    "updateValue": "Value",
+    "recordSale": "Sell",
+    "cancelSale": "Cancel sale",
+    "cancelSaleConfirm": "Cancel the sale of this card? It will be held again.",
+    "valuationDialog": {
+      "title": "Update value",
+      "description": "Look up a comparable sale, then enter the card's estimated value.",
+      "value": "Estimated value ({currency})",
+      "date": "Valuation date",
+      "note": "Note (optional)",
+      "notePlaceholder": "e.g. 3 PSA 10 sales on 130point",
+      "history": "Valuation history",
+      "historyEmpty": "No valuation yet.",
+      "deleteReading": "Delete this valuation"
+    },
+    "saleDialog": {
+      "title": "Record sale",
+      "description": "The card moves to \"Sold\" with its realized gain.",
+      "date": "Sale date",
+      "price": "Sale price ({currency})",
+      "fees": "Sale fees (optional)",
+      "feesPlaceholder": "Commission, shipping…"
+    },
+    "spending": {
+      "title": "Spending across the collection"
+    }
   },
   "guides": {
     "wanted": {
@@ -493,7 +576,20 @@
     "purchasePriceOptional": "Purchase price (optional)",
     "purchasePricePlaceholder": "e.g. 12.50",
     "purchaseCurrency": "Currency",
-    "createOption": "Add “{value}”"
+    "createOption": "Add “{value}”",
+    "investment": "Investment",
+    "investmentHint": "Bought to resell (tracked in Investments)",
+    "purchaseFees": "Purchase fees",
+    "purchaseFeesOptional": "Purchase fees (optional)",
+    "purchaseFeesPlaceholder": "Shipping, grading, taxes…",
+    "saleSection": "Sale",
+    "soldAt": "Sale date",
+    "salePrice": "Sale price",
+    "saleFees": "Sale fees",
+    "investmentSummary": "Investment",
+    "costBasis": "Cost basis",
+    "latestValue": "Latest value",
+    "gain": "Gain"
   },
   "admin": {
     "title": "Admin",
@@ -839,6 +935,14 @@
     "notFoundDescription": "This page does not exist or has been moved.",
     "notFoundBack": "Back to home",
     "purchasePriceInvalid": "Invalid purchase price (positive amount, up to 2 decimals, e.g. 12.50).",
-    "purchaseCurrencyInvalid": "Invalid currency (3-letter ISO code, e.g. EUR)."
+    "purchaseCurrencyInvalid": "Invalid currency (3-letter ISO code, e.g. EUR).",
+    "purchaseFeesInvalid": "Invalid purchase fees (positive amount, up to 2 decimals).",
+    "saleDateInvalid": "Invalid sale date.",
+    "salePriceInvalid": "Invalid sale price (positive amount, up to 2 decimals).",
+    "saleFeesInvalid": "Invalid sale fees (positive amount, up to 2 decimals).",
+    "saleIncomplete": "A sale needs a date and a price.",
+    "valuationInvalid": "Invalid value (positive amount, up to 2 decimals).",
+    "valuationDateInvalid": "Invalid valuation date.",
+    "valuationNotFound": "Valuation not found."
   }
 }

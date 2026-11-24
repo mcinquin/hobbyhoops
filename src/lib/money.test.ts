@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   formatCentsAsAmount,
   formatMoney,
+  formatSignedMoney,
+  formatSignedPercent,
   normalizeCurrency,
   parseAmountToCents,
 } from "./money";
@@ -63,5 +65,22 @@ describe("formatMoney", () => {
 
   it("defaults to EUR without a currency", () => {
     expect(formatMoney(100, null, "en")).toBe("€1.00");
+  });
+});
+
+describe("formatSignedMoney", () => {
+  it("prefixes gains and losses with their sign", () => {
+    expect(formatSignedMoney(1250, "USD", "en")).toBe("+$12.50");
+    expect(formatSignedMoney(-300, "USD", "en")).toBe("−$3.00");
+    expect(formatSignedMoney(0, "USD", "en")).toBe("$0.00");
+    expect(formatSignedMoney(null, "USD", "en")).toBeNull();
+  });
+});
+
+describe("formatSignedPercent", () => {
+  it("formats a ratio as a signed percentage", () => {
+    expect(formatSignedPercent(0.256, "en")).toBe("+25.6%");
+    expect(formatSignedPercent(-0.1, "en")).toBe("-10%");
+    expect(formatSignedPercent(null, "en")).toBeNull();
   });
 });

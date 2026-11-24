@@ -3,6 +3,7 @@ import {
   normalizeCardSerialFields,
 } from "@/lib/card-serial";
 import { DEFAULT_CURRENCY, normalizeCurrency, parseAmountToCents } from "@/lib/money";
+import { parseDateInputToIso } from "@/lib/locale-date";
 import { normalizeOpeningDate } from "@/lib/opening-date";
 import { normalizeVariationLabel } from "@/lib/variation-label";
 import type { Card } from "@/lib/types";
@@ -52,10 +53,10 @@ export function splitGrading(grading: string | undefined): {
 }
 
 /**
- * Purchase price in cents from untrusted input: numbers are kept as-is (Zod rejects
+ * Amount in cents from untrusted input: numbers are kept as-is (Zod rejects
  * non-integers / NaN), strings are parsed as amounts (`12,50`), anything else is null.
  */
-function asPurchasePriceCents(value: unknown): number | null {
+function asAmountCents(value: unknown): number | null {
   if (typeof value === "number") return value;
   if (typeof value === "string") return parseAmountToCents(value);
   return null;
@@ -97,7 +98,7 @@ export function prepareCardWriteInput(input: unknown): Record<string, unknown> {
     rookie: Boolean(raw.rookie),
     wnba: Boolean(raw.wnba),
     notes: asTrimmedString(raw.notes),
-    ...preparePurchasePrice(raw.purchasePriceCents, raw.purchaseCurrency),
+    ...prepareCardAmounts(raw),
   };
 
   const id = asTrimmedString(raw.id);
@@ -108,18 +109,45 @@ export function prepareCardWriteInput(input: unknown): Record<string, unknown> {
   return prepared;
 }
 
-/** Price and currency pair: no currency without a price, EUR by default with one. */
-function preparePurchasePrice(
-  rawPrice: unknown,
-  rawCurrency: unknown
-): { purchasePriceCents: number | null; purchaseCurrency: string | null } {
-  const purchasePriceCents = asPurchasePriceCents(rawPrice);
-  if (purchasePriceCents == null) {
-    return { purchasePriceCents: null, purchaseCurrency: null };
-  }
+/** Sale date from untrusted input: ISO kept, `DD/MM/YYYY` converted, anything else left for Zod. */
+function asSaleDate(value: unknown): string | null {
+  const text = asNullableString(value);
+  if (text === null) return null;
+  return parseDateInputToIso(text, "fr") ?? text;
+}
+
+type CardAmounts = Pick<
+  Card,
+  | "purchasePriceCents"
+  | "purchaseCurrency"
+  | "investment"
+  | "purchaseFeesCents"
+  | "soldAt"
+  | "salePriceCents"
+  | "saleFeesCents"
+>;
+
+/**
+ * Money fields of a card. All amounts share one currency (EUR by default), dropped when
+ * the card has no amount. The sale is only kept on an investment card.
+ */
+function prepareCardAmounts(raw: Record<string, unknown>): CardAmounts {
+  const investment = Boolean(raw.investment);
+  const amounts = {
+    purchasePriceCents: asAmountCents(raw.purchasePriceCents),
+    purchaseFeesCents: asAmountCents(raw.purchaseFeesCents),
+    salePriceCents: investment ? asAmountCents(raw.salePriceCents) : null,
+    saleFeesCents: investment ? asAmountCents(raw.saleFeesCents) : null,
+  };
+  const hasAmount = Object.values(amounts).some((value) => value != null);
   const currency =
-    typeof rawCurrency === "string" ? normalizeCurrency(rawCurrency) : null;
-  return { purchasePriceCents, purchaseCurrency: currency ?? DEFAULT_CURRENCY };
+    typeof raw.purchaseCurrency === "string" ? normalizeCurrency(raw.purchaseCurrency) : null;
+  return {
+    ...amounts,
+    purchaseCurrency: hasAmount ? (currency ?? DEFAULT_CURRENCY) : null,
+    investment,
+    soldAt: investment ? asSaleDate(raw.soldAt) : null,
+  };
 }
 
 /** Builds the API payload from the card form state. */
@@ -155,6 +183,11 @@ export function buildCardWritePayload(
       notes: asTrimmedString(form.notes),
       purchasePriceCents: form.purchasePriceCents ?? null,
       purchaseCurrency: asNullableString(form.purchaseCurrency),
+      investment: Boolean(form.investment),
+      purchaseFeesCents: form.purchaseFeesCents ?? null,
+      soldAt: asNullableString(form.soldAt),
+      salePriceCents: form.salePriceCents ?? null,
+      saleFeesCents: form.saleFeesCents ?? null,
     })
   );
 }

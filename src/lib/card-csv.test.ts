@@ -33,6 +33,11 @@ const sampleCard = (overrides: Partial<Card> = {}): Card => ({
   notes: "From COMC",
   purchasePriceCents: null,
   purchaseCurrency: null,
+  investment: false,
+  purchaseFeesCents: null,
+  soldAt: null,
+  salePriceCents: null,
+  saleFeesCents: null,
   ...overrides,
 });
 
@@ -82,8 +87,8 @@ describe("purchase price columns", () => {
       sampleCard({ id: "card-0002" }),
     ]);
     const lines = csv.trim().split("\n");
-    expect(lines[1]?.endsWith(",12.50,USD")).toBe(true);
-    expect(lines[2]?.endsWith(",From COMC,,")).toBe(true);
+    expect(lines[1]?.endsWith(",12.50,USD,false,,,,")).toBe(true);
+    expect(lines[2]?.endsWith(",From COMC,,,false,,,,")).toBe(true);
   });
 
   it("round-trips the price through export and import", () => {
@@ -114,5 +119,50 @@ describe("csvRowToWritePayload", () => {
     const values = { id: "card-0009", player: "Test Player" };
     expect(csvRowToWritePayload(values, "create").id).toBeUndefined();
     expect(csvRowToWritePayload(values, "upsert").id).toBe("card-0009");
+  });
+});
+
+describe("investment columns", () => {
+  it("round-trips the investment flag, fees and sale", () => {
+    const card = sampleCard({
+      purchasePriceCents: 10000,
+      purchaseCurrency: "EUR",
+      investment: true,
+      purchaseFeesCents: 450,
+      soldAt: "2026-10-02",
+      salePriceCents: 18000,
+      saleFeesCents: 1200,
+    });
+    const [row] = parseCardCsv(cardsToCsv([card]));
+    const payload = csvRowToWritePayload(row!.values, "create");
+    expect(payload).toMatchObject({
+      investment: true,
+      purchaseFeesCents: 450,
+      soldAt: "2026-10-02",
+      salePriceCents: 18000,
+      saleFeesCents: 1200,
+    });
+  });
+
+  it("parses French aliases and French sale dates", () => {
+    const [row] = parseCardCsv(
+      ["joueur,investissement,date_vente,prix_vente", 'Test Player,oui,02/10/2026,"180,00"'].join(
+        "\n"
+      )
+    );
+    const payload = csvRowToWritePayload(row!.values, "create");
+    expect(payload.investment).toBe(true);
+    expect(payload.soldAt).toBe("2026-10-02");
+    expect(payload.salePriceCents).toBe(18000);
+  });
+
+  it("drops the sale of a card that is not an investment", () => {
+    const [row] = parseCardCsv(
+      ["player,sold_at,sale_price", "Test Player,2026-10-02,180"].join("\n")
+    );
+    const payload = csvRowToWritePayload(row!.values, "create");
+    expect(payload.soldAt).toBeNull();
+    expect(payload.salePriceCents).toBeNull();
+    expect(payload.purchaseCurrency).toBeNull();
   });
 });

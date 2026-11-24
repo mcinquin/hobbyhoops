@@ -24,8 +24,21 @@ export interface Card {
   notes: string;
   /** Purchase price in cents; null when unknown. */
   purchasePriceCents: number | null;
-  /** ISO 4217 code of the purchase price; null when there is no price. */
+  /**
+   * ISO 4217 code shared by every amount of the card (purchase price and fees, sale);
+   * null when the card has no amount.
+   */
   purchaseCurrency: string | null;
+  /** Bought to be resold at a profit (shown on the investments page). */
+  investment: boolean;
+  /** Purchase fees (shipping, grading, taxes) in cents; null when unknown. */
+  purchaseFeesCents: number | null;
+  /** Sale date (ISO `YYYY-MM-DD`); null while the card is held. */
+  soldAt: string | null;
+  /** Sale price in cents; set together with `soldAt`. */
+  salePriceCents: number | null;
+  /** Sale fees (platform, shipping) in cents; null when none. */
+  saleFeesCents: number | null;
 }
 
 /** Carte sans photos — listes, pagination et fiches joueur. */
