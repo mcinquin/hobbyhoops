@@ -1,3 +1,9 @@
+## [2.7.3](https://github.com/mcinquin/hobbyhoops/compare/v2.7.2...v2.7.3) (2026-11-24)
+
+### Dependencies
+
+* **deps:** bump tailwind-merge from 3.7.0 to 3.7.1 ([f4f772e](https://github.com/mcinquin/hobbyhoops/commit/f4f772ef60b9c4441acb93da46fe37bb56eead81))
+
 ## [2.7.2](https://github.com/mcinquin/hobbyhoops/compare/v2.7.1...v2.7.2) (2026-11-23)
 
 ### Dependencies
