@@ -155,6 +155,5 @@ export function useAdminCards({
     },
     form: { open: formOpen, card: editingCard, saveError, openCreate, openEdit, close: closeForm, save },
     deletion: { target: deleteTarget, request: setDeleteTarget, confirm: confirmDelete },
-    refreshReferences,
   };
 }

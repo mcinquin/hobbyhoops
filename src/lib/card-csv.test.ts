@@ -31,6 +31,8 @@ const sampleCard = (overrides: Partial<Card> = {}): Card => ({
   rookie: false,
   wnba: false,
   notes: "From COMC",
+  purchasePriceCents: null,
+  purchaseCurrency: null,
   ...overrides,
 });
 
@@ -70,6 +72,40 @@ describe("parseCardCsv", () => {
     expect(parsed[0]?.values.id).toBe("card-0042");
     expect(parsed[0]?.values.player).toBe("LeBron James");
     expect(parsed[0]?.values.serial_number).toBe("10/99");
+  });
+});
+
+describe("purchase price columns", () => {
+  it("exports the price as a decimal amount with its currency", () => {
+    const csv = cardsToCsv([
+      sampleCard({ purchasePriceCents: 1250, purchaseCurrency: "USD" }),
+      sampleCard({ id: "card-0002" }),
+    ]);
+    const lines = csv.trim().split("\n");
+    expect(lines[1]?.endsWith(",12.50,USD")).toBe(true);
+    expect(lines[2]?.endsWith(",From COMC,,")).toBe(true);
+  });
+
+  it("round-trips the price through export and import", () => {
+    const card = sampleCard({ purchasePriceCents: 8900, purchaseCurrency: "GBP" });
+    const [row] = parseCardCsv(cardsToCsv([card]));
+    const payload = csvRowToWritePayload(row!.values, "create");
+    expect(payload.purchasePriceCents).toBe(8900);
+    expect(payload.purchaseCurrency).toBe("GBP");
+  });
+
+  it("parses French aliases and comma decimals, defaulting to EUR", () => {
+    const [row] = parseCardCsv(["joueur,prix", "Victor Wembanyama,\"12,50\""].join("\n"));
+    const payload = csvRowToWritePayload(row!.values, "create");
+    expect(payload.purchasePriceCents).toBe(1250);
+    expect(payload.purchaseCurrency).toBe("EUR");
+  });
+
+  it("leaves price and currency empty without a price", () => {
+    const [row] = parseCardCsv(["player,devise", "Test Player,USD"].join("\n"));
+    const payload = csvRowToWritePayload(row!.values, "create");
+    expect(payload.purchasePriceCents).toBeNull();
+    expect(payload.purchaseCurrency).toBeNull();
   });
 });
 

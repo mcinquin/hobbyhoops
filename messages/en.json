@@ -26,7 +26,8 @@
     "logoutPending": "Logging out…",
     "openMenu": "Open menu",
     "sheetTitle": "Navigation",
-    "skipToContent": "Skip to main content"
+    "skipToContent": "Skip to main content",
+    "shipmentsOverdue": "{count} overdue shipment(s)"
   },
   "common": {
     "loading": "Loading…",
@@ -131,7 +132,21 @@
       "protectionDays": "{count} d left",
       "protectionDay": "1 d left",
       "protectionExpired": "Protection expired",
-      "protectionAwaiting": "After est. delivery"
+      "protectionAwaiting": "After est. delivery",
+      "overdueOne": "1 shipment past its expected delivery",
+      "overdueMany": "{count} shipments past their expected delivery",
+      "overdueDays": "{count} d late"
+    },
+    "spending": {
+      "title": "Spending",
+      "pricedCount": "{priced} card(s) with a price · {unpriced} without",
+      "total": "Total cost",
+      "average": "Average cost per card",
+      "byMonth": "Spending per month ({currency})",
+      "averageByBrand": "Average cost per brand ({currency})",
+      "averageBySet": "Average cost per set ({currency})",
+      "cardCount": "{count} card(s)",
+      "empty": "No card has a purchase price yet. Add one from a card's form or through the CSV import."
     }
   },
   "collection": {
@@ -143,7 +158,8 @@
     "subtitle": "Track eBay and other purchases before they join your collection.",
     "intro": "Add a purchase as soon as you order to track shipping and protection windows (eBay: 30 d after estimated delivery · Vinted: 2 d after delivery notification, approximated here by the estimated date).",
     "stats": {
-      "active": "Active shipments"
+      "active": "Active shipments",
+      "overdue": "Overdue"
     },
     "addEntry": "New purchase",
     "description": "Description",
@@ -260,7 +276,8 @@
       "seller": "seller {name}",
       "order": "order {id}",
       "price": "{price}"
-    }
+    },
+    "overdueBadge": "Overdue · {count} d"
   },
   "guides": {
     "wanted": {
@@ -430,19 +447,10 @@
     "autograph": "Autograph",
     "memorabiliaLabel": "Memorabilia",
     "tradable": "Tradable",
-    "newBrand": "New brand",
-    "addBrand": "Add brand",
-    "newSet": "New set (for current brand)",
     "setHint": "Pick an existing set or create one below. Variations belong to a brand + set pair.",
     "variationHint": "Variations are specific to set \"{set}\" under brand \"{brand}\".",
-    "brandNameRequired": "Enter a brand name.",
-    "brandBeforeSet": "Choose or enter a brand before adding a set.",
-    "setNameRequired": "Enter a set name.",
-    "brandAdded": "Brand added.",
-    "setAdded": "Set added.",
     "updateFailed": "Update failed.",
     "addCard": "Add card",
-    "placeholderBrand": "e.g. Topps",
     "placeholderSerial": "e.g. 08/25",
     "placeholderDate": "mm/dd/yyyy",
     "placeholderGrade": "e.g. 10, 9.5",
@@ -453,9 +461,6 @@
     "variationsForSetListed": "Variations for \"{set}\" ({count}). You can also type a variation freely.",
     "variationsForSetNone": "No variations listed for \"{set}\" in references — type a variation freely.",
     "chooseSetForVariations": "Pick a set to filter known variations, or enter set and variation freely.",
-    "addSet": "Add set",
-    "placeholderSetUnderBrand": "e.g. under {brand}",
-    "chooseBrandFirst": "Choose a brand first",
     "setsForBrandTitle": "Sets in your collection for this brand",
     "chooseBrandForSetsList": "Choose a brand to list sets",
     "activeFilters": "Active filters:",
@@ -483,7 +488,12 @@
       "summaryNoPhoto": "No photo",
       "fieldInvalid": "{field}: invalid value.",
       "errorOnStep": "{step}: {message}"
-    }
+    },
+    "purchasePrice": "Purchase price",
+    "purchasePriceOptional": "Purchase price (optional)",
+    "purchasePricePlaceholder": "e.g. 12.50",
+    "purchaseCurrency": "Currency",
+    "createOption": "Add “{value}”"
   },
   "admin": {
     "title": "Admin",
@@ -827,6 +837,8 @@
     "pageErrorHint": "Try again or reload the page. If the problem persists, contact your administrator.",
     "notFoundTitle": "Page not found",
     "notFoundDescription": "This page does not exist or has been moved.",
-    "notFoundBack": "Back to home"
+    "notFoundBack": "Back to home",
+    "purchasePriceInvalid": "Invalid purchase price (positive amount, up to 2 decimals, e.g. 12.50).",
+    "purchaseCurrencyInvalid": "Invalid currency (3-letter ISO code, e.g. EUR)."
   }
 }

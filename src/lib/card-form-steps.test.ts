@@ -60,6 +60,44 @@ describe("validateCardFormStep", () => {
   });
 });
 
+describe("purchase price validation", () => {
+  it("belongs to the condition step", () => {
+    expect(stepOfField("purchasePriceCents")).toBe("condition");
+    expect(stepOfField("purchaseCurrency")).toBe("condition");
+  });
+
+  it("rejects an unparseable amount on the condition step", () => {
+    expect(
+      validateCardFormStep("condition", { purchasePriceCents: Number.NaN }, "")
+    ).toEqual({
+      step: "condition",
+      field: "purchasePriceCents",
+      messageKey: "errors.purchasePriceInvalid",
+    });
+  });
+
+  it("accepts a valid price or no price", () => {
+    expect(
+      validateCardFormStep(
+        "condition",
+        { purchasePriceCents: 1250, purchaseCurrency: "USD" },
+        ""
+      )
+    ).toBeNull();
+    expect(validateCardFormStep("condition", { purchasePriceCents: null }, "")).toBeNull();
+  });
+
+  it("rejects an invalid currency", () => {
+    expect(
+      validateCardFormStep(
+        "condition",
+        { purchasePriceCents: 1250, purchaseCurrency: "EURO" },
+        ""
+      )?.messageKey
+    ).toBe("errors.purchaseCurrencyInvalid");
+  });
+});
+
 describe("validateCardForm", () => {
   it("returns the first invalid step in order", () => {
     const error = validateCardForm({ player: "", serialNumber: "45658" }, "");

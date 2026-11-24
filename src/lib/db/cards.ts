@@ -13,6 +13,7 @@ import type {
 import { normalizeCardSerialFields } from "../card-serial";
 import { COLLECTION_SORT_SQL } from "../collection-query";
 import type { BrandSetCountRow } from "../dashboard-chart-data";
+import type { SpendingGroupRow, SpendingMonthRow } from "../collection-spending";
 import {
   PLAYER_CARD_STATS_AGG_SQL,
   CARD_LIST_COLUMNS,
@@ -266,6 +267,53 @@ export function readAcquisitionTimeline(): ChartCountRow[] {
   return rows.map((row) => ({
     name: String(row.month_key),
     count: Number(row.count),
+  }));
+}
+
+/** Priced cards summed per brand + set + currency, for the dashboard spending section. */
+export function readSpendingGroups(): SpendingGroupRow[] {
+  const rows = getDb()
+    .prepare(
+      `SELECT brand, set_name, purchase_currency as currency,
+        SUM(purchase_price_cents) as total, COUNT(*) as count
+       FROM cards
+       WHERE purchase_price_cents IS NOT NULL AND purchase_currency IS NOT NULL
+       GROUP BY brand, set_name, purchase_currency`
+    )
+    .all() as {
+    brand: string | null;
+    set_name: string | null;
+    currency: string;
+    total: number;
+    count: number;
+  }[];
+  return rows.map((row) => ({
+    brand: String(row.brand ?? ""),
+    set: String(row.set_name ?? ""),
+    currency: String(row.currency),
+    totalCents: Number(row.total),
+    count: Number(row.count),
+  }));
+}
+
+/** Priced cards summed per opening month (`YYYYMM`) + currency. */
+export function readSpendingByMonth(): SpendingMonthRow[] {
+  const rows = getDb()
+    .prepare(
+      `SELECT (opening_date_sort / 100) as month_key, purchase_currency as currency,
+        SUM(purchase_price_cents) as total
+       FROM cards
+       WHERE purchase_price_cents IS NOT NULL
+         AND purchase_currency IS NOT NULL
+         AND opening_date_sort IS NOT NULL
+       GROUP BY month_key, purchase_currency
+       ORDER BY month_key ASC`
+    )
+    .all() as { month_key: number; currency: string; total: number }[];
+  return rows.map((row) => ({
+    monthKey: Number(row.month_key),
+    currency: String(row.currency),
+    totalCents: Number(row.total),
   }));
 }
 

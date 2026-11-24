@@ -1,5 +1,6 @@
 import { parseDelimitedRows } from "@/lib/csv-parse";
 import { prepareCardWriteInput } from "@/lib/card-write";
+import { formatCentsAsAmount } from "@/lib/money";
 import type { Card } from "@/lib/types";
 
 /** Colonnes canoniques (en-tête export et référence import). */
@@ -27,6 +28,8 @@ const CARD_CSV_COLUMNS = [
   "photo_front",
   "photo_back",
   "notes",
+  "purchase_price",
+  "purchase_currency",
 ] as const;
 
 type CardCsvColumn = (typeof CARD_CSV_COLUMNS)[number];
@@ -98,6 +101,19 @@ const COLUMN_ALIASES: Record<string, CardCsvColumn> = {
   remarques: "notes",
   commentaire: "notes",
   comment: "notes",
+  purchase_price: "purchase_price",
+  purchaseprice: "purchase_price",
+  price: "purchase_price",
+  prix: "purchase_price",
+  prix_achat: "purchase_price",
+  "prix_d'achat": "purchase_price",
+  cost: "purchase_price",
+  coût: "purchase_price",
+  cout: "purchase_price",
+  purchase_currency: "purchase_currency",
+  purchasecurrency: "purchase_currency",
+  currency: "purchase_currency",
+  devise: "purchase_currency",
 };
 
 export type CardCsvImportMode = "create" | "upsert";
@@ -180,6 +196,8 @@ function cardToCsvRow(card: Card): string[] {
     card.photoFront ?? "",
     card.photoBack ?? "",
     card.notes,
+    formatCentsAsAmount(card.purchasePriceCents),
+    card.purchasePriceCents == null ? "" : (card.purchaseCurrency ?? ""),
   ];
 }
 
@@ -246,6 +264,8 @@ export function csvRowToWritePayload(
     photoFront: row.photo_front ?? "",
     photoBack: row.photo_back ?? "",
     notes: row.notes ?? "",
+    purchasePriceCents: row.purchase_price ?? "",
+    purchaseCurrency: row.purchase_currency ?? "",
   });
 
   if (mode === "upsert" && rawId) {

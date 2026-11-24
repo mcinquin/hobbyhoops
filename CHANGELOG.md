@@ -1,3 +1,27 @@
+## [2.7.2](https://github.com/mcinquin/hobbyhoops/compare/v2.7.1...v2.7.2) (2026-11-23)
+
+### Dependencies
+
+* **deps-dev:** bump the dev-tools group across 1 directory with 2 updates ([7bab4e5](https://github.com/mcinquin/hobbyhoops/commit/7bab4e5265a3706d3a62100f36db205990089576))
+
+## [2.7.1](https://github.com/mcinquin/hobbyhoops/compare/v2.7.0...v2.7.1) (2026-11-23)
+
+### Bug Fixes
+
+* **collection:** single field to pick or add a brand, set or variation ([42ffdf8](https://github.com/mcinquin/hobbyhoops/commit/42ffdf8f7c95952c6429b637312bad483b1be5d3))
+
+# [2.7.0](https://github.com/mcinquin/hobbyhoops/compare/v2.6.0...v2.7.0) (2026-11-23)
+
+### Features
+
+* **collection:** track card purchase prices ([b4ac873](https://github.com/mcinquin/hobbyhoops/commit/b4ac873238a8aa058aa3b592b60ce3aab276f20a)), closes [#296](https://github.com/mcinquin/hobbyhoops/issues/296)
+
+# [2.6.0](https://github.com/mcinquin/hobbyhoops/compare/v2.5.3...v2.6.0) (2026-11-23)
+
+### Features
+
+* **shipments:** highlight overdue shipments ([b10f99b](https://github.com/mcinquin/hobbyhoops/commit/b10f99bca3b77f31dc05d1aa85dd407a648881fc)), closes [#302](https://github.com/mcinquin/hobbyhoops/issues/302)
+
 ## [2.5.3](https://github.com/mcinquin/hobbyhoops/compare/v2.5.2...v2.5.3) (2026-11-23)
 
 ### Dependencies

@@ -13,6 +13,7 @@ import {
   ListChecks,
   Flag,
   Package,
+  type LucideIcon,
 } from "lucide-react";
 import { APP_VERSION } from "@/lib/app-version";
 import { useTranslations } from "@/i18n/client";
@@ -23,29 +24,51 @@ import { BrandMark } from "@/components/brand-mark";
 
 interface SidebarProps {
   username: string | null;
+  /** Shipments past their expected delivery, shown as a badge on the "Incoming" entry. */
+  overdueShipmentCount?: number;
   onNavigate?: () => void;
   className?: string;
 }
 
+interface NavItem {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  /** Optional count shown as a red badge (hidden when 0). */
+  badgeCount?: number;
+  badgeLabel?: string;
+}
+
 /** Navigation sidebar with user menu and logout. */
-export function Sidebar({ username, onNavigate, className }: SidebarProps) {
+export function Sidebar({
+  username,
+  overdueShipmentCount = 0,
+  onNavigate,
+  className,
+}: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
   const t = useTranslations();
 
-  const navItems = useMemo(
+  const navItems = useMemo<NavItem[]>(
     () => [
       { href: "/", label: t("nav.dashboard"), icon: LayoutDashboard },
       { href: "/collection", label: t("nav.collection"), icon: Library },
       { href: "/wanted", label: t("nav.wanted"), icon: ListChecks },
-      { href: "/shipments", label: t("nav.shipments"), icon: Package },
+      {
+        href: "/shipments",
+        label: t("nav.shipments"),
+        icon: Package,
+        badgeCount: overdueShipmentCount,
+        badgeLabel: t("nav.shipmentsOverdue", { count: overdueShipmentCount }),
+      },
       { href: "/fr-nba", label: t("nav.frNba"), icon: Flag },
       { href: "/player", label: t("nav.players"), icon: Users },
       { href: "/admin", label: t("nav.admin"), icon: Settings },
       { href: "/account", label: t("nav.account"), icon: UserCircle },
     ],
-    [t]
+    [t, overdueShipmentCount]
   );
 
   async function logout() {
@@ -108,7 +131,16 @@ export function Sidebar({ username, onNavigate, className }: SidebarProps) {
               )}
             >
               <item.icon className="h-4 w-4" />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {item.badgeCount ? (
+                <span
+                  className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold tabular-nums text-white"
+                  title={item.badgeLabel}
+                >
+                  <span aria-hidden="true">{item.badgeCount}</span>
+                  <span className="sr-only">{item.badgeLabel}</span>
+                </span>
+              ) : null}
             </Link>
           );
         })}

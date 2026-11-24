@@ -19,8 +19,15 @@ interface AutocompleteComboboxProps {
   suggestionsOnlyWhenOpen?: boolean;
   /** Première option pour effacer la valeur (champs optionnels). */
   clearOptionLabel?: string;
+  /**
+   * Label of a last option offering to keep the typed text as a new value, shown when
+   * it matches no suggestion (e.g. `(text) => \`Add "${text}"\``).
+   */
+  createOptionLabel?: (text: string) => string;
   listClassName?: string;
 }
+
+type ListOption = { label: string; value: string; isCreate?: boolean };
 
 /** Free-text input with filtered suggestions; typing is not restricted to the list. */
 export function AutocompleteCombobox({
@@ -35,6 +42,7 @@ export function AutocompleteCombobox({
   debounceMs,
   suggestionsOnlyWhenOpen = false,
   clearOptionLabel,
+  createOptionLabel,
   listClassName,
 }: AutocompleteComboboxProps) {
   const generatedId = useId();
@@ -72,16 +80,27 @@ export function AutocompleteCombobox({
     );
   }, [open, query, suggestions, suggestionsOnlyWhenOpen]);
 
+  const trimmedText = inputText.trim();
   const listOptions = useMemo(() => {
-    const options: { label: string; value: string }[] = [];
+    const options: ListOption[] = [];
     if (clearOptionLabel) {
       options.push({ label: clearOptionLabel, value: "" });
     }
     for (const suggestion of visibleSuggestions) {
       options.push({ label: suggestion, value: suggestion });
     }
+    const isNewValue =
+      trimmedText !== "" &&
+      !suggestions.some((suggestion) => suggestion.toLowerCase() === query);
+    if (createOptionLabel && open && isNewValue) {
+      options.push({
+        label: createOptionLabel(trimmedText),
+        value: trimmedText,
+        isCreate: true,
+      });
+    }
     return options;
-  }, [clearOptionLabel, visibleSuggestions]);
+  }, [clearOptionLabel, createOptionLabel, open, query, suggestions, trimmedText, visibleSuggestions]);
 
   function emit(nextValue: string): void {
     setLastSent(nextValue);
@@ -182,13 +201,14 @@ export function AutocompleteCombobox({
         >
           {listOptions.map((option, index) => (
             <button
-              key={option.value || "__empty__"}
+              key={option.isCreate ? "__create__" : option.value || "__empty__"}
               type="button"
               role="option"
               aria-selected={index === activeIndex}
               className={cn(
                 "block w-full rounded px-2 py-1.5 text-left hover:bg-accent aria-selected:bg-accent",
-                option.value === "" && "text-muted-foreground"
+                option.value === "" && "text-muted-foreground",
+                option.isCreate && "mt-1 border-t border-border/70 font-medium text-amber-600 dark:text-amber-400"
               )}
               onMouseDown={(event) => {
                 event.preventDefault();

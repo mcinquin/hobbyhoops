@@ -26,7 +26,8 @@
     "logoutPending": "Déconnexion…",
     "openMenu": "Ouvrir le menu",
     "sheetTitle": "Navigation",
-    "skipToContent": "Aller au contenu principal"
+    "skipToContent": "Aller au contenu principal",
+    "shipmentsOverdue": "{count} colis en retard"
   },
   "common": {
     "loading": "Chargement…",
@@ -131,7 +132,21 @@
       "protectionDays": "{count} j restants",
       "protectionDay": "1 j restant",
       "protectionExpired": "Protection expirée",
-      "protectionAwaiting": "Après livraison est."
+      "protectionAwaiting": "Après livraison est.",
+      "overdueOne": "1 colis en retard de livraison",
+      "overdueMany": "{count} colis en retard de livraison",
+      "overdueDays": "En retard de {count} j"
+    },
+    "spending": {
+      "title": "Dépenses",
+      "pricedCount": "{priced} carte(s) avec prix · {unpriced} sans prix",
+      "total": "Coût total",
+      "average": "Coût moyen par carte",
+      "byMonth": "Dépenses par mois ({currency})",
+      "averageByBrand": "Coût moyen par marque ({currency})",
+      "averageBySet": "Coût moyen par set ({currency})",
+      "cardCount": "{count} carte(s)",
+      "empty": "Aucune carte n'a encore de prix d'achat. Renseignez-le dans la fiche d'une carte ou via l'import CSV."
     }
   },
   "collection": {
@@ -143,7 +158,8 @@
     "subtitle": "Suivez vos achats eBay et autres plateformes avant qu'ils arrivent dans votre collection.",
     "intro": "Ajoutez un achat dès la commande pour suivre l'expédition et les fenêtres de protection (eBay : 30 j après livraison estimée · Vinted : 2 j après notification de livraison, approximée ici par la date estimée).",
     "stats": {
-      "active": "Colis en cours"
+      "active": "Colis en cours",
+      "overdue": "En retard"
     },
     "addEntry": "Nouvel achat",
     "description": "Description",
@@ -260,7 +276,8 @@
       "seller": "vendeur {name}",
       "order": "commande {id}",
       "price": "{price}"
-    }
+    },
+    "overdueBadge": "En retard · {count} j"
   },
   "guides": {
     "wanted": {
@@ -430,19 +447,10 @@
     "autograph": "Autographe",
     "memorabiliaLabel": "Mémorabilia",
     "tradable": "Échangeable",
-    "newBrand": "Nouvelle marque",
-    "addBrand": "Ajouter la marque",
-    "newSet": "Nouveau set (pour la marque courante)",
     "setHint": "Saisissez un set existant ou créez-en un avec le champ ci-dessous. Les variations se rattachent au couple marque + set.",
     "variationHint": "Les variations sont propres au set « {set} » de la marque « {brand} ».",
-    "brandNameRequired": "Indiquez un nom de marque.",
-    "brandBeforeSet": "Choisissez ou saisissez une marque avant d'ajouter un set.",
-    "setNameRequired": "Indiquez un nom de set.",
-    "brandAdded": "Marque ajoutée.",
-    "setAdded": "Set ajouté.",
     "updateFailed": "Échec de la mise à jour.",
     "addCard": "Ajouter la carte",
-    "placeholderBrand": "ex. Topps",
     "placeholderSerial": "ex. 08/25",
     "placeholderDate": "jj/mm/aaaa",
     "placeholderGrade": "ex. 10, 9,5",
@@ -453,9 +461,6 @@
     "variationsForSetListed": "Variations pour « {set} » ({count}). Vous pouvez aussi saisir une variation librement.",
     "variationsForSetNone": "Aucune variation listée pour « {set} » dans les références — saisissez une variation librement.",
     "chooseSetForVariations": "Choisissez un set pour filtrer les variations connues, ou saisissez set et variation librement.",
-    "addSet": "Ajouter le set",
-    "placeholderSetUnderBrand": "ex. sous {brand}",
-    "chooseBrandFirst": "Choisissez d'abord une marque",
     "setsForBrandTitle": "Sets de votre collection pour cette marque",
     "chooseBrandForSetsList": "Choisissez une marque pour lister les sets",
     "activeFilters": "Filtres actifs :",
@@ -483,7 +488,12 @@
       "summaryNoPhoto": "Pas de photo",
       "fieldInvalid": "{field} : valeur invalide.",
       "errorOnStep": "{step} : {message}"
-    }
+    },
+    "purchasePrice": "Prix d'achat",
+    "purchasePriceOptional": "Prix d'achat (optionnel)",
+    "purchasePricePlaceholder": "ex. 12,50",
+    "purchaseCurrency": "Devise",
+    "createOption": "Ajouter « {value} »"
   },
   "admin": {
     "title": "Admin",
@@ -827,6 +837,8 @@
     "pageErrorHint": "Réessayez ou rechargez la page. Si le problème persiste, contactez l'administrateur.",
     "notFoundTitle": "Page introuvable",
     "notFoundDescription": "Cette page n'existe pas ou a été déplacée.",
-    "notFoundBack": "Retour à l'accueil"
+    "notFoundBack": "Retour à l'accueil",
+    "purchasePriceInvalid": "Prix d'achat invalide (montant positif, 2 décimales max, ex. 12,50).",
+    "purchaseCurrencyInvalid": "Devise invalide (code ISO à 3 lettres, ex. EUR)."
   }
 }

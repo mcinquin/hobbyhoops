@@ -4,6 +4,7 @@ import "server-only";
 import type { Card, CardListItem } from "../types";
 import { buildCardSearchText } from "../card-search-text";
 import { normalizeCardSerialFields } from "../card-serial";
+import { DEFAULT_CURRENCY, normalizeCurrency } from "../money";
 import { normalizeOpeningDate, openingDateSortValue } from "../opening-date";
 import { runInTransaction, type AppDatabase } from "../sqlite";
 import { type SqlInputValue } from "./shared";
@@ -20,7 +21,8 @@ export const PLAYER_CARD_STATS_AGG_SQL = `
 export const CARD_LIST_COLUMNS = `
   id, player, team, year, brand, set_name, variation,
   autograph, memorabilia, serial_number, serial_current, serial_total,
-  card_number, grading, opening_date, protection, storage, tradable, rookie, wnba, notes
+  card_number, grading, opening_date, protection, storage, tradable, rookie, wnba, notes,
+  purchase_price_cents, purchase_currency
 `.trim();
 
 /** Maps a `cards` row (list columns only) to a normalised `CardListItem`. */
@@ -51,6 +53,12 @@ export function rowToCardListItem(row: Record<string, unknown>): CardListItem {
     rookie: Boolean(row.rookie),
     wnba: Boolean(row.wnba),
     notes: row.notes == null ? "" : String(row.notes),
+    purchasePriceCents:
+      row.purchase_price_cents == null ? null : Number(row.purchase_price_cents),
+    purchaseCurrency:
+      row.purchase_price_cents == null || row.purchase_currency == null
+        ? null
+        : String(row.purchase_currency),
   });
 }
 
@@ -115,6 +123,11 @@ export function cardToRow(card: Card): Record<string, SqlInputValue> {
     rookie: normalized.rookie ? 1 : 0,
     wnba: normalized.wnba ? 1 : 0,
     notes: normalized.notes.trim(),
+    purchase_price_cents: normalized.purchasePriceCents ?? null,
+    purchase_currency:
+      normalized.purchasePriceCents == null
+        ? null
+        : (normalizeCurrency(normalized.purchaseCurrency) ?? DEFAULT_CURRENCY),
     opening_date_sort: derived.opening_date_sort,
     search_text: derived.search_text,
   };
@@ -125,12 +138,14 @@ export const CARD_INSERT_SQL = `
     id, player, team, year, brand, set_name, variation,
     autograph, memorabilia, serial_number, serial_current, serial_total,
     card_number, grading, opening_date, protection, storage, photo_front, photo_back,
-    tradable, rookie, wnba, notes, opening_date_sort, search_text
+    tradable, rookie, wnba, notes, purchase_price_cents, purchase_currency,
+    opening_date_sort, search_text
   ) VALUES (
     @id, @player, @team, @year, @brand, @set_name, @variation,
     @autograph, @memorabilia, @serial_number, @serial_current, @serial_total,
     @card_number, @grading, @opening_date, @protection, @storage, @photo_front, @photo_back,
-    @tradable, @rookie, @wnba, @notes, @opening_date_sort, @search_text
+    @tradable, @rookie, @wnba, @notes, @purchase_price_cents, @purchase_currency,
+    @opening_date_sort, @search_text
   )
 `;
 
@@ -170,6 +185,8 @@ export const CARD_UPDATE_SQL = `
     rookie = @rookie,
     wnba = @wnba,
     notes = @notes,
+    purchase_price_cents = @purchase_price_cents,
+    purchase_currency = @purchase_currency,
     opening_date_sort = @opening_date_sort,
     search_text = @search_text
   WHERE id = @id
