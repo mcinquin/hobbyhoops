@@ -1,3 +1,9 @@
+# [2.9.0](https://github.com/mcinquin/hobbyhoops/compare/v2.8.1...v2.9.0) (2026-11-25)
+
+### Features
+
+* **shipments:** rename the shipments section to "Mail day" ([2e97104](https://github.com/mcinquin/hobbyhoops/commit/2e97104c0cfc5b35188a103dafbe3a3428ebe819))
+
 ## [2.8.1](https://github.com/mcinquin/hobbyhoops/compare/v2.8.0...v2.8.1) (2026-11-25)
 
 ### Dependencies
