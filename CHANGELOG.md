@@ -1,3 +1,27 @@
+# [2.8.0](https://github.com/mcinquin/hobbyhoops/compare/v2.7.4...v2.8.0) (2026-11-24)
+
+### Features
+
+* **investments:** dedicated page to track investment cards and their gains ([5114023](https://github.com/mcinquin/hobbyhoops/commit/51140231739c8a04e049199eac92a890a065916c)), closes [#328](https://github.com/mcinquin/hobbyhoops/issues/328)
+
+## [2.7.4](https://github.com/mcinquin/hobbyhoops/compare/v2.7.3...v2.7.4) (2026-11-24)
+
+### Dependencies
+
+* **deps:** bump recharts from 3.10.1 to 3.11.0 ([c559454](https://github.com/mcinquin/hobbyhoops/commit/c5594541fbabc8538a5df7e4d9202b0541e35f60))
+
+## [2.7.3](https://github.com/mcinquin/hobbyhoops/compare/v2.7.2...v2.7.3) (2026-11-24)
+
+### Dependencies
+
+* **deps:** bump tailwind-merge from 3.7.0 to 3.7.1 ([f4f772e](https://github.com/mcinquin/hobbyhoops/commit/f4f772ef60b9c4441acb93da46fe37bb56eead81))
+
+## [2.7.2](https://github.com/mcinquin/hobbyhoops/compare/v2.7.1...v2.7.2) (2026-11-23)
+
+### Dependencies
+
+* **deps-dev:** bump the dev-tools group across 1 directory with 2 updates ([7bab4e5](https://github.com/mcinquin/hobbyhoops/commit/7bab4e5265a3706d3a62100f36db205990089576))
+
 ## [2.7.1](https://github.com/mcinquin/hobbyhoops/compare/v2.7.0...v2.7.1) (2026-11-23)
 
 ### Bug Fixes

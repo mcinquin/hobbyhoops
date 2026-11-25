@@ -37,6 +37,11 @@ export type ApiCard = {
   notes: string;
   purchasePriceCents: number | null;
   purchaseCurrency: string | null;
+  investment: boolean;
+  purchaseFeesCents: number | null;
+  soldAt: string | null;
+  salePriceCents: number | null;
+  saleFeesCents: number | null;
 };
 
 export type CardSeed = Partial<Omit<ApiCard, "id">> & { player: string };
@@ -70,6 +75,11 @@ const CARD_DEFAULTS: Omit<ApiCard, "id" | "player"> = {
   notes: "",
   purchasePriceCents: null,
   purchaseCurrency: null,
+  investment: false,
+  purchaseFeesCents: null,
+  soldAt: null,
+  salePriceCents: null,
+  saleFeesCents: null,
 };
 
 /**

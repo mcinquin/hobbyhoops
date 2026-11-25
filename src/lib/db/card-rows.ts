@@ -22,8 +22,23 @@ export const CARD_LIST_COLUMNS = `
   id, player, team, year, brand, set_name, variation,
   autograph, memorabilia, serial_number, serial_current, serial_total,
   card_number, grading, opening_date, protection, storage, tradable, rookie, wnba, notes,
-  purchase_price_cents, purchase_currency
+  purchase_price_cents, purchase_currency, investment, purchase_fees_cents,
+  sold_at, sale_price_cents, sale_fees_cents
 `.trim();
+
+function nullableCents(value: unknown): number | null {
+  return value == null ? null : Number(value);
+}
+
+/** Whether a card row carries at least one amount (its currency is meaningless otherwise). */
+function rowHasAmount(row: Record<string, unknown>): boolean {
+  return [
+    row.purchase_price_cents,
+    row.purchase_fees_cents,
+    row.sale_price_cents,
+    row.sale_fees_cents,
+  ].some((value) => value != null);
+}
 
 /** Maps a `cards` row (list columns only) to a normalised `CardListItem`. */
 export function rowToCardListItem(row: Record<string, unknown>): CardListItem {
@@ -53,12 +68,16 @@ export function rowToCardListItem(row: Record<string, unknown>): CardListItem {
     rookie: Boolean(row.rookie),
     wnba: Boolean(row.wnba),
     notes: row.notes == null ? "" : String(row.notes),
-    purchasePriceCents:
-      row.purchase_price_cents == null ? null : Number(row.purchase_price_cents),
+    purchasePriceCents: nullableCents(row.purchase_price_cents),
     purchaseCurrency:
-      row.purchase_price_cents == null || row.purchase_currency == null
+      !rowHasAmount(row) || row.purchase_currency == null
         ? null
         : String(row.purchase_currency),
+    investment: Boolean(row.investment),
+    purchaseFeesCents: nullableCents(row.purchase_fees_cents),
+    soldAt: row.sold_at == null ? null : String(row.sold_at),
+    salePriceCents: nullableCents(row.sale_price_cents),
+    saleFeesCents: nullableCents(row.sale_fees_cents),
   });
 }
 
@@ -124,10 +143,19 @@ export function cardToRow(card: Card): Record<string, SqlInputValue> {
     wnba: normalized.wnba ? 1 : 0,
     notes: normalized.notes.trim(),
     purchase_price_cents: normalized.purchasePriceCents ?? null,
-    purchase_currency:
-      normalized.purchasePriceCents == null
-        ? null
-        : (normalizeCurrency(normalized.purchaseCurrency) ?? DEFAULT_CURRENCY),
+    purchase_currency: [
+      normalized.purchasePriceCents,
+      normalized.purchaseFeesCents,
+      normalized.salePriceCents,
+      normalized.saleFeesCents,
+    ].every((value) => value == null)
+      ? null
+      : (normalizeCurrency(normalized.purchaseCurrency) ?? DEFAULT_CURRENCY),
+    investment: normalized.investment ? 1 : 0,
+    purchase_fees_cents: normalized.purchaseFeesCents ?? null,
+    sold_at: normalized.soldAt ?? null,
+    sale_price_cents: normalized.salePriceCents ?? null,
+    sale_fees_cents: normalized.saleFeesCents ?? null,
     opening_date_sort: derived.opening_date_sort,
     search_text: derived.search_text,
   };
@@ -139,12 +167,14 @@ export const CARD_INSERT_SQL = `
     autograph, memorabilia, serial_number, serial_current, serial_total,
     card_number, grading, opening_date, protection, storage, photo_front, photo_back,
     tradable, rookie, wnba, notes, purchase_price_cents, purchase_currency,
+    investment, purchase_fees_cents, sold_at, sale_price_cents, sale_fees_cents,
     opening_date_sort, search_text
   ) VALUES (
     @id, @player, @team, @year, @brand, @set_name, @variation,
     @autograph, @memorabilia, @serial_number, @serial_current, @serial_total,
     @card_number, @grading, @opening_date, @protection, @storage, @photo_front, @photo_back,
     @tradable, @rookie, @wnba, @notes, @purchase_price_cents, @purchase_currency,
+    @investment, @purchase_fees_cents, @sold_at, @sale_price_cents, @sale_fees_cents,
     @opening_date_sort, @search_text
   )
 `;
@@ -187,6 +217,11 @@ export const CARD_UPDATE_SQL = `
     notes = @notes,
     purchase_price_cents = @purchase_price_cents,
     purchase_currency = @purchase_currency,
+    investment = @investment,
+    purchase_fees_cents = @purchase_fees_cents,
+    sold_at = @sold_at,
+    sale_price_cents = @sale_price_cents,
+    sale_fees_cents = @sale_fees_cents,
     opening_date_sort = @opening_date_sort,
     search_text = @search_text
   WHERE id = @id

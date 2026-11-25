@@ -68,5 +68,10 @@ export function buildCardDraftFromShipment(
     notes: provenanceNote,
     purchasePriceCents: shipment.priceCents,
     purchaseCurrency: shipment.priceCents == null ? null : shipment.currency,
+    investment: false,
+    purchaseFeesCents: null,
+    soldAt: null,
+    salePriceCents: null,
+    saleFeesCents: null,
   };
 }

@@ -63,6 +63,8 @@ export function CardSummary({ form, front }: CardSummaryProps) {
               serialNumber: form.serialNumber ?? null,
               tradable: Boolean(form.tradable),
               wnba: Boolean(form.wnba),
+              investment: Boolean(form.investment),
+              soldAt: form.soldAt ?? null,
             }}
             labels={badgeLabels}
           />

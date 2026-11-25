@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { CardMarketLinks } from "@/components/card-market-links";
+import { CardInvestmentSummary } from "@/components/investments/card-investment-summary";
 import { useCardBadgeLabels } from "@/hooks/use-card-badge-labels";
 import { useI18n, useTranslations } from "@/i18n/client";
 import { cn } from "@/lib/utils";
@@ -82,6 +83,14 @@ function CardDetailBody({ card }: { card: CardListItem }) {
       value:
         formatMoney(card.purchasePriceCents, card.purchaseCurrency, locale) ?? "—",
     },
+    ...(card.purchaseFeesCents != null
+      ? [
+          {
+            label: t("cards.purchaseFees"),
+            value: formatMoney(card.purchaseFeesCents, card.purchaseCurrency, locale) ?? "—",
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -128,6 +137,7 @@ function CardDetailBody({ card }: { card: CardListItem }) {
 
         <div className="min-w-0 space-y-3">
           <CardMarketLinks card={card} />
+          {card.investment ? <CardInvestmentSummary card={card} /> : null}
           <div className="grid grid-cols-2 gap-3 py-1">
             {details.map((d) => (
               <div key={d.label}>

@@ -20,6 +20,13 @@ import {
   buildCollectionSpending,
   type CollectionSpending,
 } from "./collection-spending";
+import {
+  buildInvestmentPortfolio,
+  type CardValuation,
+  type InvestmentPortfolio,
+} from "./investment-portfolio";
+import { DEFAULT_CURRENCY } from "./money";
+import { MANUAL_VALUATION_SOURCE } from "./valuation/provider";
 import { deleteAllCardPhotos, deleteLocalPhotoIfStored } from "./card-photo-storage";
 import {
   buildCollectionWhereClause,
@@ -65,6 +72,11 @@ import {
   updateFrNbaPlayer,
   updateShipment,
   writeReferencesState,
+  readInvestmentCards,
+  readInvestmentValuations,
+  readCardValuations,
+  insertCardValuation,
+  deleteCardValuation,
 } from "./db";
 import {
   buildChartCountData,
@@ -212,6 +224,67 @@ export function getCollectionSpending(
     },
     locale
   );
+}
+
+/** Investment cards with their cost, latest value and gains (investments page, dashboard tile). */
+export function getInvestmentPortfolio(locale: Locale): InvestmentPortfolio {
+  return buildInvestmentPortfolio(
+    { cards: readInvestmentCards(), valuations: readInvestmentValuations() },
+    locale
+  );
+}
+
+/** Readings of a card, latest first. */
+export function getCardValuations(cardId: string): CardValuation[] {
+  return readCardValuations(cardId);
+}
+
+/**
+ * Adds a manual reading to a card, in the card's currency.
+ *
+ * @returns the reading, or null when the card does not exist.
+ */
+export function addCardValuation(
+  cardId: string,
+  input: { valueCents: number; valuedAt: string; note: string }
+): CardValuation | null {
+  const card = readCardById(cardId);
+  if (!card) return null;
+  return insertCardValuation({
+    cardId,
+    valueCents: input.valueCents,
+    currency: card.purchaseCurrency ?? DEFAULT_CURRENCY,
+    valuedAt: input.valuedAt,
+    source: MANUAL_VALUATION_SOURCE,
+    note: input.note,
+  });
+}
+
+/** Removes a reading of a card; false when it does not exist. */
+export function removeCardValuation(cardId: string, valuationId: number): boolean {
+  return deleteCardValuation(cardId, valuationId);
+}
+
+/**
+ * Records (or clears, with `null`) the sale of an investment card. The card currency is
+ * kept, or set to the default one when the card had no amount yet.
+ *
+ * @returns the saved card, or null when it does not exist.
+ */
+export function recordCardSale(
+  cardId: string,
+  sale: { soldAt: string; salePriceCents: number; saleFeesCents: number | null } | null
+): Card | null {
+  const card = readCardById(cardId);
+  if (!card) return null;
+  return updateCard({
+    ...card,
+    investment: sale ? true : card.investment,
+    soldAt: sale?.soldAt ?? null,
+    salePriceCents: sale?.salePriceCents ?? null,
+    saleFeesCents: sale?.saleFeesCents ?? null,
+    purchaseCurrency: card.purchaseCurrency ?? (sale ? DEFAULT_CURRENCY : null),
+  });
 }
 
 /** Groups of cards that look like duplicates, with their list items. */

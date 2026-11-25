@@ -1,8 +1,8 @@
 import dynamic from "next/dynamic";
 import {
-  getCollectionSpending,
   getCollectionStats,
   getDashboardChartData,
+  getInvestmentPortfolio,
   getRecentCards,
   getReferences,
   getShipments,
@@ -14,7 +14,7 @@ import { StatsCards } from "@/components/stats-cards";
 import { LeagueSummary } from "@/components/league-summary";
 import { RecentCards } from "@/components/recent-cards";
 import { IncomingShipmentsWidget } from "@/components/incoming-shipments-widget";
-import { CollectionSpendingSection } from "@/components/collection-spending-section";
+import { InvestmentSummaryTile } from "@/components/investments/investment-summary-tile";
 import { ChartSkeleton } from "@/components/skeletons/page-skeletons";
 
 const DashboardCharts = dynamic(
@@ -80,9 +80,7 @@ export default async function DashboardPage() {
           overdueDays: t("dashboard.incoming.overdueDays"),
         }}
       />
-      <CollectionSpendingSection
-        spending={getCollectionSpending(stats.total, locale)}
-      />
+      <InvestmentSummaryTile portfolio={getInvestmentPortfolio(locale)} />
       <DashboardCharts
         chartData={getDashboardChartData(references, locale)}
       />
