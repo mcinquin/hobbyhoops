@@ -1,3 +1,9 @@
+# [2.10.0](https://github.com/mcinquin/hobbyhoops/compare/v2.9.1...v2.10.0) (2026-11-25)
+
+### Features
+
+* **ci:** add a manual workflow to rebuild a release's Docker image ([5077841](https://github.com/mcinquin/hobbyhoops/commit/50778411428d366c951a70f2ae659871e2a4e2a6))
+
 ## [2.9.1](https://github.com/mcinquin/hobbyhoops/compare/v2.9.0...v2.9.1) (2026-11-25)
 
 ### Bug Fixes
