@@ -1,3 +1,9 @@
+## [2.9.1](https://github.com/mcinquin/hobbyhoops/compare/v2.9.0...v2.9.1) (2026-11-25)
+
+### Bug Fixes
+
+* **ci:** build the Docker image even when semantic-release fails late ([f92e778](https://github.com/mcinquin/hobbyhoops/commit/f92e7787797123684b4f4393b22fbb0de455a91c))
+
 # [2.9.0](https://github.com/mcinquin/hobbyhoops/compare/v2.8.1...v2.9.0) (2026-11-25)
 
 ### Features
