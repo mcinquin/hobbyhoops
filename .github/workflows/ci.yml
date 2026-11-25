@@ -147,8 +147,12 @@ jobs:
           HUSKY: "0"
         run: npm run release
 
+      # Tourne même si semantic-release échoue : une erreur tardive (ex. 500 GitHub
+      # sur le commentaire de PR) peut survenir après la création du tag. L'image
+      # est alors construite quand même ; le job reste en échec pour signaler l'erreur.
       - name: Détecter la release publiée
         id: release
+        if: ${{ !cancelled() }}
         run: |
           tag="$(git tag --points-at HEAD | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$' | sort -V | tail -n 1 || true)"
 
@@ -167,17 +171,17 @@ jobs:
           fi
 
       - uses: docker/setup-buildx-action@594f3bf4285d9ea8dc53c9a0c9c4092420091003
-        if: steps.release.outputs.published == 'true'
+        if: ${{ !cancelled() && steps.release.outputs.published == 'true' }}
 
       - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550
-        if: steps.release.outputs.published == 'true'
+        if: ${{ !cancelled() && steps.release.outputs.published == 'true' }}
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302
-        if: steps.release.outputs.published == 'true'
+        if: ${{ !cancelled() && steps.release.outputs.published == 'true' }}
         id: release-meta
         with:
           images: ghcr.io/${{ github.repository }}
@@ -188,7 +192,7 @@ jobs:
             type=raw,value=latest,enable=${{ steps.release.outputs.latest == 'true' }}
 
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
-        if: steps.release.outputs.published == 'true'
+        if: ${{ !cancelled() && steps.release.outputs.published == 'true' }}
         with:
           context: .
           push: true
