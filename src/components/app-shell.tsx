@@ -13,7 +13,7 @@ import { useTranslations } from "@/i18n/client";
 
 interface AppShellProps {
   username: string | null;
-  /** Shipments past their expected delivery, shown as a badge on the "Incoming" entry. */
+  /** Shipments past their expected delivery, shown as a badge on the "Mail day" entry. */
   overdueShipmentCount?: number;
   children: React.ReactNode;
 }

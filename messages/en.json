@@ -17,7 +17,7 @@
     "dashboard": "Dashboard",
     "collection": "Collection",
     "wanted": "Wanted",
-    "shipments": "Incoming",
+    "shipments": "Mail day",
     "frNba": "Fr NBA/WNBA",
     "players": "Players",
     "admin": "Admin",
@@ -126,7 +126,7 @@
       "empty": "No cards yet."
     },
     "incoming": {
-      "title": "Incoming",
+      "title": "Mail day",
       "activeCount": "{count} active shipment(s)",
       "viewAll": "View all",
       "alertOne": "1 buyer protection alert",
@@ -167,7 +167,7 @@
     "subtitle": "Browse, filter, and search your entire collection."
   },
   "shipments": {
-    "title": "Incoming",
+    "title": "Mail day",
     "subtitle": "Track eBay and other purchases before they join your collection.",
     "intro": "Add a purchase as soon as you order to track shipping and protection windows (eBay: 30 d after estimated delivery · Vinted: 2 d after delivery notification, approximated here by the estimated date).",
     "stats": {
