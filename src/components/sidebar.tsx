@@ -25,7 +25,7 @@ import { BrandMark } from "@/components/brand-mark";
 
 interface SidebarProps {
   username: string | null;
-  /** Shipments past their expected delivery, shown as a badge on the "Incoming" entry. */
+  /** Shipments past their expected delivery, shown as a badge on the "Mail day" entry. */
   overdueShipmentCount?: number;
   onNavigate?: () => void;
   className?: string;

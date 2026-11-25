@@ -17,7 +17,7 @@
     "dashboard": "Tableau de bord",
     "collection": "Collection",
     "wanted": "Wanted",
-    "shipments": "En route",
+    "shipments": "Mail day",
     "frNba": "Fr NBA/WNBA",
     "players": "Joueurs",
     "admin": "Admin",
@@ -126,7 +126,7 @@
       "empty": "Aucune carte pour l'instant."
     },
     "incoming": {
-      "title": "En route",
+      "title": "Mail day",
       "activeCount": "{count} colis en cours",
       "viewAll": "Voir tout",
       "alertOne": "1 alerte protection acheteur",
@@ -167,7 +167,7 @@
     "subtitle": "Parcourez, filtrez et recherchez toute votre collection."
   },
   "shipments": {
-    "title": "En route",
+    "title": "Mail day",
     "subtitle": "Suivez vos achats eBay et autres plateformes avant qu'ils arrivent dans votre collection.",
     "intro": "Ajoutez un achat dès la commande pour suivre l'expédition et les fenêtres de protection (eBay : 30 j après livraison estimée · Vinted : 2 j après notification de livraison, approximée ici par la date estimée).",
     "stats": {
