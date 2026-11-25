@@ -1,0 +1,83 @@
+name: Docker rebuild
+
+# Reconstruit et pousse sur GHCR l'image d'un tag de release existant.
+# À utiliser quand le job release n'a pas produit l'image (ex. erreur GitHub
+# pendant semantic-release) :
+#   gh workflow run docker-rebuild.yml -f tag=v2.9.0
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag de release à reconstruire (ex. v2.9.0)"
+        required: true
+        type: string
+
+concurrency:
+  group: docker-rebuild-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Valider le tag
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Tag invalide : '$TAG' (attendu : vX.Y.Z ou vX.Y.Z-pre)"
+            exit 1
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+
+      # `latest` seulement si le tag est la release stable la plus récente,
+      # pour ne pas réattribuer `latest` à une ancienne version.
+      - name: Déterminer les tags d'image
+        id: release
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          newest="$(git tag -l 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)"
+          if [[ "$TAG" == "$newest" ]]; then
+            echo "latest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "latest=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: docker/setup-buildx-action@594f3bf4285d9ea8dc53c9a0c9c4092420091003
+
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302
+        id: release-meta
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=${{ inputs.tag }}
+            type=semver,pattern={{version}},value=${{ inputs.tag }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ inputs.tag }}
+            type=raw,value=latest,enable=${{ steps.release.outputs.latest == 'true' }}
+
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.release-meta.outputs.tags }}
+          labels: ${{ steps.release-meta.outputs.labels }}
+          cache-from: |
+            type=registry,ref=ghcr.io/${{ github.repository }}/buildcache:latest
+            type=gha,scope=hobbyhoops
+          cache-to: |
+            type=registry,ref=ghcr.io/${{ github.repository }}/buildcache:latest,mode=max
+            type=gha,mode=max,scope=hobbyhoops
