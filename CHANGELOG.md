@@ -1,3 +1,9 @@
+## [2.10.1](https://github.com/mcinquin/hobbyhoops/compare/v2.10.0...v2.10.1) (2026-11-26)
+
+### Dependencies
+
+* **deps-dev:** bump lint-staged ([6830e46](https://github.com/mcinquin/hobbyhoops/commit/6830e469bc24b5e954881133cd49aeb63d181ab8))
+
 # [2.10.0](https://github.com/mcinquin/hobbyhoops/compare/v2.9.1...v2.10.0) (2026-11-25)
 
 ### Features
