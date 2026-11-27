@@ -1,3 +1,9 @@
+# [2.12.0](https://github.com/mcinquin/hobbyhoops/compare/v2.11.0...v2.12.0) (2026-11-27)
+
+### Features
+
+* **dashboard:** hits tiles (RPA, RC auto, numbered auto, 1/1, /10 or less) ([f7df758](https://github.com/mcinquin/hobbyhoops/commit/f7df75837bbbdda3c14e475b872ae33800c8b669)), closes [#307](https://github.com/mcinquin/hobbyhoops/issues/307)
+
 # [2.11.0](https://github.com/mcinquin/hobbyhoops/compare/v2.10.3...v2.11.0) (2026-11-27)
 
 ### Features
