@@ -3,7 +3,10 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { XIcon } from "lucide-react";
-import type { CollectionListQuery } from "@/lib/collection-query";
+import {
+  formatSerialRangeLabel,
+  type CollectionListQuery,
+} from "@/lib/collection-query";
 import type { CardBadgeLabels } from "@/components/card-badges";
 import type { CollectionUrlFilters } from "@/hooks/use-collection-url-filters";
 import { useTranslations } from "@/i18n/client";
@@ -54,6 +57,26 @@ export function ActiveFilterChips({
         id: key,
         label: t(labelKey, { value }),
         onRemove: () => updateFilters(reset, { immediate: true }),
+      });
+    }
+    const serialRange = formatSerialRangeLabel(filters.serialMin, filters.serialMax);
+    if (serialRange) {
+      result.push({
+        id: "serial-range",
+        label: t("cards.activePrintRun", { value: serialRange }),
+        onRemove: () =>
+          updateFilters({ serialMin: null, serialMax: null }, { immediate: true }),
+      });
+    }
+    if (filters.serialPosition) {
+      result.push({
+        id: "serial-position",
+        label: t(
+          filters.serialPosition === "first"
+            ? "cards.activeSerialFirst"
+            : "cards.activeSerialLast"
+        ),
+        onRemove: () => updateFilters({ serialPosition: "" }, { immediate: true }),
       });
     }
     for (const tag of filters.tags) {

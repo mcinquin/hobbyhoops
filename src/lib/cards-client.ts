@@ -38,6 +38,9 @@ export function collectionQueryToSearchParams(
   for (const tag of query.tags) {
     params.append("tag", tag);
   }
+  if (query.serialMin != null) params.set("serialMin", String(query.serialMin));
+  if (query.serialMax != null) params.set("serialMax", String(query.serialMax));
+  if (query.serialPosition) params.set("serialPosition", query.serialPosition);
   if (query.page > 1) params.set("page", String(query.page));
   if (
     options?.persistPageSize ||

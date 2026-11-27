@@ -65,6 +65,21 @@ const tagValueSchema = z.enum([
 
 const filterValueSchema = z.string().trim().max(128).catch("");
 
+/** Upper bound accepted for a print-run filter (`serialMin` / `serialMax`). */
+const SERIAL_FILTER_MAX = 100_000;
+
+/** Position of the card's serial in its print run (`first` = #1, `last` = #N of N). */
+export type SerialPositionFilter = "" | "first" | "last";
+
+const serialPositionSchema = z.enum(["first", "last"]);
+
+/** Positive integer from a URL param, or null when missing / invalid. */
+function parseSerialBound(raw: string | null): number | null {
+  if (!raw || !/^\d+$/.test(raw.trim())) return null;
+  const value = Number.parseInt(raw, 10);
+  return value >= 1 && value <= SERIAL_FILTER_MAX ? value : null;
+}
+
 function parseCollectionTags(params: URLSearchParams): CollectionTagValue[] {
   const seen = new Set<CollectionTagValue>();
   const tags: CollectionTagValue[] = [];
@@ -88,6 +103,12 @@ export interface CollectionListQuery {
   variation: string;
   /** Filtres cumulés (ET) : ex. rookie + autograph = RC et Auto. */
   tags: CollectionTagValue[];
+  /** Minimum print run (`serial_total`), inclusive; null = no lower bound. */
+  serialMin: number | null;
+  /** Maximum print run (`serial_total`), inclusive; null = no upper bound. */
+  serialMax: number | null;
+  /** First (#1) or last (#N/N) serial of a numbered run, excluding 1/1. */
+  serialPosition: SerialPositionFilter;
   page: number;
   pageSize: number;
   sort: CollectionSortKey;
@@ -147,6 +168,20 @@ export function columnFilterPatch(
   return { [key]: value };
 }
 
+/**
+ * Short label of a print-run range: `1/1`, `/2–/10`, `≤ /99`, `≥ /200` (null without bounds).
+ */
+export function formatSerialRangeLabel(
+  min: number | null,
+  max: number | null
+): string | null {
+  if (min == null && max == null) return null;
+  if (min === 1 && max === 1) return "1/1";
+  if (min != null && max != null) return min === max ? `/${min}` : `/${min}–/${max}`;
+  if (max != null) return `≤ /${max}`;
+  return `≥ /${min}`;
+}
+
 /** Parses and validates collection filters from URL params, with safe defaults. */
 export function parseCollectionSearchParams(
   params: URLSearchParams
@@ -171,6 +206,9 @@ export function parseCollectionSearchParams(
     set: filterValueSchema.parse(params.get("set") ?? ""),
     variation: filterValueSchema.parse(params.get("variation") ?? ""),
     tags: parseCollectionTags(params),
+    serialMin: parseSerialBound(params.get("serialMin")),
+    serialMax: parseSerialBound(params.get("serialMax")),
+    serialPosition: serialPositionSchema.safeParse(params.get("serialPosition")).data ?? "",
     page,
     pageSize,
     sort,
@@ -216,6 +254,20 @@ export function buildCollectionWhereClause(
   if (query.variation.trim()) {
     clauses.push("LOWER(variation) = ?");
     params.push(query.variation.trim().toLowerCase());
+  }
+
+  if (query.serialMin != null) {
+    clauses.push("serial_total >= ?");
+    params.push(query.serialMin);
+  }
+  if (query.serialMax != null) {
+    clauses.push("serial_total <= ?");
+    params.push(query.serialMax);
+  }
+  if (query.serialPosition === "first") {
+    clauses.push("serial_current = 1 AND serial_total > 1");
+  } else if (query.serialPosition === "last") {
+    clauses.push("serial_current = serial_total AND serial_total > 1");
   }
 
   for (const tag of query.tags) {

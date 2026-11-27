@@ -3,6 +3,7 @@ import {
   getCollectionStats,
   getDashboardChartData,
   getInvestmentPortfolio,
+  getRarityStats,
   getRecentCards,
   getReferences,
   getShipments,
@@ -16,6 +17,7 @@ import { RecentCards } from "@/components/recent-cards";
 import { IncomingShipmentsWidget } from "@/components/incoming-shipments-widget";
 import { InvestmentSummaryTile } from "@/components/investments/investment-summary-tile";
 import { ChartSkeleton } from "@/components/skeletons/page-skeletons";
+import { RaritySection } from "@/components/rarity/rarity-section";
 
 const DashboardCharts = dynamic(
   () =>
@@ -81,6 +83,7 @@ export default async function DashboardPage() {
         }}
       />
       <InvestmentSummaryTile portfolio={getInvestmentPortfolio(locale)} />
+      <RaritySection rarity={getRarityStats()} />
       <DashboardCharts
         chartData={getDashboardChartData(references, locale)}
       />

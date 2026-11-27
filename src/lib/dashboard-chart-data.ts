@@ -92,3 +92,61 @@ export function setCollectionHref(entry: { brand: string; set: string }): string
   params.set("set", entry.set);
   return `/collection?${params.toString()}`;
 }
+
+/** Raw card count for one print run (`serial_total`). */
+export type PrintRunCountRow = { serialTotal: number; count: number };
+
+/** Print-run tiers of the rarity chart: inclusive `serial_total` bounds (`max` null = open). */
+export const PRINT_RUN_TIERS = [
+  { id: "oneOfOne", min: 1, max: 1 },
+  { id: "upTo10", min: 2, max: 10 },
+  { id: "upTo25", min: 11, max: 25 },
+  { id: "upTo99", min: 26, max: 99 },
+  { id: "upTo199", min: 100, max: 199 },
+  { id: "over199", min: 200, max: null },
+] as const satisfies ReadonlyArray<{ id: string; min: number; max: number | null }>;
+
+export type PrintRunTierId = (typeof PRINT_RUN_TIERS)[number]["id"];
+
+/** Card count of one print-run tier, with its bounds for the collection drill-down. */
+export type PrintRunTierRow = {
+  tier: PrintRunTierId;
+  min: number;
+  max: number | null;
+  count: number;
+};
+
+/** Buckets per-print-run counts into the rarity tiers (every tier listed, zero included). */
+export function buildPrintRunTierData(
+  rows: readonly PrintRunCountRow[]
+): PrintRunTierRow[] {
+  return PRINT_RUN_TIERS.map(({ id, min, max }) => ({
+    tier: id,
+    min,
+    max,
+    count: rows
+      .filter(
+        (row) => row.serialTotal >= min && (max === null || row.serialTotal <= max)
+      )
+      .reduce((sum, row) => sum + row.count, 0),
+  }));
+}
+
+/** Collection URL filtered on a print-run range (`serialMin` / `serialMax`). */
+export function printRunCollectionHref(range: { min: number; max: number | null }): string {
+  const params = new URLSearchParams({ serialMin: String(range.min) });
+  if (range.max !== null) params.set("serialMax", String(range.max));
+  return `/collection?${params.toString()}`;
+}
+
+/** Collection URL filtered on the first (#1) or last (#N/N) serial of a run. */
+export function serialPositionCollectionHref(position: "first" | "last"): string {
+  return `/collection?${new URLSearchParams({ serialPosition: position }).toString()}`;
+}
+
+/** Axis label of a print-run tier, as on the issue: `1/1`, `≤ /10`, …, `> /199`. */
+export function printRunTierLabel(row: { min: number; max: number | null }): string {
+  if (row.max === 1) return "1/1";
+  if (row.max === null) return `> /${row.min - 1}`;
+  return `≤ /${row.max}`;
+}

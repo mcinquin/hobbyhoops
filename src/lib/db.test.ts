@@ -5,6 +5,7 @@ import Database from "better-sqlite3";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { Card } from "@/lib/types";
 import {
+  countCards,
   deleteCard,
   deleteCardValuation,
   getDb,
@@ -19,7 +20,10 @@ import {
   readInvestmentCards,
   readInvestmentValuations,
   readDuplicateGroupRows,
+  readPrintRunCounts,
+  readRarestCards,
   readRecentCards,
+  readSpecialSerialCounts,
   readSpendingByMonth,
   readSpendingGroups,
   readReferencesState,
@@ -29,7 +33,11 @@ import {
 } from "@/lib/db";
 import { createEmptyReferences } from "@/lib/reference-mutations";
 import { getDuplicateCardGroups } from "@/lib/data";
-import { buildCollectionWhereClause } from "@/lib/collection-query";
+import {
+  buildCollectionWhereClause,
+  parseCollectionSearchParams,
+} from "@/lib/collection-query";
+import { buildPrintRunTierData } from "@/lib/dashboard-chart-data";
 import { exportCardsCsv, importCardsCsv } from "@/lib/data";
 import { resetDatabaseCacheForTests } from "@/lib/test/db-test-helper";
 
@@ -147,6 +155,37 @@ describe("card CRUD", () => {
     expect(getNextCardId()).toBe("card-0002");
   });
 
+  it("computes rarity stats that match the collection drill-down", () => {
+    const serials = ["1/1", "1/5", "5/5", "3/10", "1/99", "99/99", "50/250", "", "7/25"];
+    serials.forEach((serialNumber, i) =>
+      insertCard(
+        sampleCard({
+          id: `card-${String(i + 1).padStart(4, "0")}`,
+          player: `Player ${i}`,
+          serialNumber: serialNumber || null,
+        })
+      )
+    );
+
+    const tiers = buildPrintRunTierData(readPrintRunCounts());
+    expect(tiers.map((row) => row.count)).toEqual([1, 3, 1, 2, 0, 1]);
+    expect(readSpecialSerialCounts()).toEqual({ first: 2, last: 2 });
+
+    const rarest = readRarestCards(3);
+    expect(rarest.map((card) => card.serialNumber)).toEqual(["1/1", "1/5", "5/5"]);
+
+    const base = parseCollectionSearchParams(new URLSearchParams());
+    const count = (patch: Partial<typeof base>) => {
+      const { whereSql, params } = buildCollectionWhereClause({ ...base, ...patch });
+      return countCards(whereSql, params);
+    };
+    for (const tier of tiers) {
+      expect(count({ serialMin: tier.min, serialMax: tier.max })).toBe(tier.count);
+    }
+    expect(count({ serialPosition: "first" })).toBe(2);
+    expect(count({ serialPosition: "last" })).toBe(2);
+  });
+
   it("finds cards via FTS5 search", () => {
     insertCard(sampleCard({ openingDate: "15/03/2024" }));
     const row = getDerivedColumns("card-0001");
@@ -165,6 +204,9 @@ describe("card CRUD", () => {
       set: "",
       variation: "",
       tags: [],
+      serialMin: null,
+      serialMax: null,
+      serialPosition: "",
       page: 1,
       pageSize: 50,
       sort: "player",
@@ -190,6 +232,9 @@ describe("card CRUD", () => {
         set: "",
         variation: "",
         tags: [],
+        serialMin: null,
+        serialMax: null,
+        serialPosition: "",
         page: 1,
         pageSize: 50,
         sort: "player",
@@ -293,6 +338,9 @@ describe("card CRUD", () => {
         set: "",
         variation: "",
         tags: [],
+        serialMin: null,
+        serialMax: null,
+        serialPosition: "",
         page: 1,
         pageSize: 50,
         sort: "player",

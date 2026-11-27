@@ -1,3 +1,5 @@
+import type { PrintRunTierRow } from "./dashboard-chart-data";
+
 export interface Card {
   id: string;
   player: string;
@@ -164,6 +166,16 @@ export interface CardsPageResult {
   pageCount: number;
   page: number;
   pageSize: number;
+}
+
+/** Rarity block of the dashboard: print-run tiers, special serials and rarest cards. */
+export interface RarityStats {
+  tiers: PrintRunTierRow[];
+  /** Numbered cards (1/1 excluded) that are #1 of their run. */
+  firstOfRun: number;
+  /** Numbered cards (1/1 excluded) that are the last of their run (#N/N). */
+  lastOfRun: number;
+  rarest: CardListItem[];
 }
 
 export interface DashboardChartData {
