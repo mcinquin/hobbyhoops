@@ -173,6 +173,29 @@
       "lastOfRunHint": "ex. 99/99 (hors 1/1)",
       "rarestTitle": "Top {count} des cartes les plus rares",
       "openCard": "Voir la carte {player} ({serial})"
+    },
+    "hits": {
+      "title": "Hits",
+      "rpa": {
+        "label": "RPA",
+        "hint": "Rookie + Auto + Patch"
+      },
+      "rcAuto": {
+        "label": "RC Auto",
+        "hint": "Rookie + Auto"
+      },
+      "numberedAuto": {
+        "label": "Autos numérotées",
+        "hint": "Auto + numérotée"
+      },
+      "oneOfOne": {
+        "label": "1/1",
+        "hint": "Exemplaire unique"
+      },
+      "upTo10": {
+        "label": "/10 ou moins",
+        "hint": "Tirage /2 à /10, hors 1/1"
+      }
     }
   },
   "collection": {
