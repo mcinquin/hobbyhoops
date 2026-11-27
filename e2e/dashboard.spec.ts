@@ -25,6 +25,7 @@ test.beforeAll(async ({ playwright }) => {
     { player: `Dash Five ${token}`, brand: otherBrand, set: sharedSet },
     { player: `Dash Unique ${token}`, serialNumber: "1/1" },
     { player: `Dash First ${token}`, serialNumber: "1/50" },
+    { player: `Dash RPA ${token}`, rookie: true, autograph: true, memorabilia: true },
   ]);
   await api.dispose();
 });
@@ -104,6 +105,8 @@ test("rarity: print-run tier, 1/1 and #1 tiles and rarest card open the right ca
   // The dedicated 1/1 tile opens the same cards as the 1/1 bar.
   await page.goto("/");
   await page
+    .locator("section")
+    .filter({ has: page.getByRole("heading", { name: t("dashboard.rarity.title") }) })
     .getByRole("link", { name: new RegExp(t("dashboard.rarity.oneOfOneHint")) })
     .click();
   await expectCollection(page, { serialMin: "1", serialMax: "1" }, count);
@@ -121,4 +124,23 @@ test("rarity: print-run tier, 1/1 and #1 tiles and rarest card open the right ca
     })
     .click();
   await expect(page.getByRole("dialog")).toContainText(`Dash Unique ${token}`);
+});
+
+test("hits: the RPA tile opens the rookie + auto + memorabilia cards (#307)", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const tile = page.getByRole("link", {
+    name: new RegExp(`^${t("dashboard.hits.rpa.label")} \\d+`),
+  });
+  // Other tests share the database: read the count from the tile itself.
+  const count = Number((await tile.textContent())?.match(/\d+/)?.[0]);
+  expect(count).toBeGreaterThanOrEqual(1);
+
+  await tile.click();
+  await expect(page).toHaveURL(/\/collection\?/);
+  const params = new URL(page.url()).searchParams;
+  expect(params.getAll("tag")).toEqual(["rookie", "autograph", "memorabilia"]);
+  await expect(page.getByText(t("cards.count", { count }))).toBeVisible();
+  await expect(page.locator("table tbody")).toContainText(`Dash RPA ${token}`);
 });

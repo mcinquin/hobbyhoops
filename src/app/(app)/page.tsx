@@ -2,6 +2,7 @@ import dynamic from "next/dynamic";
 import {
   getCollectionStats,
   getDashboardChartData,
+  getHitCounts,
   getInvestmentPortfolio,
   getRarityStats,
   getRecentCards,
@@ -12,6 +13,7 @@ import { buildCardBadgeLabels } from "@/lib/card-badge-labels";
 import { getTranslations } from "@/i18n/server";
 import { PageHeader } from "@/components/page-header";
 import { StatsCards } from "@/components/stats-cards";
+import { HitsTiles } from "@/components/hits-tiles";
 import { LeagueSummary } from "@/components/league-summary";
 import { RecentCards } from "@/components/recent-cards";
 import { IncomingShipmentsWidget } from "@/components/incoming-shipments-widget";
@@ -53,6 +55,7 @@ export default async function DashboardPage() {
           tradable: t("dashboard.stats.tradable"),
         }}
       />
+      <HitsTiles counts={getHitCounts()} />
       <LeagueSummary
         nba={stats.total - stats.wnba}
         wnba={stats.wnba}

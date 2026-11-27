@@ -173,6 +173,29 @@
       "lastOfRunHint": "e.g. 99/99 (1/1 excluded)",
       "rarestTitle": "Top {count} rarest cards",
       "openCard": "Open {player} ({serial})"
+    },
+    "hits": {
+      "title": "Hits",
+      "rpa": {
+        "label": "RPA",
+        "hint": "Rookie + Auto + Patch"
+      },
+      "rcAuto": {
+        "label": "RC Auto",
+        "hint": "Rookie + Auto"
+      },
+      "numberedAuto": {
+        "label": "Numbered autos",
+        "hint": "Auto + numbered"
+      },
+      "oneOfOne": {
+        "label": "1/1",
+        "hint": "One of one"
+      },
+      "upTo10": {
+        "label": "/10 or less",
+        "hint": "Print run /2 to /10, 1/1 excluded"
+      }
     }
   },
   "collection": {

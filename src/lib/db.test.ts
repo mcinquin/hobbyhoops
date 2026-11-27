@@ -32,12 +32,13 @@ import {
   writeReferencesState,
 } from "@/lib/db";
 import { createEmptyReferences } from "@/lib/reference-mutations";
-import { getDuplicateCardGroups } from "@/lib/data";
+import { getDuplicateCardGroups, getHitCounts } from "@/lib/data";
 import {
   buildCollectionWhereClause,
   parseCollectionSearchParams,
 } from "@/lib/collection-query";
 import { buildPrintRunTierData } from "@/lib/dashboard-chart-data";
+import { COLLECTION_HITS, hitCollectionHref } from "@/lib/collection-hits";
 import { exportCardsCsv, importCardsCsv } from "@/lib/data";
 import { resetDatabaseCacheForTests } from "@/lib/test/db-test-helper";
 
@@ -153,6 +154,32 @@ describe("card CRUD", () => {
   it("allocates sequential ids", () => {
     insertCard(sampleCard({ id: "card-0001" }));
     expect(getNextCardId()).toBe("card-0002");
+  });
+
+  it("counts hits that match their collection drill-down", () => {
+    const cards: Partial<Card>[] = [
+      { rookie: true, autograph: true, memorabilia: true, serialNumber: "5/25" }, // RPA
+      { rookie: true, autograph: true }, // RC auto
+      { rookie: false, autograph: true, serialNumber: "1/1" }, // numbered auto, 1/1
+      { rookie: false, autograph: true, serialNumber: "3/10" }, // numbered auto, /10
+      { rookie: false, serialNumber: "1/1" }, // 1/1
+      { rookie: true, memorabilia: true, serialNumber: "11/99" },
+      { rookie: false },
+    ];
+    cards.forEach((patch, i) =>
+      insertCard(sampleCard({ id: `card-${String(i + 1).padStart(4, "0")}`, ...patch }))
+    );
+
+    const counts = getHitCounts();
+    expect(counts).toEqual({ rpa: 1, rcAuto: 2, numberedAuto: 3, oneOfOne: 2, upTo10: 1 });
+
+    for (const hit of COLLECTION_HITS) {
+      const query = parseCollectionSearchParams(
+        new URL(hitCollectionHref(hit), "http://localhost").searchParams
+      );
+      const { whereSql, params } = buildCollectionWhereClause(query);
+      expect(countCards(whereSql, params), hit.id).toBe(counts[hit.id]);
+    }
   });
 
   it("computes rarity stats that match the collection drill-down", () => {

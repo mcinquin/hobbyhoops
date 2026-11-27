@@ -18,6 +18,11 @@ import {
 } from "./types";
 import { getCachedReferences } from "./references-cache";
 import {
+  COLLECTION_HITS,
+  hitCollectionQuery,
+  type CollectionHitId,
+} from "./collection-hits";
+import {
   buildCollectionSpending,
   type CollectionSpending,
 } from "./collection-spending";
@@ -214,6 +219,16 @@ export function getDashboardChartData(
     acquisitionData,
     leagueData,
   };
+}
+
+/** Card count of each dashboard hit (RPA, RC auto, numbered auto, /10 or less). */
+export function getHitCounts(): Record<CollectionHitId, number> {
+  return Object.fromEntries(
+    COLLECTION_HITS.map((hit) => {
+      const { whereSql, params } = buildCollectionWhereClause(hitCollectionQuery(hit));
+      return [hit.id, countCards(whereSql, params)];
+    })
+  ) as Record<CollectionHitId, number>;
 }
 
 /** Rarity stats for the dashboard: print-run tiers, #1 / last-of-run counts, rarest cards. */
