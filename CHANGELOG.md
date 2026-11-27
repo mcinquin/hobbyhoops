@@ -1,3 +1,9 @@
+## [2.10.3](https://github.com/mcinquin/hobbyhoops/compare/v2.10.2...v2.10.3) (2026-11-27)
+
+### Dependencies
+
+* **deps:** bump lucide-react from 1.77.0 to 1.78.0 ([7a7d16c](https://github.com/mcinquin/hobbyhoops/commit/7a7d16c36f067f27b148bc86c1fb3725d8b7e163))
+
 ## [2.10.2](https://github.com/mcinquin/hobbyhoops/compare/v2.10.1...v2.10.2) (2026-11-27)
 
 ### Dependencies
