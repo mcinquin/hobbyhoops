@@ -1,3 +1,9 @@
+# [2.11.0](https://github.com/mcinquin/hobbyhoops/compare/v2.10.3...v2.11.0) (2026-11-27)
+
+### Features
+
+* **dashboard:** rarity stats (print-run tiers, special numbers, rarest cards) ([a118b64](https://github.com/mcinquin/hobbyhoops/commit/a118b64cbee2d6994f6d3e9163cdaeee9841b7a0)), closes [#304](https://github.com/mcinquin/hobbyhoops/issues/304)
+
 ## [2.10.3](https://github.com/mcinquin/hobbyhoops/compare/v2.10.2...v2.10.3) (2026-11-27)
 
 ### Dependencies
