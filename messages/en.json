@@ -160,6 +160,19 @@
       "realized": "Realized gain",
       "viewAll": "View portfolio",
       "empty": "Tick \"Investment\" on a card you bought to resell: its cost, value and gain will show up here."
+    },
+    "rarity": {
+      "title": "Rarity",
+      "numberedCount": "{count} numbered card(s)",
+      "byPrintRun": "By print run",
+      "oneOfOne": "1/1",
+      "oneOfOneHint": "One of one",
+      "firstOfRun": "#1 of the run",
+      "firstOfRunHint": "e.g. 1/99 (1/1 excluded)",
+      "lastOfRun": "Last of the run",
+      "lastOfRunHint": "e.g. 99/99 (1/1 excluded)",
+      "rarestTitle": "Top {count} rarest cards",
+      "openCard": "Open {player} ({serial})"
     }
   },
   "collection": {
@@ -589,7 +602,10 @@
     "investmentSummary": "Investment",
     "costBasis": "Cost basis",
     "latestValue": "Latest value",
-    "gain": "Gain"
+    "gain": "Gain",
+    "activePrintRun": "Print run = {value}",
+    "activeSerialFirst": "#1 of the run",
+    "activeSerialLast": "Last of the run"
   },
   "admin": {
     "title": "Admin",

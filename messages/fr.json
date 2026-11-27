@@ -160,6 +160,19 @@
       "realized": "Plus-value réalisée",
       "viewAll": "Voir le portefeuille",
       "empty": "Cochez « Investissement » sur une carte achetée pour la revendre : son coût, sa cote et sa plus-value apparaîtront ici."
+    },
+    "rarity": {
+      "title": "Rareté",
+      "numberedCount": "{count} carte(s) numérotée(s)",
+      "byPrintRun": "Par tirage",
+      "oneOfOne": "1/1",
+      "oneOfOneHint": "Exemplaire unique",
+      "firstOfRun": "N° 1 du tirage",
+      "firstOfRunHint": "ex. 1/99 (hors 1/1)",
+      "lastOfRun": "Dernier du tirage",
+      "lastOfRunHint": "ex. 99/99 (hors 1/1)",
+      "rarestTitle": "Top {count} des cartes les plus rares",
+      "openCard": "Voir la carte {player} ({serial})"
     }
   },
   "collection": {
@@ -589,7 +602,10 @@
     "investmentSummary": "Investissement",
     "costBasis": "Coût de revient",
     "latestValue": "Dernière cote",
-    "gain": "Plus-value"
+    "gain": "Plus-value",
+    "activePrintRun": "Tirage = {value}",
+    "activeSerialFirst": "N° 1 du tirage",
+    "activeSerialLast": "Dernier du tirage"
   },
   "admin": {
     "title": "Admin",

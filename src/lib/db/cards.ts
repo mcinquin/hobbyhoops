@@ -12,7 +12,7 @@ import type {
 } from "../types";
 import { normalizeCardSerialFields } from "../card-serial";
 import { COLLECTION_SORT_SQL } from "../collection-query";
-import type { BrandSetCountRow } from "../dashboard-chart-data";
+import type { BrandSetCountRow, PrintRunCountRow } from "../dashboard-chart-data";
 import type { SpendingGroupRow, SpendingMonthRow } from "../collection-spending";
 import {
   PLAYER_CARD_STATS_AGG_SQL,
@@ -405,6 +405,49 @@ export function readRecentCards(limit = 8): CardListItem[] {
       `SELECT ${CARD_LIST_COLUMNS} FROM cards
        WHERE opening_date_sort IS NOT NULL
        ORDER BY opening_date_sort DESC, id ASC
+       LIMIT ?`
+    )
+    .all(limit) as Record<string, unknown>[];
+  return rows.map(rowToCardListItem);
+}
+
+/** Card count per print run (`serial_total`), for the rarity tiers. */
+export function readPrintRunCounts(): PrintRunCountRow[] {
+  const rows = getDb()
+    .prepare(
+      `SELECT serial_total, COUNT(*) as count
+       FROM cards
+       WHERE serial_total IS NOT NULL AND serial_total > 0
+       GROUP BY serial_total`
+    )
+    .all() as { serial_total: number; count: number }[];
+  return rows.map((row) => ({
+    serialTotal: Number(row.serial_total),
+    count: Number(row.count),
+  }));
+}
+
+/** Numbered cards (1/1 excluded) that are #1 of their run, and the last of their run. */
+export function readSpecialSerialCounts(): { first: number; last: number } {
+  const row = getDb()
+    .prepare(
+      `SELECT
+        COALESCE(SUM(CASE WHEN serial_current = 1 THEN 1 ELSE 0 END), 0) as first,
+        COALESCE(SUM(CASE WHEN serial_current = serial_total THEN 1 ELSE 0 END), 0) as last
+       FROM cards
+       WHERE serial_total > 1`
+    )
+    .get() as { first: number; last: number };
+  return { first: Number(row.first), last: Number(row.last) };
+}
+
+/** Numbered cards with the smallest print run first (ties: lowest serial, then player). */
+export function readRarestCards(limit = 10): CardListItem[] {
+  const rows = getDb()
+    .prepare(
+      `SELECT ${CARD_LIST_COLUMNS} FROM cards
+       WHERE serial_total IS NOT NULL AND serial_total > 0
+       ORDER BY serial_total ASC, serial_current ASC, player COLLATE NOCASE ASC, id ASC
        LIMIT ?`
     )
     .all(limit) as Record<string, unknown>[];

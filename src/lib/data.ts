@@ -9,6 +9,7 @@ import {
   type CardsPageResult,
   type CollectionStats,
   type DashboardChartData,
+  type RarityStats,
   type DuplicateCardGroup,
   type PlayerCardGroup,
   type PlayerPageSummary,
@@ -43,6 +44,9 @@ import {
   queryCardsPage,
   readCardById,
   readAcquisitionTimeline,
+  readPrintRunCounts,
+  readRarestCards,
+  readSpecialSerialCounts,
   readSpendingByMonth,
   readSpendingGroups,
   readCardCountsByBrand,
@@ -83,6 +87,7 @@ import {
   chartDataWithCards,
   referenceBrandSets,
   buildSetChartData,
+  buildPrintRunTierData,
 } from "./dashboard-chart-data";
 import {
   CARD_CSV_MAX_ROWS,
@@ -208,6 +213,17 @@ export function getDashboardChartData(
     playerData: playerCounts,
     acquisitionData,
     leagueData,
+  };
+}
+
+/** Rarity stats for the dashboard: print-run tiers, #1 / last-of-run counts, rarest cards. */
+export function getRarityStats(rarestLimit = 10): RarityStats {
+  const { first, last } = readSpecialSerialCounts();
+  return {
+    tiers: buildPrintRunTierData(readPrintRunCounts()),
+    firstOfRun: first,
+    lastOfRun: last,
+    rarest: readRarestCards(rarestLimit),
   };
 }
 
@@ -344,6 +360,9 @@ const EMPTY_COLLECTION_QUERY: CollectionListQuery = {
   set: "",
   variation: "",
   tags: [],
+  serialMin: null,
+  serialMax: null,
+  serialPosition: "",
   page: 1,
   pageSize: 50,
   sort: "player",

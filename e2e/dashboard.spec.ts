@@ -23,6 +23,8 @@ test.beforeAll(async ({ playwright }) => {
     { player: `Dash Three ${token}`, brand, set: sharedSet },
     { player: `Dash Four ${token}`, brand, set: soloSet },
     { player: `Dash Five ${token}`, brand: otherBrand, set: sharedSet },
+    { player: `Dash Unique ${token}`, serialNumber: "1/1" },
+    { player: `Dash First ${token}`, serialNumber: "1/50" },
   ]);
   await api.dispose();
 });
@@ -79,4 +81,44 @@ test("cards by year drills down to the season", async ({ page }) => {
 
   await bar.click();
   await expectCollection(page, { year }, count);
+});
+
+test("rarity: print-run tier, 1/1 and #1 tiles and rarest card open the right cards (#304)", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.getByText(t("dashboard.rarity.byPrintRun"))).toBeVisible();
+
+  // Other tests share the database: read the 1/1 count from the bar itself.
+  const bar = page.getByRole("link", {
+    name: new RegExp(`^1/1 - \\d+ ${t("common.cardsLabel")}$`),
+  });
+  const label = (await bar.getAttribute("aria-label")) ?? "";
+  const count = Number(label.match(/ - (\d+) /)?.[1]);
+  expect(count).toBeGreaterThanOrEqual(1);
+  await bar.click();
+  await expectCollection(page, { serialMin: "1", serialMax: "1" }, count);
+  await expect(page.locator("table tbody")).toContainText(`Dash Unique ${token}`);
+  await expect(page.getByText(t("cards.activePrintRun", { value: "1/1" }))).toBeVisible();
+
+  // The dedicated 1/1 tile opens the same cards as the 1/1 bar.
+  await page.goto("/");
+  await page
+    .getByRole("link", { name: new RegExp(t("dashboard.rarity.oneOfOneHint")) })
+    .click();
+  await expectCollection(page, { serialMin: "1", serialMax: "1" }, count);
+
+  await page.goto("/");
+  await page.getByRole("link", { name: new RegExp(t("dashboard.rarity.firstOfRun")) }).click();
+  await expect(page).toHaveURL(/serialPosition=first/);
+  await expect(page.locator("table tbody")).toContainText(`Dash First ${token}`);
+  await expect(page.locator("table tbody")).not.toContainText(`Dash Unique ${token}`);
+
+  await page.goto("/");
+  await page
+    .getByRole("button", {
+      name: t("dashboard.rarity.openCard", { player: `Dash Unique ${token}`, serial: "1/1" }),
+    })
+    .click();
+  await expect(page.getByRole("dialog")).toContainText(`Dash Unique ${token}`);
 });
